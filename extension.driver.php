@@ -3,10 +3,11 @@
 	Copyight: Deux Huit Huit 2014
 	LICENCE: MIT http://deuxhuithuit.mit-license.org;
 	*/
-
+	
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
-
-
+	
+	require_once(EXTENSIONS . '/entry_relationship_field/fields/field.entry_relationship.php');
+	
 	/**
 	 *
 	 * @author Deux Huit Huit
@@ -71,7 +72,7 @@
 		 * Creates the table needed for the settings of the field
 		 */
 		public function install() {
-			return true;
+			return FieldEntry_relationship::createFieldTable();
 
 		}
 
@@ -87,7 +88,7 @@
 		 * Drops the table needed for the settings of the field
 		 */
 		public function uninstall() {
-			return true;
+			return FieldEntry_relationship::deleteFieldTable();
 		}
 
 	}

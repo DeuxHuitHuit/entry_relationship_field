@@ -224,6 +224,25 @@
 		}
 
 
+		/* ********* Utils *********** */
+		
+		public function getAllSections() {
+			$sections = SectionManager::fetch();
+			
+			return $sections;
+		}
+		
+		private function buildSectionSelect($name) {
+			$sections = $this->getSections();
+			$options = array();
+			
+			foreach ($sections as $section) {
+				$selected = strpos($d, $driver) > -1;
+				$options[] = array($driver, $selected);
+			}
+			
+			return Widget::Select($name, $options, array('multiple' => 'multiple'));
+		}
 
 
 		/* ********* UI *********** */

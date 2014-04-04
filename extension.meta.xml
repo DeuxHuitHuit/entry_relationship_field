@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="entry_relationship_field" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Entry Relationship Field</name>
+	<description>
+		A new way to create master-details pattern with Symphony's sections.
+	</description>
+	<repo type="github">https://github.com/DeuxHuitHuit/entry_relationship_field</repo>
+	<url type="discuss">https://github.com/DeuxHuitHuit/entry_relationship_field/issues</url>
+	<url type="issues">https://github.com/DeuxHuitHuit/entry_relationship_field/issues</url>
+	<types>
+		<type>Relationship</type>
+		<type>Field</type>
+		<type>Master</type>
+		<type>Detail</type>
+	</types>
+	<authors>
+		<author>
+			<name github="DeuxHuitHuit" symphony="nitriques" twitter="DeuxHuitHuit">Deux Huit Huit</name>
+			<website>http://www.deuxhuithuit.com</website>
+		</author>
+	</authors>
+	<dependencies>
+		<!-- None -->
+	</dependencies>
+	<releases>
+		<release version="1.0" date="TBA" min="2.4">
+			- First release
+		</release>
+	</releases>
+</extension>

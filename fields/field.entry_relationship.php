@@ -284,12 +284,12 @@
 		 * @param array $errors
 		 */
 		public function displaySettingsPanel(&$wrapper, $errors=NULL){
-
+			
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
-
 			
-
+			$this->appendStatusFooter($wrapper);
+			
 		}
 
 		/**

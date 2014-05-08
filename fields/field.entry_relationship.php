@@ -70,7 +70,7 @@
 
 
 		/**
-		 *
+		 * 
 		 * Validates input
 		 * Called before <code>processRawFieldData</code>
 		 * @param $data
@@ -126,7 +126,7 @@
 		 * @param array $settings
 		 *	the data array to initialize if necessary.
 		 */
-		public function setFromPOST(Array $settings = array()) {
+		public function setFromPOST(Array &$settings = array()) {
 
 			// call the default behavior
 			parent::setFromPOST($settings);
@@ -135,7 +135,9 @@
 			$new_settings = array();
 
 			// set new settings
-			//$new_settings['unique'] = 		( isset($settings['unique']) 		&& $settings['unique'] == 'on' ? 'yes' : 'no');
+			$new_settings['sections'] = is_array($settings['sections']) ? 
+				implode(',', $settings['sections']) : 
+				null;
 
 			// save it into the array
 			$this->setArray($new_settings);
@@ -171,10 +173,11 @@
 			if($id == false) return false;
 
 			// declare an array contains the field's settings
-			$settings = array();
+			$settings = array(
+				'sections' => $this->get('sections')
+			);
 
-			
-
+			return FieldManager::saveSettings($id, $settings);
 		}
 
 		/**
@@ -233,15 +236,32 @@
 		}
 		
 		private function buildSectionSelect($name) {
-			$sections = $this->getSections();
+			$sections = $this->getAllSections();
 			$options = array();
+			$selectedSections = $this->get('sections');
+			//var_dump($sections);die;
 			
 			foreach ($sections as $section) {
-				$selected = strpos($d, $driver) > -1;
-				$options[] = array($driver, $selected);
+				$driver = $section->get('handle');
+				$selected = strpos($selectedSections, $driver) !== false;
+				$options[] = array($driver, $selected, $section->get('name'));
 			}
 			
 			return Widget::Select($name, $options, array('multiple' => 'multiple'));
+		} 
+		
+		private function appendSelectionSelect(&$wrapper) {
+			$order = $this->get('sortorder');
+			$name = "fields[{$order}][sections][]";
+
+			$input = $this->buildSectionSelect($name);
+
+			$label = Widget::Label();
+			$label->setAttribute('class', 'column');
+
+			$label->setValue(__('Available sections %s', array($input->generate())));
+
+			$wrapper->appendChild($label);
 		}
 
 
@@ -288,6 +308,7 @@
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
 			
+			$this->appendSelectionSelect($wrapper);
 			$this->appendStatusFooter($wrapper);
 			
 		}
@@ -352,7 +373,7 @@
 				CREATE TABLE `tbl_entries_data_$id` (
 					`id` int(11) 		unsigned NOT NULL auto_increment,
 					`entry_id` 			int(11) unsigned NOT NULL,
-					`entries` 			varchar(128),
+					`entries` 			varchar(255),
 					PRIMARY KEY  (`id`),
 					UNIQUE KEY `entry_id` (`entry_id`)
 				)  ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -370,6 +391,7 @@
 				CREATE TABLE IF NOT EXISTS `$tbl` (
 					`id` 			int(11) unsigned NOT NULL auto_increment,
 					`field_id` 		int(11) unsigned NOT NULL,
+					`sections`		varchar(255) NULL,
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				)  ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

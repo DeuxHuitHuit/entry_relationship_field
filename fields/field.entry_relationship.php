@@ -270,7 +270,17 @@
 
 			$wrapper->appendChild($label);
 		}
+		
+		private function getEntries($ids) {
+			
+		}
 
+		private function createEntriesList($entries) {
+			$list = new XMLElement('ul');
+			$list->setAttribute('class', 'selection orderable');
+			
+			return $list;
+		}
 
 		/* ********* UI *********** */
 		
@@ -311,6 +321,8 @@
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
 			
+			$label->appendChild($this->createEntriesList(explode(self::ENTRIES_SEPARATOR, $this->get('entries'))));
+			
 			
 			// error management
 			if ($flagWithError != NULL) {
@@ -328,7 +340,6 @@
 		 * @return string - the html of the link
 		 */
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
-
 			
 			$textValue = $this->preparePlainTextValue($data, $entry_id);
 

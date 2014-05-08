@@ -11,14 +11,21 @@
 	 *
 	 */
 	class FieldEntry_relationship extends Field {
-
+		
 		/**
 		 *
 		 * Name of the field table
 		 * @var string
 		 */
 		const FIELD_TBL_NAME = 'tbl_fields_entry_relationship';
-
+		
+		/**
+		 * 
+		 * Separator char for the entries
+		 */
+		const ENTRIES_SEPARATOR = ',';
+		
+		
 		/**
 		 *
 		 * Constructor for the oEmbed Field object
@@ -108,7 +115,7 @@
 
 			$xml = array();
 
-			var_dump($data);die;
+			//var_dump($data);die;
 
 			
 
@@ -136,7 +143,7 @@
 
 			// set new settings
 			$new_settings['sections'] = is_array($settings['sections']) ? 
-				implode(',', $settings['sections']) : 
+				implode(self::ENTRIES_SEPARATOR, $settings['sections']) : 
 				null;
 
 			// save it into the array
@@ -266,6 +273,22 @@
 
 
 		/* ********* UI *********** */
+		
+		/**
+		 *
+		 * Builds the UI for the field's settings when creating/editing a section
+		 * @param XMLElement $wrapper
+		 * @param array $errors
+		 */
+		public function displaySettingsPanel(&$wrapper, $errors=NULL){
+			
+			/* first line, label and such */
+			parent::displaySettingsPanel($wrapper, $errors);
+			
+			$this->appendSelectionSelect($wrapper);
+			$this->appendStatusFooter($wrapper);
+			
+		}
 
 		/**
 		 *
@@ -290,27 +313,11 @@
 			
 			
 			// error management
-			if($flagWithError != NULL) {
+			if ($flagWithError != NULL) {
 				$wrapper->appendChild(Widget::wrapFormElementWithError($label, $flagWithError));
 			} else {
 				$wrapper->appendChild($label);
 			}
-		}
-		
-		/**
-		 *
-		 * Builds the UI for the field's settings when creating/editing a section
-		 * @param XMLElement $wrapper
-		 * @param array $errors
-		 */
-		public function displaySettingsPanel(&$wrapper, $errors=NULL){
-			
-			/* first line, label and such */
-			parent::displaySettingsPanel($wrapper, $errors);
-			
-			$this->appendSelectionSelect($wrapper);
-			$this->appendStatusFooter($wrapper);
-			
 		}
 
 		/**
@@ -324,22 +331,18 @@
 
 			
 			$textValue = $this->preparePlainTextValue($data, $entry_id);
-			$value = NULL;
 
-			
+			//var_dump($data);die;
 
 			// does this cell serve as a link ?
 			if (!!$link){
 				// if so, set our html as the link's value
-				$link->setValue($value);
+				$link->setValue($textValue);
 				$link->setAttribute('title', $textValue . ' | ' . $link->getAttribute('title'));
 
 			} else {
-				// if not, wrap our html with a external link to the resource url
-				$link = new XMLElement('a',
-					$value,
-					array('href' => $url, 'title' => $textValue)
-				);
+				// if not, use a span
+				$link = new XMLElement('span', $textValue);
 			}
 
 			// returns the link's html code
@@ -353,7 +356,11 @@
 		 * @param int $entry_id
 		 */
 		public function preparePlainTextValue($data, $entry_id = null) {
-			return 'todo';
+			if ($entry_id == null || empty($data)) {
+				return __('None');
+			}
+			$entries = explode(self::ENTRIES_SEPARATOR, $data['sections']);
+			return __('%s items', array(count($entries)));
 		}
 
 

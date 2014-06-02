@@ -6,7 +6,6 @@
 /**
  * CSS for entry relationship field
  */
-
 .field.field-entry_relationship {
 	
 }
@@ -27,4 +26,25 @@
 .field.field-entry_relationship > .single > div {
 	width: 200px;
 	display: inline-block;
+}
+
+
+/**
+ * CSS for entry relationship field iframe
+ */
+#entry-relationship-ctn {
+	
+}
+
+
+/**
+ * CSS for entry relationship field page customization
+ */
+body.entry_relationship {
+	
+}
+
+body.entry_relationship #save-and-new, 
+body.entry_relationship #save-and-return {
+	display: none;
 }

@@ -309,8 +309,8 @@
 			$selectWrap->appendChild($select);
 			
 			$wrap->appendChild($selectWrap);
-			$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button')));
-			$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button')));
+			$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button', 'class' => 'create')));
+			$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button', 'class' => 'link')));
 			
 			return $wrap;
 		}

@@ -12,9 +12,31 @@
 	
 	'use strict';
 	
+	var body = $();
+	
+	var removeUI = function () {
+		body.addClass('entry_relationship');
+		S.Elements.header.detach();
+		S.Elements.context.detach();
+	};
+	
+	var appendUI = function () {
+		var ctn = $('<div id="entry-relationship-ctn" />');
+		body.append(ctn);
+		
+		
+	};
+	
 	var init = function () {
-		if ($('body').attr('id') === 'publish') {
-			
+		body = $('body');
+		if (body.attr('id') === 'publish') {
+			if (window.location.toString().indexOf('entry-relationship=1') !== -1) {
+				if (!!window.top) {
+					removeUI();
+				}
+			} else {
+				appendUI();
+			}
 		}
 	};
 	
@@ -27,8 +49,43 @@
 	
 	'use strict';
 	
-	var init = function () {
+	var doc = $(document);
+	
+	var baseurl = function () {
+		return S.Context.get('symphony');
+	};
+	
+	var createPublishUrl = function (handle, action) {
+		var url = baseurl() + '/publish/' + handle + '/';
+		if (!!action) {
+			url += action + '/';
+		}
+		url += '?entry-relationship=1';
+	};
+	
+	var openIframe = function () {
 		
+	};
+	
+	var initOne = function (index, t) {
+		t  = $(t);
+		
+		
+		var btnCreateClick = function (e) {
+			
+		};
+		
+		var btnLinkClick = function (e) {
+			
+		};
+		
+		t.find('button.create').click(btnCreateClick);
+		t.find('button.link').click(btnLinkClick);
+	};
+	
+	var init = function () {
+		//doc.on('*.entry-relationship', processEvent);
+		S.Elements.contents.find('.field.field-entry_relationship').each(initOne);
 	};
 	
 	$(init);

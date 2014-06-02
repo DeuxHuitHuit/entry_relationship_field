@@ -47,17 +47,17 @@
 			// store the callback array locally
 			$c = Administration::instance()->getPageCallback();
 			
-			// extension page
-			if($c['driver'] == '') {
+			// publish page
+			if($c['driver'] == 'publish') {
 
 				Administration::instance()->Page->addStylesheetToHead(
-					URL . '/extensions/entry_relationship_field/assets/entry_relationship_field.css',
+					URL . '/extensions/entry_relationship_field/assets/publish.entry_relationship_field.css',
 					'screen',
 					time() + 1,
 					false
 				);
 				Administration::instance()->Page->addScriptToHead(
-					URL . '/extensions/entry_relationship_field/assets/entry_relationship_field.js',
+					URL . '/extensions/entry_relationship_field/assets/publish.entry_relationship_field.js',
 					time(),
 					false
 				);

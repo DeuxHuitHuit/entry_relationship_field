@@ -40,8 +40,12 @@
 			$this->_required = true;
 			// permits the make it show in the table columns
 			$this->_showcolumn = true;
+			// permits association
+			$this->_showassociation = true;
 			// set as not required by default
 			$this->set('required', 'no');
+			// show association by default
+			$this->set('show_association', 'yes');
 		}
 
 		public function isSortable(){
@@ -88,7 +92,7 @@
 			$message = NULL;
 			$required = ($this->get('required') == 'yes');
 			
-			if ($required && strlen($data) == 0){
+			if ($required && (strlen($data) == 0 || count($data) == 0)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
 				return self::__MISSING_FIELDS__;
 			}
@@ -145,7 +149,9 @@
 			$new_settings['sections'] = is_array($settings['sections']) ? 
 				implode(self::ENTRIES_SEPARATOR, $settings['sections']) : 
 				null;
-
+				
+			$new_settings['show_association'] = $settings['show_association'] == 'yes' ? 'yes' : 'no';
+			
 			// save it into the array
 			$this->setArray($new_settings);
 		}
@@ -181,7 +187,8 @@
 
 			// declare an array contains the field's settings
 			$settings = array(
-				'sections' => $this->get('sections')
+				'sections' => $this->get('sections'),
+				'show_association' => $this->get('show_association')
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -236,20 +243,23 @@
 
 		/* ********* Utils *********** */
 		
-		public function getAllSections() {
-			$sections = SectionManager::fetch();
-			
-			return $sections;
+		public function createSettingsFieldName($name, $multiple = false) {
+			$order = $this->get('sortorder');
+			$name = "fields[$order][$name]";
+			if ($multiple) {
+				$name .= '[]';
+			}
+			return $name;
 		}
 		
 		private function buildSectionSelect($name) {
-			$sections = $this->getAllSections();
+			$sections = SectionManager::fetch();
 			$options = array();
 			$selectedSections = $this->get('sections');
 			//var_dump($sections);die;
 			
 			foreach ($sections as $section) {
-				$driver = $section->get('handle');
+				$driver = $section->get('id');
 				$selected = strpos($selectedSections, $driver) !== false;
 				$options[] = array($driver, $selected, $section->get('name'));
 			}
@@ -258,8 +268,7 @@
 		} 
 		
 		private function appendSelectionSelect(&$wrapper) {
-			$order = $this->get('sortorder');
-			$name = "fields[{$order}][sections][]";
+			$name = $this->createSettingsFieldName('sections', true);
 
 			$input = $this->buildSectionSelect($name);
 
@@ -270,16 +279,40 @@
 
 			$wrapper->appendChild($label);
 		}
-		
-		private function getEntries($ids) {
-			
-		}
 
 		private function createEntriesList($entries) {
-			$list = new XMLElement('ul');
-			$list->setAttribute('class', 'selection orderable');
+			$wrap = new XMLElement('div');
+			$wrap->setAttribute('class', 'frame' . (count($entries) != 0 ? '' : ' empty'));
 			
-			return $list;
+			$list = new XMLElement('ul');
+			$list->setAttribute('class', 'orderable');
+			
+			foreach ($entries as $entry) {
+				
+			}
+			
+			$wrap->appendChild($list);
+			
+			return $wrap;
+		}
+		
+		private function createPublishMenu($sections) {
+			$wrap = new XMLElement('fieldset');
+			$wrap->setAttribute('class', 'single');
+			
+			$options = array();
+			foreach ($sections as $section) {
+				$options[] = array($section->get('handle'), false, $section->get('name'));
+			}
+			$select = Widget::Select('', $options, array());
+			$selectWrap = new XMLElement('div');
+			$selectWrap->appendChild($select);
+			
+			$wrap->appendChild($selectWrap);
+			$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button')));
+			$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button')));
+			
+			return $wrap;
 		}
 
 		/* ********* UI *********** */
@@ -290,12 +323,24 @@
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(&$wrapper, $errors=NULL){
+		public function displaySettingsPanel(&$wrapper, $errors=NULL)
+		{
 			
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
 			
-			$this->appendSelectionSelect($wrapper);
+			$fieldset = new XMLElement('fieldset');
+			$options = new XMLElement('div');
+			$options->setAttribute('class', 'column');
+			
+			// sections
+			$this->appendSelectionSelect($fieldset);
+			
+			$this->appendShowAssociationCheckbox($options);
+			$fieldset->appendChild($options);
+			$wrapper->appendChild($fieldset);
+			
+			// footer
 			$this->appendStatusFooter($wrapper);
 			
 		}
@@ -309,11 +354,27 @@
 		 * @param string $fieldnamePrefix
 		 * @param string $fieldnamePostfix
 		 */
-		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null) {
+		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null)
+		{
 			
 			$isRequired = $this->get('required') == 'yes';
 			
 			$value = '';
+			$entries = array();
+			$entriesId = array();
+			$sectionsId = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
+			
+			if ($this->get('entries') != null) {
+				$entriesId = explode(self::ENTRIES_SEPARATOR, $this->get('entries'));
+				if ($entriesId != null && count($entriesId) > 0) {
+					$entriesId = array_map(intval, $entriesId);
+					$entries = EntryManager::fetch($entriesId);
+				}
+			}
+			
+			$sectionsId = array_map(intval, $sectionsId);
+			$sections = SectionManager::fetch($sectionsId);
+			
 			$label = Widget::Label($this->get('label'));
 			
 			// not required label
@@ -321,15 +382,16 @@
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
 			
-			$label->appendChild($this->createEntriesList(explode(self::ENTRIES_SEPARATOR, $this->get('entries'))));
 			
-			
-			// error management
+			// label error management
 			if ($flagWithError != NULL) {
 				$wrapper->appendChild(Widget::wrapFormElementWithError($label, $flagWithError));
 			} else {
 				$wrapper->appendChild($label);
 			}
+			
+			$wrapper->appendChild($this->createEntriesList($entries));
+			$wrapper->appendChild($this->createPublishMenu($sections));
 		}
 
 		/**
@@ -389,12 +451,12 @@
 
 			return Symphony::Database()->query("
 				CREATE TABLE `tbl_entries_data_$id` (
-					`id` int(11) 		unsigned NOT NULL auto_increment,
+					`id` int(11) 		unsigned NOT NULL AUTO_INCREMENT,
 					`entry_id` 			int(11) unsigned NOT NULL,
-					`entries` 			varchar(255),
+					`entries` 			varchar(255) COLLATE utf8_unicode_ci NULL,
 					PRIMARY KEY  (`id`),
 					UNIQUE KEY `entry_id` (`entry_id`)
-				)  ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			");
 		}
 
@@ -407,12 +469,13 @@
 
 			return Symphony::Database()->query("
 				CREATE TABLE IF NOT EXISTS `$tbl` (
-					`id` 			int(11) unsigned NOT NULL auto_increment,
+					`id` 			int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`field_id` 		int(11) unsigned NOT NULL,
-					`sections`		varchar(255) NULL,
+					`sections`		varchar(255) COLLATE utf8_unicode_ci NULL,
+					`show_association` enum('yes','no') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
-				)  ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			");
 		}
 		

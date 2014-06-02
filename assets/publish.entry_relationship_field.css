@@ -1,0 +1,30 @@
+/*
+	Copyright: Deux Huit Huit 2014
+	License: MIT, see the LICENCE file
+*/
+
+/**
+ * CSS for entry relationship field
+ */
+
+.field.field-entry_relationship {
+	
+}
+
+.field.field-entry_relationship > .frame {
+	margin: 0;
+}
+
+.field.field-entry_relationship > .single {
+	text-align: right;
+}
+
+.field.field-entry_relationship > .single > button {
+	margin-right: 0px;
+	margin-left: 1rem;
+}
+
+.field.field-entry_relationship > .single > div {
+	width: 200px;
+	display: inline-block;
+}

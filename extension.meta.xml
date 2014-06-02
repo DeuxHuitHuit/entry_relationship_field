@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="entry_relationship_field" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
-	<name>Entry Relationship Field</name>
+	<name>Field: Entry Relationship</name>
 	<description>
 		A new way to create master-details pattern with Symphony's sections.
 	</description>

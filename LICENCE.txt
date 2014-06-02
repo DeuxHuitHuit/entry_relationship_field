@@ -1,5 +1,5 @@
 All source code included in this Symphony Extension
-archive is, unless otherwise specified, released under the MIT license as
+is, unless otherwise specified, released under the MIT license as
 follows:
 
 ----- begin license block -----

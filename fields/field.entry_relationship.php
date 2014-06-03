@@ -92,7 +92,7 @@
 			$message = NULL;
 			$required = ($this->get('required') == 'yes');
 			
-			if ($required && (strlen($data) == 0 || count($data) == 0)) {
+			if ($required && (!is_array($data) == 0 || count($data) == 0 || strlen($data['entries']) < 1)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
 				return self::__MISSING_FIELDS__;
 			}
@@ -114,17 +114,11 @@
 		 */
 		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null) {
 			$status = self::__OK__;
-
-			$errorFlag = false;
-
-			$xml = array();
-
-			//var_dump($data);die;
-
 			
-
+			$entries = $data['entries'];
+			
 			$row = array(
-				
+				'entries' => $entries
 			);
 
 			// return row
@@ -163,8 +157,6 @@
 		 */
 		public function checkFields(Array &$errors, $checkForDuplicates) {
 			parent::checkFields($errors, $checkForDuplicates);
-
-			
 
 			return (!empty($errors) ? self::__ERROR__ : self::__OK__);
 		}
@@ -243,13 +235,20 @@
 
 		/* ********* Utils *********** */
 		
-		public function createSettingsFieldName($name, $multiple = false) {
-			$order = $this->get('sortorder');
-			$name = "fields[$order][$name]";
+		private function createFieldName($prefix, $name, $multiple = false) {
+			$name = "fields[$prefix][$name]";
 			if ($multiple) {
 				$name .= '[]';
 			}
 			return $name;
+		}
+		
+		private function createSettingsFieldName($name, $multiple = false) {
+			return $this->createFieldName($this->get('sortorder'), $name, $multiple);
+		}
+		
+		private function createPublishFieldName($name, $multiple = false) {
+			return $this->createFieldName($this->get('element_name'), $name, $multiple);
 		}
 		
 		private function buildSectionSelect($name) {
@@ -296,6 +295,16 @@
 			return $wrap;
 		}
 		
+		private function createEntriesHiddenInput($entries) {
+			$hidden = new XMLElement('input', null, array(
+				'type' => 'hidden',
+				'name' => $this->createPublishFieldName('entries'),
+				'value' => $this->get('entries')
+			));
+			
+			return $hidden;
+		}
+		
 		private function createPublishMenu($sections) {
 			$wrap = new XMLElement('fieldset');
 			$wrap->setAttribute('class', 'single');
@@ -304,7 +313,7 @@
 			foreach ($sections as $section) {
 				$options[] = array($section->get('handle'), false, $section->get('name'));
 			}
-			$select = Widget::Select('', $options, array());
+			$select = Widget::Select('', $options, array('class' => 'sections'));
 			$selectWrap = new XMLElement('div');
 			$selectWrap->appendChild($select);
 			
@@ -382,16 +391,16 @@
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
 			
-			
 			// label error management
 			if ($flagWithError != NULL) {
-				$wrapper->appendChild(Widget::wrapFormElementWithError($label, $flagWithError));
+				$wrapper->appendChild(Widget::Error($label, $flagWithError));
 			} else {
 				$wrapper->appendChild($label);
 			}
 			
 			$wrapper->appendChild($this->createEntriesList($entries));
 			$wrapper->appendChild($this->createPublishMenu($sections));
+			$wrapper->appendChild($this->createEntriesHiddenInput($entries));
 		}
 
 		/**

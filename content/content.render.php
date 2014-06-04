@@ -52,7 +52,7 @@
 				} else {
 					$entry = $entry[0];
 					
-					$li = new XMLElement('li');
+					$li = new XMLElement('li', null, array('data-entry-id' => $entryId));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');
 					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry)));

@@ -19,27 +19,36 @@
 	var QUERY_PARAM = '?entry-relationship=1';
 	
 	var removeUI = function () {
+		var parent = window.parent.Symphony.Extensions.EntryRelationship;
+		
 		body.addClass('entry_relationship');
 		S.Elements.header.detach();
 		S.Elements.contents.find('table th:not([id])').remove();
 		S.Elements.contents.find('table td:not([class])').remove();
+		S.Elements.context.find('#drawer-filtering').remove();
 		var btnClose = $('<button />').attr('type', 'button').text('Close').click(function (e) {
-			window.parent.Symphony.Extensions.EntryRelationship.hide();
+			parent.hide();
 		});
-		S.Elements.wrapper.find('.actions').empty().filter(function () {
+		S.Elements.wrapper.find('.actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
-		}).append(btnClose);
+		}).empty().append(btnClose);
 		var form = Symphony.Elements.contents.find('form');
 		form.attr('action', form.attr('action') + QUERY_PARAM);
 		form.find('td:first-child a').click(function (e) {
 			e.preventDefault();
 			
-			var entryId = $(this).closest('tr').attr('id');
+			var entryId = $(this).closest('tr').attr('id').replace('id-', '');
 			
-			window.parent.Symphony.Extensions.EntryRelationship.link(entryId);
+			parent.link(entryId);
+			parent.hide();
 			
 			return false;
 		});
+		if (!!parent) {
+			$.each(parent.current.values(), function (index, value) {
+				form.find('#id-' + value).addClass('inactive');
+			});
+		}
 	};
 	
 	var appendUI = function () {
@@ -54,7 +63,7 @@
 	};
 	
 	var defineExternals = function () {
-		S.Extensions.EntryRelationship = {
+		var self = {
 			QUERY_PARAM: QUERY_PARAM,
 			hide: function () {
 				ctn.find('.iframe').fadeOut(300, function () {
@@ -76,9 +85,18 @@
 				html.addClass('no-scroll');
 			},
 			link: function (entryId) {
-				
-			}
+				if (!self.current) {
+					console.error('Parent not found.');
+					return;
+				}
+				self.current.link(entryId);
+			},
+			instances: {},
+			current: null
 		};
+		
+		// export
+		S.Extensions.EntryRelationship = self;
 	};
 	
 	var init = function () {
@@ -110,6 +128,8 @@
 	
 	var doc = $(document);
 	
+	var instances = {};
+	
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
@@ -123,25 +143,107 @@
 		return url;
 	};
 	
+	var CONTENTPAGES = '/extension/entry_relationship_field/';
+	var RENDER = baseurl() + CONTENTPAGES +'render/';
+	
+	var renderurl = function (value) {
+		return RENDER + value + '/';
+	};
+	
 	var openIframe = function (handle, action) {
 		S.Extensions.EntryRelationship.show(createPublishUrl(handle, action));
 	};
 	
 	var initOne = function (index, t) {
 		t  = $(t);
+		var id = t.attr('id');
 		var sections = t.find('select.sections');
 		var hidden = t.find('input[type="hidden"]');
+		var frame = t.find('.frame');
+		var list = frame.find('ul');
+		var values = function () {
+			var val = hidden.val() || '';
+			return val.split(',');
+		};
+		var self = {
+			link: function (entryId) {
+				var val = values();
+				var found = false;
+				
+				for (var x = 0; x < val.length; x++) {
+					if (!val[x]) {
+						val.splice(x, 1);
+					} if (val[x] === entryId) {
+						found = true;
+						break;
+					}
+				}
+				
+				if (!found) {
+					val.push(entryId);
+					hidden.val(val.join(','));
+					render(hidden.val());
+				}
+			},
+			unlink: function (entryId) {
+				var val = values();
+				
+				for (var x = 0; x < val.length; x++) {
+					if (!val[x] || val[x] === entryId) {
+						val.splice(x, 1);
+					}
+				}
+				
+				render(hidden.val());
+			},
+			values: values
+		};
+		
+		var isRendering = false;
+		
+		var render = function () {
+			if (isRendering) {
+				return;
+			}
+			isRendering = true;
+			$.get(renderurl(hidden.val())).done(function (data) {
+				var li = $(data).find('li');
+				var fx = !li.length ? 'addClass' : 'removeClass';
+				
+				list.empty().append(li);
+				frame[fx]('empty');
+				
+			}).always(function () {
+				isRendering = false;
+			});
+		};
+		
+		var syncCurrent = function () {
+			S.Extensions.EntryRelationship.current = self;
+		};
 		
 		var btnCreateClick = function (e) {
+			syncCurrent();
 			openIframe(sections.val(), 'new');
 		};
 		
 		var btnLinkClick = function (e) {
+			syncCurrent();
 			openIframe(sections.val());
 		};
 		
 		t.find('button.create').click(btnCreateClick);
 		t.find('button.link').click(btnLinkClick);
+		
+		if (sections.find('option').length < 2) {
+			sections.hide();
+		}
+		
+		// render
+		render();
+		
+		// export
+		S.Extensions.EntryRelationship.instances[id] = self;
 	};
 	
 	var init = function () {

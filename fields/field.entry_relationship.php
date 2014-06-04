@@ -1,4 +1,8 @@
 <?php
+	/*
+	Copyright: Deux Huit Huit 2014
+	LICENCE: MIT http://deuxhuithuit.mit-license.org;
+	*/
 
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
@@ -92,7 +96,7 @@
 			$message = NULL;
 			$required = ($this->get('required') == 'yes');
 			
-			if ($required && (!is_array($data) == 0 || count($data) == 0 || strlen($data['entries']) < 1)) {
+			if ($required && (!is_array($data) || count($data) == 0 || strlen($data['entries']) < 1)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
 				return self::__MISSING_FIELDS__;
 			}
@@ -281,10 +285,10 @@
 
 		private function createEntriesList($entries) {
 			$wrap = new XMLElement('div');
-			$wrap->setAttribute('class', 'frame' . (count($entries) != 0 ? '' : ' empty'));
+			$wrap->setAttribute('class', 'frame collapsible orderable' . (count($entries) > 0 ? '' : ' empty'));
 			
 			$list = new XMLElement('ul');
-			$list->setAttribute('class', 'orderable');
+			$list->setAttribute('class', '');
 			
 			foreach ($entries as $entry) {
 				
@@ -295,11 +299,11 @@
 			return $wrap;
 		}
 		
-		private function createEntriesHiddenInput($entries) {
+		private function createEntriesHiddenInput($data) {
 			$hidden = new XMLElement('input', null, array(
 				'type' => 'hidden',
 				'name' => $this->createPublishFieldName('entries'),
-				'value' => $this->get('entries')
+				'value' => $data['entries']
 			));
 			
 			return $hidden;
@@ -369,16 +373,12 @@
 			$isRequired = $this->get('required') == 'yes';
 			
 			$value = '';
-			$entries = array();
 			$entriesId = array();
 			$sectionsId = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
 			
-			if ($this->get('entries') != null) {
-				$entriesId = explode(self::ENTRIES_SEPARATOR, $this->get('entries'));
-				if ($entriesId != null && count($entriesId) > 0) {
-					$entriesId = array_map(intval, $entriesId);
-					$entries = EntryManager::fetch($entriesId);
-				}
+			if ($data['entries'] != null) {
+				$entriesId = explode(self::ENTRIES_SEPARATOR, $data['entries']);
+				$entriesId = array_map(intval, $entriesId);
 			}
 			
 			$sectionsId = array_map(intval, $sectionsId);
@@ -398,9 +398,10 @@
 				$wrapper->appendChild($label);
 			}
 			
-			$wrapper->appendChild($this->createEntriesList($entries));
+			$wrapper->appendChild($this->createEntriesList($entriesId));
 			$wrapper->appendChild($this->createPublishMenu($sections));
-			$wrapper->appendChild($this->createEntriesHiddenInput($entries));
+			$wrapper->appendChild($this->createEntriesHiddenInput($data));
+			$wrapper->setAttribute('data-value', $data['entries']);
 		}
 
 		/**
@@ -420,8 +421,6 @@
 			if (!!$link){
 				// if so, set our html as the link's value
 				$link->setValue($textValue);
-				$link->setAttribute('title', $textValue . ' | ' . $link->getAttribute('title'));
-
 			} else {
 				// if not, use a span
 				$link = new XMLElement('span', $textValue);
@@ -441,8 +440,14 @@
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
-			$entries = explode(self::ENTRIES_SEPARATOR, $data['sections']);
-			return __('%s items', array(count($entries)));
+			$entries = explode(self::ENTRIES_SEPARATOR, $data['entries']);
+			$count = count($entries);
+			if ($count == 0) {
+				return __('No item');
+			} else if ($count == 1) {
+				return __('1 item');
+			}
+			return __('%s items', array($count));
 		}
 
 

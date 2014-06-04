@@ -42,8 +42,6 @@
 				return;
 			}
 			
-			
-			
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from
 			// passing an array of entryId.
@@ -53,14 +51,11 @@
 					$this->_Result->appendChild(new XMLElement('li', __('Entry %s not found', array($entryId))));
 				} else {
 					$entry = $entry[0];
-					$data = $entry->getData();
-					$dataKeys = array_keys($data);
-					$field = FieldManager::fetch($dataKeys[0]);
 					
 					$li = new XMLElement('li');
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');
-					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($field, $entry)));
+					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry)));
 					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
 					$header->appendChild($title);
 					$header->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'destructor')));
@@ -74,6 +69,9 @@
 				}
 				
 			}
+			
+			// clean up
+			$this->sectionCache = null;
 		}
 		
 		public function getSectionName($entry) {
@@ -86,11 +84,14 @@
 			return $this->sectionCache[$sectionId]->get('name');
 		}
 		
-		public function getEntryTitle($field, $entry) {
-			return trim(strip_tags($field->prepareTableValue($entry->getData($field->get('id')), NULL, $entry->get('id'))));
+		public function getEntryTitle($entry) {
+			$data = $entry->getData();
+			$dataKeys = array_keys($data);
+			$field = FieldManager::fetch($dataKeys[0]);
+			return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
 		}
 		
 		public function appendContent(&$content, $entry) {
-			
+			$data = $entry->getData();
 		}
 	}

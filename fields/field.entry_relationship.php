@@ -180,7 +180,18 @@
 
 			// exit if there is no id
 			if($id == false) return false;
-
+			
+			// create association
+			// NOT WORKING !!
+			/*SectionManager::removeSectionAssociation($id);
+			$sections = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
+			foreach ($sections as $key => $sectionId) {
+				$fields = SectionManager::fetch($sectionId)->fetchFields();
+				$fieldId = array_keys($fields);
+				$fieldId = $fieldId[0];
+				SectionManager::createSectionAssociation($sectionId, $id, $fieldId, $this->get('show_association') == 'yes');
+			}*/
+			
 			// declare an array contains the field's settings
 			$settings = array(
 				'sections' => $this->get('sections'),
@@ -216,7 +227,9 @@
 		}
 
 
-
+		public function fetchAssociatedEntryCount($value) {
+			var_dump($value);die;
+		}
 
 		/* ******* DATA SOURCE ******* */
 

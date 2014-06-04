@@ -238,11 +238,18 @@
 		
 		t.find('button.create').click(btnCreateClick);
 		t.find('button.link').click(btnLinkClick);
-		t.on('click', 'a.destructor', function (e) {
+		t.on('click', 'a.unlink', function (e) {
 			var li = $(this).closest('li');
 			var id = li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
+		});
+		t.on('click', 'a.edit', function (e) {
+			syncCurrent();
+			var li = $(this).closest('li');
+			var id = li.attr('data-entry-id');
+			var section = li.attr('data-section');
+			openIframe(section, 'edit/' + id + '/');
 		});
 		
 		if (sections.find('option').length < 2) {

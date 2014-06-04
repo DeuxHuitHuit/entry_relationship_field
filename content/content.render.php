@@ -52,13 +52,19 @@
 				} else {
 					$entry = $entry[0];
 					
-					$li = new XMLElement('li', null, array('data-entry-id' => $entryId));
+					$li = new XMLElement('li', null, array(
+						'data-entry-id' => $entryId,
+						'data-section' => $this->getSectionName($entry, 'handle')
+					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');
 					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry)));
 					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
 					$header->appendChild($title);
-					$header->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'destructor')));
+					$options = new XMLElement('div', null, array('class' => 'destructor'));
+					$options->appendChild(new XMLElement('a', __('Edit'), array('class' => 'edit')));
+					$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					$header->appendChild($options);
 					$li->appendChild($header);
 					
 					$content = new XMLElement('div', null, array('class' => 'content'));
@@ -74,14 +80,14 @@
 			$this->sectionCache = null;
 		}
 		
-		public function getSectionName($entry) {
+		public function getSectionName($entry, $name = 'name') {
 			$sectionId = $entry->get('section_id');
 			
 			if (!isset($this->sectionCache[$sectionId])) {
 				$this->sectionCache[$sectionId] = SectionManager::fetch($sectionId);
 			}
 			
-			return $this->sectionCache[$sectionId]->get('name');
+			return $this->sectionCache[$sectionId]->get($name);
 		}
 		
 		public function getEntryTitle($entry) {

@@ -16,10 +16,16 @@
 	var html = $('html');
 	var body = $();
 	var ctn = $();
-	var QUERY_PARAM = '?entry-relationship=1';
 	
 	var removeUI = function () {
 		var parent = window.parent.Symphony.Extensions.EntryRelationship;
+		
+		if (window.location.toString().indexOf('/saved/') !== -1 || 
+			window.location.toString().indexOf('/created/') !== -1) {
+			parent.link(Symphony.Context.get('env').entry_id);
+			parent.hide();
+			return;
+		}
 		
 		body.addClass('entry_relationship');
 		S.Elements.header.detach();
@@ -33,7 +39,7 @@
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);
 		var form = Symphony.Elements.contents.find('form');
-		form.attr('action', form.attr('action') + QUERY_PARAM);
+		//form.attr('action', window.location.toString());
 		form.find('td:first-child a').click(function (e) {
 			e.preventDefault();
 			
@@ -64,7 +70,6 @@
 	
 	var defineExternals = function () {
 		var self = {
-			QUERY_PARAM: QUERY_PARAM,
 			hide: function () {
 				ctn.find('.iframe').fadeOut(300, function () {
 					$(this).empty().remove();
@@ -102,11 +107,11 @@
 	var init = function () {
 		body = $('body');
 		if (body.attr('id') === 'publish') {
-			if (window.location.toString().indexOf('entry-relationship=1') !== -1) {
+			var er = window.parent && window.parent.Symphony && 
+				window.parent.Symphony.Extensions.EntryRelationship;
+			if (!!er && !!er.current) {
 				// child (iframe)
-				if (!!window.top) {
-					removeUI();
-				}
+				removeUI();
 			} else {
 				// parent
 				appendUI();
@@ -139,7 +144,6 @@
 		if (!!action) {
 			url += action + '/';
 		}
-		url += S.Extensions.EntryRelationship.QUERY_PARAM;
 		return url;
 	};
 	
@@ -249,7 +253,7 @@
 			var li = $(this).closest('li');
 			var id = li.attr('data-entry-id');
 			var section = li.attr('data-section');
-			openIframe(section, 'edit/' + id + '/');
+			openIframe(section, 'edit/' + id);
 		});
 		
 		if (sections.find('option').length < 2) {

@@ -57,7 +57,7 @@
 		}
 
 		public function canFilter(){
-			return false;
+			return true;
 		}
 
 		public function canImport(){
@@ -77,7 +77,7 @@
 		}
 
 		public function allowDatasourceParamOutput(){
-			return false;
+			return true;
 		}
 
 
@@ -183,14 +183,14 @@
 			
 			// create association
 			// NOT WORKING !!
-			/*SectionManager::removeSectionAssociation($id);
+			SectionManager::removeSectionAssociation($id);
 			$sections = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
 			foreach ($sections as $key => $sectionId) {
 				$fields = SectionManager::fetch($sectionId)->fetchFields();
 				$fieldId = array_keys($fields);
 				$fieldId = $fieldId[0];
 				SectionManager::createSectionAssociation($sectionId, $id, $fieldId, $this->get('show_association') == 'yes');
-			}*/
+			}
 			
 			// declare an array contains the field's settings
 			$settings = array(
@@ -225,10 +225,57 @@
 		public function tearDown() {
 			return parent::tearDown();
 		}
-
+		
+		public function generateWhereFilter($value, $col = 'd') {
+			return " AND (`{$col}`.`entries` LIKE '{$value}' OR 
+					`{$col}`.`entries` LIKE '{$value},%' OR 
+					`{$col}`.`entries` LIKE '%,{$value}' OR 
+					`{$col}`.`entries` LIKE '%,{$value},%')";
+		}
 
 		public function fetchAssociatedEntryCount($value) {
+			if (!$value) {
+				return 0;
+			}
+			$join = sprintf(" INNER JOIN `tbl_entries_data_%s` AS `d` ON `e`.id = `d`.`entry_id`", $this->get('id'));
+			$where = $this->generateWhereFilter($value);
+			
+			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $join, false, false, array());
+			
+			return count($entries);
+		}
+		
+		public function fetchAssociatedEntrySearchValue($data, $field_id = null, $parent_entry_id = null){
+			return $parent_entry_id;
+		}
+		
+		public function fetchAssociatedEntryIDs($value){
 			var_dump($value);die;
+		}
+		
+		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
+			$field_id = $this->get('id');
+
+			// REGEX filtering is a special case, and will only work on the first item
+			// in the array. You cannot specify multiple filters when REGEX is involved.
+			if (self::isFilterRegex($data[0])) {
+				//$this->buildRegexSQL($data[0], array('entries'), $joins, $where);
+				return;
+			}
+			
+			$this->_key++;
+			
+			//var_dump($data);die;
+			
+			$value = $this->cleanValue($data[0]);
+			
+			$joins .= "
+				LEFT JOIN
+					`tbl_entries_data_{$field_id}` AS t{$field_id}_{$this->_key}
+					ON (e.id = t{$field_id}_{$this->_key}.entry_id)
+			";
+			$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}");
+			//var_dump($where);die;
 		}
 
 		/* ******* DATA SOURCE ******* */

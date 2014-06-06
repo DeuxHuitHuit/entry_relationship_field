@@ -97,6 +97,8 @@ body.entry_relationship {
 }
 
 body.entry_relationship #save-and-new, 
-body.entry_relationship #save-and-return {
+body.entry_relationship #save-and-return,
+body.entry_relationship button.delete {
 	display: none;
 }
+

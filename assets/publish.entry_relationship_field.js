@@ -20,10 +20,13 @@
 	
 	var removeUI = function () {
 		var parent = window.parent.Symphony.Extensions.EntryRelationship;
+		var saved = loc.indexOf('/saved/') !== -1;
+		var created = loc.indexOf('/created/') !== -1
 		
-		if (loc.indexOf('/saved/') !== -1 || 
-			loc.indexOf('/created/') !== -1) {
-			parent.link(Symphony.Context.get('env').entry_id);
+		if (saved || created) {
+			if (created) {
+				parent.link(Symphony.Context.get('env').entry_id);
+			}
 			parent.hide();
 			return;
 		}
@@ -55,7 +58,7 @@
 			
 			if (!t.closest('.inactive').length) {
 				var entryId = t.closest('tr').attr('id').replace('id-', '');
-			
+				
 				parent.link(entryId);
 				parent.hide();
 			}
@@ -229,6 +232,8 @@
 				list.empty().append(li);
 				frame[fx]('empty');
 				
+				list.symphonyOrderable({});
+				
 			}).always(function () {
 				isRendering = false;
 			});
@@ -267,6 +272,14 @@
 		if (sections.find('option').length < 2) {
 			sections.hide();
 		}
+		
+		frame.on('orderstop.orderable', '*', function () {
+			var val = [];
+			list.find('li').each(function () {
+				val.push($(this).attr('data-entry-id'));
+			});
+			hidden.val(val.join(','));
+		});
 		
 		// render
 		render();

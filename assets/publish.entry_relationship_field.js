@@ -16,15 +16,25 @@
 	var html = $('html');
 	var body = $();
 	var ctn = $();
+	var loc = window.location.toString();
 	
 	var removeUI = function () {
 		var parent = window.parent.Symphony.Extensions.EntryRelationship;
 		
-		if (window.location.toString().indexOf('/saved/') !== -1 || 
-			window.location.toString().indexOf('/created/') !== -1) {
+		if (loc.indexOf('/saved/') !== -1 || 
+			loc.indexOf('/created/') !== -1) {
 			parent.link(Symphony.Context.get('env').entry_id);
 			parent.hide();
 			return;
+		}
+		
+		var form = Symphony.Elements.contents.find('form');
+		
+		if (!!parent) {
+			// block already link items
+			$.each(parent.current.values(), function (index, value) {
+				form.find('#id-' + value).addClass('inactive');
+			});
 		}
 		
 		body.addClass('entry_relationship');
@@ -38,23 +48,20 @@
 		S.Elements.wrapper.find('.actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);
-		var form = Symphony.Elements.contents.find('form');
-		//form.attr('action', window.location.toString());
-		form.find('td:first-child a').click(function (e) {
+		
+		form.find('tr td:first-child a').click(function (e) {
 			e.preventDefault();
+			var t = $(this);
 			
-			var entryId = $(this).closest('tr').attr('id').replace('id-', '');
+			if (!t.closest('.inactive').length) {
+				var entryId = t.closest('tr').attr('id').replace('id-', '');
 			
-			parent.link(entryId);
-			parent.hide();
+				parent.link(entryId);
+				parent.hide();
+			}
 			
 			return false;
 		});
-		if (!!parent) {
-			$.each(parent.current.values(), function (index, value) {
-				form.find('#id-' + value).addClass('inactive');
-			});
-		}
 	};
 	
 	var appendUI = function () {
@@ -76,6 +83,7 @@
 					html.removeClass('no-scroll');
 					ctn.removeClass('show');
 				});
+				self.current = null;
 			},
 			show: function (url) {
 				var ictn = $('<div />').attr('class', 'iframe');

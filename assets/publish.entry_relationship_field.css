@@ -64,15 +64,16 @@
 }
 
 #entry-relationship-ctn.show {
+	background-color: #fff;
 	-webkit-transform: scale(1, 1);
 	-moz-transform: scale(1, 1);
 	-ms-transform: scale(1, 1);
 	transform: scale(1, 1);
 	visibility: visible;
-	-webkit-transition: all 500ms ease-in, visibility 0ms linear 0ms;
-	-moz-transition: all 500ms ease-in, visibility 0ms linear 0ms;
-	-ms-transition: all 500ms ease-in, visibility 0ms linear 0ms;
-	transition: all 500ms ease-in, visibility 0ms linear 0ms;
+	-webkit-transition: all 500ms ease-in, background-color 0ms linear 500ms, visibility 0ms linear 0ms;
+	-moz-transition: all 500ms ease-in, background-color 0ms linear 500ms, visibility 0ms linear 0ms;
+	-ms-transition: all 500ms ease-in, background-color 0ms linear 500ms, visibility 0ms linear 0ms;
+	transition: all 500ms ease-in, background-color 0ms linear 500ms, visibility 0ms linear 0ms;
 }
 
 #entry-relationship-ctn > .iframe {

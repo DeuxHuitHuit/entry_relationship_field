@@ -25,9 +25,9 @@
 		
 		/**
 		 * 
-		 * Separator char for the entries
+		 * Separator char for values
 		 */
-		const ENTRIES_SEPARATOR = ',';
+		const SEPARATOR = ',';
 		
 		
 		/**
@@ -50,6 +50,10 @@
 			$this->set('required', 'no');
 			// show association by default
 			$this->set('show_association', 'yes');
+			// no max deepness
+			$this->set('deepness', null);
+			// no included elements
+			$this->set('elements', null);
 		}
 
 		public function isSortable(){
@@ -145,10 +149,13 @@
 
 			// set new settings
 			$new_settings['sections'] = is_array($settings['sections']) ? 
-				implode(self::ENTRIES_SEPARATOR, $settings['sections']) : 
+				implode(self::SEPARATOR, $settings['sections']) : 
 				null;
 				
 			$new_settings['show_association'] = $settings['show_association'] == 'yes' ? 'yes' : 'no';
+			$new_settings['deepness'] = intval($settings['deepness']);
+			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
+			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
 			
 			// save it into the array
 			$this->setArray($new_settings);
@@ -161,6 +168,12 @@
 		 */
 		public function checkFields(Array &$errors, $checkForDuplicates) {
 			parent::checkFields($errors, $checkForDuplicates);
+			
+			$sections = $this->get('sections');
+			
+			if (empty($sections)) {
+				$errors['sections'] = __('At least one section must be chosen');
+			}
 
 			return (!empty($errors) ? self::__ERROR__ : self::__OK__);
 		}
@@ -169,23 +182,24 @@
 		 *
 		 * Save field settings into the field's table
 		 */
-		public function commit() {
-
+		public function commit()
+		{
 			// if the default implementation works...
 			if(!parent::commit()) return false;
-
-			//var_dump($this->get());die;
-
+			
 			$id = $this->get('id');
-
+			
 			// exit if there is no id
 			if($id == false) return false;
 			
-			// create association
-			// NOT WORKING !!
+			// create associations
 			SectionManager::removeSectionAssociation($id);
-			$sections = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
+			$sections = explode(self::SEPARATOR, $this->get('sections'));
+			
 			foreach ($sections as $key => $sectionId) {
+				if (empty($sectionId)) {
+					continue;
+				}
 				$fields = SectionManager::fetch($sectionId)->fetchFields();
 				$fieldId = array_keys($fields);
 				$fieldId = $fieldId[0];
@@ -195,7 +209,9 @@
 			// declare an array contains the field's settings
 			$settings = array(
 				'sections' => $this->get('sections'),
-				'show_association' => $this->get('show_association')
+				'show_association' => $this->get('show_association'),
+				'deepness' => $this->get('deepness'),
+				'elements' => $this->get('elements'),
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -223,12 +239,13 @@
 		 * @return boolean
 		 */
 		public function tearDown() {
+			SectionManager::removeSectionAssociation($this->get('id'));
 			return parent::tearDown();
 		}
 		
 		public function generateWhereFilter($value, $col = 'd', $andOperation = true) {
-			$jonction = $andOperation ? 'AND' : 'OR';
-			return " {$jonction} (`{$col}`.`entries` LIKE '{$value}' OR 
+			$junction = $andOperation ? 'AND' : 'OR';
+			return " {$junction} (`{$col}`.`entries` LIKE '{$value}' OR 
 					`{$col}`.`entries` LIKE '{$value},%' OR 
 					`{$col}`.`entries` LIKE '%,{$value}' OR 
 					`{$col}`.`entries` LIKE '%,{$value},%')";
@@ -323,11 +340,11 @@
 		private function buildSectionSelect($name) {
 			$sections = SectionManager::fetch();
 			$options = array();
-			$selectedSections = $this->get('sections');
+			$selectedSections = explode(self::SEPARATOR, $this->get('sections'));
 			
 			foreach ($sections as $section) {
 				$driver = $section->get('id');
-				$selected = strpos($selectedSections, $driver) !== false;
+				$selected = in_array($driver, $selectedSections);
 				$options[] = array($driver, $selected, $section->get('name'));
 			}
 			
@@ -338,6 +355,7 @@
 			$name = $this->createSettingsFieldName('sections', true);
 
 			$input = $this->buildSectionSelect($name);
+			$input->setAttribute('class', 'entry_relationship-sections');
 
 			$label = Widget::Label();
 			$label->setAttribute('class', 'column');
@@ -402,20 +420,44 @@
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
 			
-			$fieldset = new XMLElement('fieldset');
-			$options = new XMLElement('div');
-			$options->setAttribute('class', 'column');
-			
 			// sections
-			$this->appendSelectionSelect($fieldset);
+			$sections = new XMLElement('div');
+			$sections->setAttribute('class', '');
 			
-			$this->appendShowAssociationCheckbox($options);
-			$fieldset->appendChild($options);
-			$wrapper->appendChild($fieldset);
+			$this->appendSelectionSelect($sections);
+			if (is_array($errors) && isset($errors['sections'])) {
+				$sections = Widget::Error($sections, $errors['sections']);
+			}
+			$wrapper->appendChild($sections);
+			
+			// deepness
+			$deepness = Widget::Label();
+			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
+			$deepness->setAttribute('class', 'column');
+			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'text'));
+			
+			// association
+			$assoc = new XMLElement('div');
+			$assoc->setAttribute('class', 'two columns');
+			$assoc->appendChild($deepness);
+			$this->appendShowAssociationCheckbox($assoc);
+			$wrapper->appendChild($assoc);
+			
+			// elements
+			$elements = new XMLElement('div');
+			$elements->setAttribute('class', '');
+			$element = Widget::Label();
+			$element->setValue(__('Included elements in Data Sources'));
+			$element->setAttribute('class', 'column');
+			$element->appendChild(Widget::Input($this->createSettingsFieldName('elements'), $this->get('elements'), 'text', array('class' => 'entry_relationship-elements')));
+			$elements->appendChild($element);
+			$elements_choices = new XMLElement('ul', null, array('class' => 'tags singular entry_relationship-field-choices'));
+			
+			$elements->appendChild($elements_choices);
+			$wrapper->appendChild($elements);
 			
 			// footer
 			$this->appendStatusFooter($wrapper);
-			
 		}
 
 		/**
@@ -434,10 +476,10 @@
 			
 			$value = '';
 			$entriesId = array();
-			$sectionsId = explode(self::ENTRIES_SEPARATOR, $this->get('sections'));
+			$sectionsId = explode(self::SEPARATOR, $this->get('sections'));
 			
 			if ($data['entries'] != null) {
-				$entriesId = explode(self::ENTRIES_SEPARATOR, $data['entries']);
+				$entriesId = explode(self::SEPARATOR, $data['entries']);
 				$entriesId = array_map(intval, $entriesId);
 			}
 			
@@ -498,7 +540,7 @@
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
-			$entries = explode(self::ENTRIES_SEPARATOR, $data['entries']);
+			$entries = explode(self::SEPARATOR, $data['entries']);
 			$count = count($entries);
 			if ($count == 0) {
 				return __('No item');
@@ -514,7 +556,7 @@
 
 		/**
 		 *
-		 * Creates table needed for entries of invidual fields
+		 * Creates table needed for entries of individual fields
 		 */
 		public function createTable(){
 			$id = $this->get('id');
@@ -541,8 +583,10 @@
 				CREATE TABLE IF NOT EXISTS `$tbl` (
 					`id` 			int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`field_id` 		int(11) unsigned NOT NULL,
-					`sections`		varchar(255) COLLATE utf8_unicode_ci NULL,
-					`show_association` enum('yes','no') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'yes',
+					`sections`		varchar(255) NULL COLLATE utf8_unicode_ci,
+					`show_association` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					`deepness` 		int(2) unsigned NULL,
+					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

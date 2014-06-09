@@ -117,7 +117,7 @@
 	
 	var init = function () {
 		body = $('body');
-		if (body.attr('id') === 'publish') {
+		if (body.is('#publish') {
 			var er = window.parent && window.parent.Symphony && 
 				window.parent.Symphony.Extensions.EntryRelationship;
 			if (!!er && !!er.current) {

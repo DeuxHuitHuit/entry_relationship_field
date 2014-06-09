@@ -1,0 +1,15 @@
+/*
+	Copyright: Deux Huit Huit 2014
+	License: MIT, see the LICENCE file
+*/
+
+/**
+ * CSS for entry relationship field
+ */
+.field-entry_relationship.instance {
+	
+}
+
+.field-entry_relationship.instance .entry_relationship-field-choices {
+	min-height: 20px;
+}

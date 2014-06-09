@@ -11,10 +11,12 @@
 	class contentExtensionEntry_Relationship_FieldRender extends XMLPage {
 		
 		private $sectionCache;
+		private $fieldCache;
 		
 		public function __construct() {
 			parent::__construct();
 			$this->sectionCache = array();
+			$this->fieldCache = array();
 			// fix jquery
 			$this->_Result->setIncludeHeader(false);
 			$this->addHeaderToPage('Content-Type', 'text/html');
@@ -33,9 +35,7 @@
 			$entriesId = explode(',', $this->_context[0]);
 			$entriesId = array_map(intval, $entriesId);
 			
-			//var_dump($entriesId);
-			
-			//$entries = EntryManager::fetch($entriesId, 8);
+			$mode = isset($this->_context[1]) ? $this->_context[1] : null;
 			
 			if (!is_array($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));
@@ -67,9 +67,36 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$content = new XMLElement('div', null, array('class' => 'content'));
-					$this->appendContent($content, $entry);
-					$li->appendChild($content);
+					$entryData = $entry->getData();
+					$entrySection = SectionManager::fetch($entry->get('section_id'));
+					$entryFields = $entrySection->fetchFields();
+					
+					$xslFilePath = WORKSPACE . '/er_templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
+					
+					if (!empty($entryData) && @file_exists($xslFilePath)) {
+						$xml = new XMLElement('entry');
+						$xml->setIncludeHeader(true);
+						
+						foreach ($entryData as $fieldId => $data) {
+							$entryFields[$fieldId]->appendFormattedElement($xml, $data);
+						}
+						
+						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
+						
+						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
+						<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+							<xsl:import href="' . $xslFilePath . '"/>
+							<xsl:template match="/">
+								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
+							</xsl:template>
+						</xsl:stylesheet>';
+						
+						$xslt = new XsltProcess($xml->generate(), $xsl);
+						$result = $xslt->process();
+						
+						$content = new XMLElement('div', $result, array('class' => 'content'));
+						$li->appendChild($content);
+					}
 					
 					$this->_Result->appendChild($li);
 				}
@@ -78,6 +105,7 @@
 			
 			// clean up
 			$this->sectionCache = null;
+			$this->fieldCache = null;
 		}
 		
 		public function getSectionName($entry, $name = 'name') {
@@ -97,7 +125,4 @@
 			return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
 		}
 		
-		public function appendContent(&$content, $entry) {
-			$data = $entry->getData();
-		}
 	}

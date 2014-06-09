@@ -82,8 +82,8 @@
 		 * Creates the table needed for the settings of the field
 		 */
 		public function install() {
+			General::realiseDirectory(WORKSPACE . '/er_templates');
 			return FieldEntry_relationship::createFieldTable();
-
 		}
 
 		/**

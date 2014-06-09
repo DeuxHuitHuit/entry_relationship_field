@@ -375,7 +375,7 @@
 				
 					$entry = $this->fetchEntry($eId);
 					
-					if (!$entry) {
+					if (!$entry || empty($entry)) {
 						continue;
 					}
 					
@@ -424,6 +424,8 @@
 			
 			// clean up
 			$this->recursiveLevel = 0;
+			$sectionsCache = null;
+			$fieldCache = null;
 		}
 
 

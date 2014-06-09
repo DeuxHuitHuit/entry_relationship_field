@@ -226,8 +226,9 @@
 			return parent::tearDown();
 		}
 		
-		public function generateWhereFilter($value, $col = 'd') {
-			return " AND (`{$col}`.`entries` LIKE '{$value}' OR 
+		public function generateWhereFilter($value, $col = 'd', $andOperation = true) {
+			$jonction = $andOperation ? 'AND' : 'OR';
+			return " {$jonction} (`{$col}`.`entries` LIKE '{$value}' OR 
 					`{$col}`.`entries` LIKE '{$value},%' OR 
 					`{$col}`.`entries` LIKE '%,{$value}' OR 
 					`{$col}`.`entries` LIKE '%,{$value},%')";
@@ -250,7 +251,13 @@
 		}
 		
 		public function fetchAssociatedEntryIDs($value){
+			// TODO
 			var_dump($value);die;
+		}
+		
+		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association) {
+			// TODO
+			var_dump($e, $parent_association);die;
 		}
 		
 		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
@@ -259,13 +266,11 @@
 			// REGEX filtering is a special case, and will only work on the first item
 			// in the array. You cannot specify multiple filters when REGEX is involved.
 			if (self::isFilterRegex($data[0])) {
-				//$this->buildRegexSQL($data[0], array('entries'), $joins, $where);
+				$this->buildRegexSQL($data[0], array('entries'), $joins, $where);
 				return;
 			}
 			
 			$this->_key++;
-			
-			//var_dump($data);die;
 			
 			$value = $this->cleanValue($data[0]);
 			
@@ -274,8 +279,8 @@
 					`tbl_entries_data_{$field_id}` AS t{$field_id}_{$this->_key}
 					ON (e.id = t{$field_id}_{$this->_key}.entry_id)
 			";
-			$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}");
-			//var_dump($where);die;
+			
+			$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}", $andOperation);
 		}
 
 		/* ******* DATA SOURCE ******* */
@@ -319,7 +324,6 @@
 			$sections = SectionManager::fetch();
 			$options = array();
 			$selectedSections = $this->get('sections');
-			//var_dump($sections);die;
 			
 			foreach ($sections as $section) {
 				$driver = $section->get('id');
@@ -349,10 +353,6 @@
 			
 			$list = new XMLElement('ul');
 			$list->setAttribute('class', '');
-			
-			foreach ($entries as $entry) {
-				
-			}
 			
 			$wrap->appendChild($list);
 			
@@ -471,12 +471,10 @@
 		 * @param XMLElement $link
 		 * @return string - the html of the link
 		 */
-		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
-			
+		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null)
+		{
 			$textValue = $this->preparePlainTextValue($data, $entry_id);
-
-			//var_dump($data);die;
-
+			
 			// does this cell serve as a link ?
 			if (!!$link){
 				// if so, set our html as the link's value
@@ -485,7 +483,7 @@
 				// if not, use a span
 				$link = new XMLElement('span', $textValue);
 			}
-
+			
 			// returns the link's html code
 			return $link->generate();
 		}
@@ -509,8 +507,6 @@
 			}
 			return __('%s items', array($count));
 		}
-
-
 
 
 

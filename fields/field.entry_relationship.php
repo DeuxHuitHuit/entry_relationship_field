@@ -19,16 +19,24 @@
 		/**
 		 *
 		 * Name of the field table
-		 * @var string
+		 *  @var string
 		 */
 		const FIELD_TBL_NAME = 'tbl_fields_entry_relationship';
 		
 		/**
 		 * 
 		 * Separator char for values
+		 *  @var string
 		 */
 		const SEPARATOR = ',';
 		
+		
+		/**
+		 *
+		 * Current recursive level of output
+		 *  @var int
+		 */
+		protected $recursiveLevel = 0;
 		
 		/**
 		 *
@@ -46,6 +54,8 @@
 			$this->_showcolumn = true;
 			// permits association
 			$this->_showassociation = true;
+			// current recursive level
+			$this->recursiveLevel = 0;
 			// set as not required by default
 			$this->set('required', 'no');
 			// show association by default
@@ -301,21 +311,119 @@
 		}
 
 		/* ******* DATA SOURCE ******* */
+		
+		private function parseElements()
+		{
+			$elements = array();
+			$exElements = explode(self::SEPARATOR, $this->get('elements'));
+			
+			foreach ($exElements as $value) {
+				if (!$value) {
+					continue;
+				}
+				$parts = explode('.', $value);
+				if (!isset($elements[$parts[0]])) {
+					$elements[$parts[0]] = array();
+				}
+				$elements[$parts[0]][] = $parts[1];
+			}
+			
+			return $elements;
+		}
+		
+		private function fetchEntry($eId, array $elements = array())
+		{
+			$entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
+			if (!is_array($entry) || count($entry) !== 1) {
+				return null;
+			}
+			return $entry[0];
+		}
 
 		/**
 		 * Appends data into the XML tree of a Data Source
 		 * @param $wrapper
 		 * @param $data
 		 */
-		public function appendFormattedElement(&$wrapper, $data) {
-			
+		public function appendFormattedElement(&$wrapper, $data)
+		{
 			if(!is_array($data) || empty($data)) return;
 			
 			// root for all values
-			$field = new XMLElement($this->get('element_name'));
+			$root = new XMLElement($this->get('element_name'));
 			
+			// selected items
+			$entries = explode(self::SEPARATOR, $data['entries']);
 			
-			$wrapper->appendChild($field);
+			// available sections
+			$root->setAttribute('sections', $this->get('sections'));
+			
+			// included elements
+			$elements = $this->parseElements();
+			
+			// cache
+			$sectionsCache = array();
+			$fieldCache = array();
+			
+			// build entries
+			foreach ($entries as $key => $eId) {
+				$item = new XMLElement('item');
+				$item->setAttribute('id', $eId);
+				
+				// max recursion check
+				if ($this->get('deepness') === null || $this->recursiveLevel <= intval($this->get('deepness'))) {
+				
+					$entry = $this->fetchEntry($eId);
+					
+					if (!$entry) {
+						continue;
+					}
+					
+					$sectionId = $entry->get('section_id');
+					
+					$section = $sectionsCache[$sectionId];
+					if (!$section) {
+						$section = SectionManager::fetch($sectionId);
+						$sectionsCache[$sectionId] = $section;
+					}
+					//var_dump($section);die;
+					
+					$sectionElements = $elements[$section->get('handle')];
+					if (!$sectionElements) {
+						$sectionElements = array();
+					}
+					//var_dump($sectionElements);die;
+					
+					//var_dump($sectionElements);die;
+					$entry = $this->fetchEntry($eId, $sectionElements);
+					//var_dump($entry);die;
+					
+					$sectionFields = $fieldCache[$sectionId];
+					if (!$sectionFields) {
+						$sectionFields = $section->fetchFields();
+						$fieldCache[$sectionId] = $sectionFields;
+					}
+					
+					$entryData = $entry->getData();
+					//var_dump($entryData);die;
+					
+					foreach ($sectionFields as $field) {
+						if (isset($entryData[$field->get('id')])) {
+							if ($field instanceof FieldEntry_relationship) {
+								$field->recursiveLevel = $this->recursiveLevel + 1;
+							}
+							$field->appendFormattedElement($item, $entryData[$field->get('id')]);
+						}
+					}
+				}
+				
+				$root->appendChild($item);
+			}
+			
+			$wrapper->appendChild($root);
+			
+			// clean up
+			$this->recursiveLevel = 0;
 		}
 
 

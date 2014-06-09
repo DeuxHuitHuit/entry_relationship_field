@@ -49,7 +49,9 @@
 				}
 			});
 			fieldChoices.append(temp);
-			field.css('max-height', '+=' + fieldChoices.outerHeight(true) + 'px');
+			if (!field.is('.collapsed')) {
+				field.css('max-height', '+=' + fieldChoices.outerHeight(true) + 'px');
+			}
 		});
 	};
 	

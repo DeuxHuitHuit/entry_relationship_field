@@ -97,6 +97,14 @@
 							<xsl:template match="/">
 								<xsl:apply-templates select="./entry" ' . $xmlMode . ' />
 							</xsl:template>
+							<xsl:template match="entry">
+								<xsl:value-of select="." />
+							</xsl:template>
+							<xsl:template match="entry" mode="debug">
+								<textarea>
+									<xsl:copy-of select="." />
+								</textarea>
+							</xsl:template>
 						</xsl:stylesheet>';
 						
 						$xslt = new XsltProcess($xml->generate(), $xsl);

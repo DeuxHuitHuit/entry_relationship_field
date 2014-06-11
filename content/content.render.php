@@ -32,10 +32,16 @@
 				return;
 			}
 			
-			$entriesId = explode(',', $this->_context[0]);
+			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
 			$entriesId = array_map(intval, $entriesId);
 			
-			$mode = isset($this->_context[1]) ? $this->_context[1] : null;
+			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
+			$parentField = FieldManager::fetch($parentField);
+			
+			if (!$parentField) {
+				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
+				return;
+			}
 			
 			if (!is_array($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));

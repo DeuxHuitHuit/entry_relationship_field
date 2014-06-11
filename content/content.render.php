@@ -88,6 +88,9 @@
 						}
 						
 						$mode = $parentField->get('mode');
+						if (isset($_REQUEST['debug'])) {
+							$mode = 'debug';
+						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
 						
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
@@ -96,9 +99,6 @@
 							<xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no" />
 							<xsl:template match="/">
 								<xsl:apply-templates select="./entry" ' . $xmlMode . ' />
-							</xsl:template>
-							<xsl:template match="entry">
-								<xsl:value-of select="." />
 							</xsl:template>
 							<xsl:template match="entry" mode="debug">
 								<textarea>

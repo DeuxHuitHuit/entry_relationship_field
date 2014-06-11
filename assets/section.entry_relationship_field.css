@@ -13,3 +13,7 @@
 .field-entry_relationship.instance .entry_relationship-field-choices {
 	min-height: 20px;
 }
+
+.field-entry_relationship.instance label.column.show-associations {
+	margin-top: 1.5rem;
+}

@@ -593,9 +593,9 @@
 			// association
 			$assoc = new XMLElement('div');
 			$assoc->setAttribute('class', 'three columns');
+			$this->appendShowAssociationCheckbox($assoc);
 			$assoc->appendChild($xslmode);
 			$assoc->appendChild($deepness);
-			$this->appendShowAssociationCheckbox($assoc);
 			$wrapper->appendChild($assoc);
 			
 			// elements
@@ -659,6 +659,9 @@
 			$wrapper->appendChild($this->createEntriesHiddenInput($data));
 			$wrapper->setAttribute('data-value', $data['entries']);
 			$wrapper->setAttribute('data-field-id', $this->get('id'));
+			if (isset($_REQUEST['debug'])) {
+				$wrapper->setAttribute('data-debug', true);
+			}
 		}
 
 		/**

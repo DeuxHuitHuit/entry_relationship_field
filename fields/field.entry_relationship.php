@@ -202,6 +202,9 @@
 			// exit if there is no id
 			if($id == false) return false;
 			
+			// we are the child, with multiple parents
+			$child_field_id = $id;
+			
 			// create associations
 			SectionManager::removeSectionAssociation($id);
 			$sections = explode(self::SEPARATOR, $this->get('sections'));
@@ -210,10 +213,10 @@
 				if (empty($sectionId)) {
 					continue;
 				}
-				$fields = SectionManager::fetch($sectionId)->fetchFields();
-				$fieldId = array_keys($fields);
-				$fieldId = $fieldId[0];
-				SectionManager::createSectionAssociation($sectionId, $id, $fieldId, $this->get('show_association') == 'yes');
+				$parent_section_id = intval($sectionId);
+				$fields = SectionManager::fetch($sectionId)->fetchVisibleColumns();
+				$parent_field_id = current(array_keys($fields));
+				SectionManager::createSectionAssociation($parent_section_id, $child_field_id, $parent_field_id, $this->get('show_association') == 'yes');
 			}
 			
 			// declare an array contains the field's settings
@@ -255,7 +258,10 @@
 		
 		public function generateWhereFilter($value, $col = 'd', $andOperation = true) {
 			$junction = $andOperation ? 'AND' : 'OR';
-			return " {$junction} (`{$col}`.`entries` LIKE '{$value}' OR 
+			if (!$value) {
+				return "{$junction} (`{$col}`.`entries` IS NULL)";
+			}
+			return " {$junction} (`{$col}`.`entries` = '{$value}' OR 
 					`{$col}`.`entries` LIKE '{$value},%' OR 
 					`{$col}`.`entries` LIKE '%,{$value}' OR 
 					`{$col}`.`entries` LIKE '%,{$value},%')";
@@ -278,18 +284,41 @@
 		}
 		
 		public function fetchAssociatedEntryIDs($value){
-			// TODO
-			var_dump($value);die;
+			//var_dump($value);die;
+			$joins = '';
+			$where = '';
+			$this->buildDSRetrievalSQL(array($value), $joins, $where, true);
+			
+			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
+			
+			$ids = array();
+			foreach ($entries as $key => $e) {
+				$ids[] = $e['id'];
+			}
+			return $ids;
 		}
 		
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association) {
-			// TODO
-			var_dump($e, $parent_association);die;
+			
+			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
+			$visibleCols = $currentSection->fetchVisibleColumns();
+			$outputFieldId = current(array_keys($visibleCols));
+			$outputField = FieldManager::fetch($outputFieldId);
+			
+			$value = $outputField->prepareTableValue($e->getData($outputFieldId), null, $e->get('id'));
+			
+			$li = new XMLElement('li');
+			$li->setAttribute('class', 'field-' . $this->get('type'));
+			$a = new XMLElement('a', strip_tags($value));
+			$a->setAttribute('href', SYMPHONY_URL . '/publish/' . $parent_association['handle'] . '/edit/' . $e->get('id') . '/');
+			$li->appendChild($a);
+
+			return $li;
 		}
 		
 		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
 			$field_id = $this->get('id');
-
+			
 			// REGEX filtering is a special case, and will only work on the first item
 			// in the array. You cannot specify multiple filters when REGEX is involved.
 			if (self::isFilterRegex($data[0])) {
@@ -297,17 +326,24 @@
 				return;
 			}
 			
-			$this->_key++;
+			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
 			
-			$value = $this->cleanValue($data[0]);
+			foreach ($data as $value) {
+				$this->_key++;
+				
+				$value = $this->cleanValue($value);
+				
+				$joins .= "
+					INNER JOIN
+						`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
+						ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
+				";
+				
+				$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}", $andOperation);
+				
+			}
 			
-			$joins .= "
-				LEFT JOIN
-					`tbl_entries_data_{$field_id}` AS t{$field_id}_{$this->_key}
-					ON (e.id = t{$field_id}_{$this->_key}.entry_id)
-			";
-			
-			$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}", $andOperation);
+			$where .= ')';
 		}
 
 		/* ******* DATA SOURCE ******* */
@@ -581,7 +617,6 @@
 		 */
 		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null)
 		{
-			
 			$isRequired = $this->get('required') == 'yes';
 			
 			$value = '';

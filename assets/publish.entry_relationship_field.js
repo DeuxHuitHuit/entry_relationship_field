@@ -123,11 +123,11 @@
 			if (!!er && !!er.current) {
 				// child (iframe)
 				removeUI();
-			} else {
-				// parent
-				appendUI();
-				win.resize(resize);
 			}
+			
+			// parent (can always be parent)
+			appendUI();
+			win.resize(resize);
 		}
 	};
 	

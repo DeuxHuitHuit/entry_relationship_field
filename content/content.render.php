@@ -36,9 +36,9 @@
 			$entriesId = array_map(intval, $entriesId);
 			
 			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
-			$parentField = FieldManager::fetch($parentField);
+			$parentField = FieldManager::fetch($parentFieldId);
 			
-			if (!$parentField) {
+			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
 				return;
 			}
@@ -87,18 +87,25 @@
 							$entryFields[$fieldId]->appendFormattedElement($xml, $data);
 						}
 						
+						$mode = $parentField->get('mode');
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
 						
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
 						<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 							<xsl:import href="' . $xslFilePath . '"/>
+							<xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no" />
 							<xsl:template match="/">
-								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
+								<xsl:apply-templates select="./entry" ' . $xmlMode . ' />
 							</xsl:template>
 						</xsl:stylesheet>';
 						
 						$xslt = new XsltProcess($xml->generate(), $xsl);
 						$result = $xslt->process();
+						
+						if ($xslt->isErrors()) {
+							$error = $xslt->getError();
+							$result = $error[1]['message'];
+						}
 						
 						$content = new XMLElement('div', $result, array('class' => 'content'));
 						$li->appendChild($content);

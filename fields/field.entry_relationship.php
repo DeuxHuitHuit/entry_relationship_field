@@ -166,6 +166,7 @@
 			$new_settings['deepness'] = intval($settings['deepness']);
 			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
 			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
+			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
 			
 			// save it into the array
 			$this->setArray($new_settings);
@@ -225,6 +226,7 @@
 				'show_association' => $this->get('show_association'),
 				'deepness' => $this->get('deepness'),
 				'elements' => $this->get('elements'),
+				'mode' => $this->get('mode')
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -407,7 +409,7 @@
 				$item->setAttribute('id', $eId);
 				
 				// max recursion check
-				if ($this->get('deepness') === null || $this->recursiveLevel <= intval($this->get('deepness'))) {
+				if (!$this->get('deepness') || $this->recursiveLevel <= intval($this->get('deepness'))) {
 				
 					$entry = $this->fetchEntry($eId);
 					
@@ -576,6 +578,12 @@
 			}
 			$wrapper->appendChild($sections);
 			
+			// xsl mode
+			$xslmode = Widget::Label();
+			$xslmode->setValue(__('XSL mode applied in the backend xsl file'));
+			$xslmode->setAttribute('class', 'column');
+			$xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
+			
 			// deepness
 			$deepness = Widget::Label();
 			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
@@ -584,7 +592,8 @@
 			
 			// association
 			$assoc = new XMLElement('div');
-			$assoc->setAttribute('class', 'two columns');
+			$assoc->setAttribute('class', 'three columns');
+			$assoc->appendChild($xslmode);
 			$assoc->appendChild($deepness);
 			$this->appendShowAssociationCheckbox($assoc);
 			$wrapper->appendChild($assoc);
@@ -649,6 +658,7 @@
 			$wrapper->appendChild($this->createPublishMenu($sections));
 			$wrapper->appendChild($this->createEntriesHiddenInput($data));
 			$wrapper->setAttribute('data-value', $data['entries']);
+			$wrapper->setAttribute('data-field-id', $this->get('id'));
 		}
 
 		/**
@@ -732,6 +742,7 @@
 					`show_association` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
 					`deepness` 		int(2) unsigned NULL,
 					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
+					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

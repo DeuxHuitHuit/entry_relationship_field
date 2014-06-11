@@ -161,8 +161,12 @@
 	var CONTENTPAGES = '/extension/entry_relationship_field/';
 	var RENDER = baseurl() + CONTENTPAGES +'render/';
 	
-	var renderurl = function (value) {
-		return RENDER + value + '/';
+	var renderurl = function (value, fieldid) {
+		var url = RENDER + value + '/';
+		if (!!fieldid) {
+			url += fieldid + '/';
+		}
+		return url;
 	};
 	
 	var openIframe = function (handle, action) {
@@ -172,6 +176,7 @@
 	var initOne = function (index, t) {
 		t  = $(t);
 		var id = t.attr('id');
+		var fieldId = t.attr('data-field-id');
 		var sections = t.find('select.sections');
 		var hidden = t.find('input[type="hidden"]');
 		var frame = t.find('.frame');
@@ -225,7 +230,7 @@
 				return;
 			}
 			isRendering = true;
-			$.get(renderurl(hidden.val())).done(function (data) {
+			$.get(renderurl(hidden.val(), fieldId)).done(function (data) {
 				var li = $(data).find('li');
 				var fx = !li.length ? 'addClass' : 'removeClass';
 				

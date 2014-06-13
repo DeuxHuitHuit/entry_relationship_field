@@ -131,6 +131,10 @@
 			
 			$entries = $data['entries'];
 			
+			if (!is_array($entries)) {
+				$entries = array_map(intval, explode(self::SEPARATOR, $entries));
+			}
+			
 			// enforce limits only if required or it contains data
 			if ($required || count($entries) > 0) {
 				if ($this->getInt('min_entries') > 0 && $this->getInt('min_entries') > count($entries)) {

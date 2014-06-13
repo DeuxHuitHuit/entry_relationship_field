@@ -64,6 +64,9 @@
 			$this->set('deepness', null);
 			// no included elements
 			$this->set('elements', null);
+			// no limit
+			$this->set('min_entries', null);
+			$this->set('max_entries', null);
 		}
 
 		public function isSortable(){
@@ -73,12 +76,20 @@
 		public function canFilter(){
 			return true;
 		}
+		
+		public function canPublishFilter(){
+			return true;
+		}
 
 		public function canImport(){
 			return false;
 		}
 
 		public function canPrePopulate(){
+			return false;
+		}
+		
+		public function mustBeUnique(){
 			return false;
 		}
 
@@ -94,6 +105,9 @@
 			return true;
 		}
 
+		public function getInt($name) {
+			return intval($this->get($name));
+		}
 
 		/* ********** INPUT AND FIELD *********** */
 
@@ -113,6 +127,19 @@
 			if ($required && (!is_array($data) || count($data) == 0 || strlen($data['entries']) < 1)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
 				return self::__MISSING_FIELDS__;
+			}
+			
+			$entries = $data['entries'];
+			
+			// enforce limits only if required or it contains data
+			if ($required || count($entries) > 0) {
+				if ($this->getInt('min_entries') > 0 && $this->getInt('min_entries') > count($entries)) {
+					$message = __("'%s' requires a minimum of %s entries.", array($this->get('label'), $this->getInt('min_entries')));
+					return self::__INVALID_FIELDS__;
+				} else if ($this->getInt('max_entries') > 0 && $this->getInt('max_entries') < count($entries)) {
+					$message = __("'%s' can not contains more than %s entries.", array($this->get('label'), $this->getInt('max_entries')));
+					return self::__INVALID_FIELDS__;
+				}
 			}
 			
 			return self::__OK__;
@@ -138,7 +165,7 @@
 			$row = array(
 				'entries' => $entries
 			);
-
+			
 			// return row
 			return $row;
 		}
@@ -178,7 +205,10 @@
 		 * Validates the field settings before saving it into the field's table
 		 */
 		public function checkFields(Array &$errors, $checkForDuplicates) {
-			parent::checkFields($errors, $checkForDuplicates);
+			$parent = parent::checkFields($errors, $checkForDuplicates);
+			if ($parent != self::__OK__) {
+				return $parent;
+			}
 			
 			$sections = $this->get('sections');
 			
@@ -226,7 +256,9 @@
 				'show_association' => $this->get('show_association'),
 				'deepness' => $this->get('deepness'),
 				'elements' => $this->get('elements'),
-				'mode' => $this->get('mode')
+				'mode' => $this->get('mode'),
+				'min_entries' => $this->get('min_entries'),
+				'max_entries' => $this->get('max_entries'),
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -376,6 +408,11 @@
 				return null;
 			}
 			return $entry[0];
+		}
+		
+		public function fetchIncludableElements()
+		{
+			return array($this->get('element_name'));
 		}
 
 		/**
@@ -588,7 +625,7 @@
 			$deepness = Widget::Label();
 			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
 			$deepness->setAttribute('class', 'column');
-			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'text'));
+			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'number'));
 			
 			// association
 			$assoc = new XMLElement('div');
@@ -610,6 +647,24 @@
 			
 			$elements->appendChild($elements_choices);
 			$wrapper->appendChild($elements);
+			
+			// limit entries
+			$limits = new XMLElement('fieldset');
+			$limits->setAttribute('class', 'two columns');
+			// min
+			$limit_min = Widget::Label();
+			$limit_min->setValue(__('Minimum count of entries in this field'));
+			$limit_min->setAttribute('class', 'column');
+			$limit_min->appendChild(Widget::Input($this->createSettingsFieldName('min_entries'), $this->get('min_entries'), 'number'));
+			$limits->appendChild($limit_min);
+			// max
+			$limit_max = Widget::Label();
+			$limit_max->setValue(__('Maximum count of entries in this field'));
+			$limit_max->setAttribute('class', 'column');
+			$limit_max->appendChild(Widget::Input($this->createSettingsFieldName('max_entries'), $this->get('max_entries'), 'number'));
+			$limits->appendChild($limit_max);
+			
+			$wrapper->appendChild($limits);
 			
 			// footer
 			$this->appendStatusFooter($wrapper);
@@ -746,6 +801,8 @@
 					`deepness` 		int(2) unsigned NULL,
 					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
 					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
+					`min_entries`	int(5) unsigned NULL,
+					`max_entries`	int(5) unsigned NULL,
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

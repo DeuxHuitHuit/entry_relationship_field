@@ -115,8 +115,10 @@
 							$result = $error[1]['message'];
 						}
 						
-						$content = new XMLElement('div', $result, array('class' => 'content'));
-						$li->appendChild($content);
+						if (!!$xslt && strlen($result) > 0) {
+							$content = new XMLElement('div', $result, array('class' => 'content'));
+							$li->appendChild($content);
+						}
 					}
 					
 					$this->_Result->appendChild($li);

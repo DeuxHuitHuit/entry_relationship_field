@@ -625,7 +625,10 @@
 			$deepness = Widget::Label();
 			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
 			$deepness->setAttribute('class', 'column');
-			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'number'));
+			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'number', array(
+				'min' => 0,
+				'max' => 99
+			)));
 			
 			// association
 			$assoc = new XMLElement('div');
@@ -641,7 +644,9 @@
 			$element = Widget::Label();
 			$element->setValue(__('Included elements in Data Sources'));
 			$element->setAttribute('class', 'column');
-			$element->appendChild(Widget::Input($this->createSettingsFieldName('elements'), $this->get('elements'), 'text', array('class' => 'entry_relationship-elements')));
+			$element->appendChild(Widget::Input($this->createSettingsFieldName('elements'), $this->get('elements'), 'text', array(
+				'class' => 'entry_relationship-elements'
+			)));
 			$elements->appendChild($element);
 			$elements_choices = new XMLElement('ul', null, array('class' => 'tags singular entry_relationship-field-choices'));
 			
@@ -655,13 +660,19 @@
 			$limit_min = Widget::Label();
 			$limit_min->setValue(__('Minimum count of entries in this field'));
 			$limit_min->setAttribute('class', 'column');
-			$limit_min->appendChild(Widget::Input($this->createSettingsFieldName('min_entries'), $this->get('min_entries'), 'number'));
+			$limit_min->appendChild(Widget::Input($this->createSettingsFieldName('min_entries'), $this->get('min_entries'), 'number', array(
+				'min' => 0,
+				'max' => 99999
+			)));
 			$limits->appendChild($limit_min);
 			// max
 			$limit_max = Widget::Label();
 			$limit_max->setValue(__('Maximum count of entries in this field'));
 			$limit_max->setAttribute('class', 'column');
-			$limit_max->appendChild(Widget::Input($this->createSettingsFieldName('max_entries'), $this->get('max_entries'), 'number'));
+			$limit_max->appendChild(Widget::Input($this->createSettingsFieldName('max_entries'), $this->get('max_entries'), 'number', array(
+				'min' => 0,
+				'max' => 99999
+			)));
 			$limits->appendChild($limit_max);
 			
 			$wrapper->appendChild($limits);

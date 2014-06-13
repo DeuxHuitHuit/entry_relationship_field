@@ -343,7 +343,7 @@
 			$outputFieldId = current(array_keys($visibleCols));
 			$outputField = FieldManager::fetch($outputFieldId);
 			
-			$value = $outputField->prepareTableValue($e->getData($outputFieldId), null, $e->get('id'));
+			$value = $outputField->preparePlainTextValue($e->getData($outputFieldId), $e->get('id'));
 			
 			$li = new XMLElement('li');
 			$li->setAttribute('class', 'field-' . $this->get('type'));
@@ -764,7 +764,7 @@
 		 * @param array $data
 		 * @param int $entry_id
 		 */
-		public function preparePlainTextValue($data, $entry_id = null) {
+		public function preparePlainTextValue($data, $entry_id = null, $truncate = false) {
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}

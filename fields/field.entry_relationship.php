@@ -240,8 +240,9 @@
 			// we are the child, with multiple parents
 			$child_field_id = $id;
 			
-			// create associations
-			SectionManager::removeSectionAssociation($id);
+			// delete associations, only where we are the child
+			Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+			
 			$sections = explode(self::SEPARATOR, $this->get('sections'));
 			
 			foreach ($sections as $key => $sectionId) {
@@ -256,6 +257,7 @@
 					$fields = $parent_section->fetchFields();
 				}
 				$parent_field_id = current(array_keys($fields));
+				// create association
 				SectionManager::createSectionAssociation($parent_section_id, $child_field_id, $parent_field_id, $this->get('show_association') == 'yes');
 			}
 			

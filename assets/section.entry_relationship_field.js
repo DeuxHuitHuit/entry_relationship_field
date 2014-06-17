@@ -21,7 +21,7 @@
 	var FIELD_CHOICES_SEL = ' .entry_relationship-field-choices';
 	var ELEMENTS_SEL = ' .entry_relationship-elements';
 	
-	var SECTIONS = baseurl() + '/ajaxsections/';
+	var SECTIONS = baseurl() + '/extension/entry_relationship_field/sectionsinfos/';
 	
 	var instances = $();
 	
@@ -33,22 +33,26 @@
 		var sections = field.find(SECTIONS_SEL);
 		var fieldChoices = field.find(FIELD_CHOICES_SEL);
 		var temp = $();
-		var values = {};
+		var values = [];
 		sections.find('option:selected').each(function (index, value) {
-			values[$(value).text()] = true;
+			values.push($(value).val());
 		});
 		
 		fieldChoices.empty();
-		$.get(SECTIONS).done(function (data) {
-			$.each(data.sections, function (index, section) {
-				if (values[section.name]) {
+		
+		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
+			if (!!data.sections) {
+				$.each(data.sections, function (index, section) {
+					temp = temp.add($('<li />').text(section.handle + '.*'));
 					$.each(section.fields, function (index, field) {
 						var li = $('<li />').text(section.handle + '.' + field.handle);
 						temp = temp.add(li);
-					})
-				}
-			});
+					});
+				});
+			}
+			
 			fieldChoices.append(temp);
+			
 			if (!field.is('.collapsed')) {
 				field.css('max-height', '+=' + fieldChoices.outerHeight(true) + 'px');
 			}

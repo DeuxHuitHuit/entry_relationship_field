@@ -249,7 +249,12 @@
 					continue;
 				}
 				$parent_section_id = intval($sectionId);
-				$fields = SectionManager::fetch($sectionId)->fetchVisibleColumns();
+				$parent_section = SectionManager::fetch($sectionId);
+				$fields = $parent_section->fetchVisibleColumns();
+				if (empty($fields)) {
+					// no visible field, revert to all
+					$fields = $parent_section->fetchFields();
+				}
 				$parent_field_id = current(array_keys($fields));
 				SectionManager::createSectionAssociation($parent_section_id, $child_field_id, $parent_field_id, $this->get('show_association') == 'yes');
 			}

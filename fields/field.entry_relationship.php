@@ -241,7 +241,7 @@
 			$child_field_id = $id;
 			
 			// delete associations, only where we are the child
-			Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+			self::removeSectionAssociation($child_field_id);
 			
 			$sections = explode(self::SEPARATOR, $this->get('sections'));
 			
@@ -297,7 +297,7 @@
 		 * @return boolean
 		 */
 		public function tearDown() {
-			SectionManager::removeSectionAssociation($this->get('id'));
+			self::removeSectionAssociation($this->get('id'));
 			return parent::tearDown();
 		}
 		
@@ -396,13 +396,13 @@
 		private function parseElements()
 		{
 			$elements = array();
-			$exElements = explode(self::SEPARATOR, $this->get('elements'));
+			$exElements = array_map(trim, explode(self::SEPARATOR, $this->get('elements')));
 			
 			foreach ($exElements as $value) {
 				if (!$value) {
 					continue;
 				}
-				$parts = explode('.', $value);
+				$parts = array_map(trim, explode('.', $value));
 				if (!isset($elements[$parts[0]])) {
 					$elements[$parts[0]] = array();
 				}
@@ -412,7 +412,7 @@
 			return $elements;
 		}
 		
-		private function fetchEntry($eId, array $elements = array())
+		private function fetchEntry($eId, $elements = array())
 		{
 			$entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
 			if (!is_array($entry) || count($entry) !== 1) {
@@ -437,7 +437,7 @@
 		 * @param $wrapper
 		 * @param $data
 		 */
-		public function appendFormattedElement(&$wrapper, $data)
+		public function appendFormattedElement(&$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
 		{
 			if(!is_array($data) || empty($data)) return;
 			
@@ -457,13 +457,18 @@
 			$sectionsCache = array();
 			$fieldCache = array();
 			
+			// DS mode
+			if (!$mode || $mode == '*') {
+				$mode = null;
+			}
+			
 			// build entries
 			foreach ($entries as $key => $eId) {
 				$item = new XMLElement('item');
 				$item->setAttribute('id', $eId);
 				
 				// max recursion check
-				if (!$this->get('deepness') || $this->recursiveLevel <= intval($this->get('deepness'))) {
+				if ($this->getInt('deepness') == 0 || $this->recursiveLevel <= intval($this->get('deepness'))) {
 				
 					$entry = $this->fetchEntry($eId);
 					
@@ -478,17 +483,20 @@
 						$section = SectionManager::fetch($sectionId);
 						$sectionsCache[$sectionId] = $section;
 					}
-					//var_dump($section);die;
 					
 					$sectionElements = $elements[$section->get('handle')];
-					if (!$sectionElements) {
-						$sectionElements = array();
+					if ($mode || empty($sectionElements) || $sectionElements === true || $sectionElements === '*') {
+						$sectionElements = null;
+					} else {
+						foreach ($sectionElements as $sectionElement) {
+							if ($sectionElement === '*') {
+								$sectionElements = null;
+								break;
+							}
+						}
 					}
-					//var_dump($sectionElements);die;
 					
-					//var_dump($sectionElements);die;
 					$entry = $this->fetchEntry($eId, $sectionElements);
-					//var_dump($entry);die;
 					
 					$sectionFields = $fieldCache[$sectionId];
 					if (!$sectionFields) {
@@ -497,14 +505,22 @@
 					}
 					
 					$entryData = $entry->getData();
-					//var_dump($entryData);die;
 					
 					foreach ($sectionFields as $field) {
+						// if we have the field's data
 						if (isset($entryData[$field->get('id')])) {
+							$recursiveMode = $mode; // cache mode
 							if ($field instanceof FieldEntry_relationship) {
 								$field->recursiveLevel = $this->recursiveLevel + 1;
+								if (!empty($recursiveMode)) {
+									$recursiveMode = explode(':', $mode);
+									array_shift($recursiveMode);
+									$recursiveMode = implode(': ', $recursiveMode);
+								}
 							}
-							$field->appendFormattedElement($item, $entryData[$field->get('id')]);
+							$field->appendFormattedElement($item, $entryData[$field->get('id')], $encode, $recursiveMode, $entry_id);
+						} else {
+							$item->appendChild(new XMLElement($field->get('element_name'), __('Error: No value found')));
 						}
 					}
 				}
@@ -850,4 +866,7 @@
 			");
 		}
 		
+		private static function removeSectionAssociation($child_field_id) {
+			return Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+		}
 	}

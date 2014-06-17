@@ -37,6 +37,7 @@
 			
 			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
 			$parentField = FieldManager::fetch($parentFieldId);
+			$includedElements = $this->parseIncludedElements($parentField);
 			
 			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
@@ -61,10 +62,11 @@
 					$entrySection = SectionManager::fetch($entry->get('section_id'));
 					$entryVisibleFields = $entrySection->fetchVisibleColumns();
 					$entryFields = $entrySection->fetchFields();
+					$entrySectionHandle = $this->getSectionName($entry, 'handle');
 					
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId,
-						'data-section' => $this->getSectionName($entry, 'handle')
+						'data-section' => $entrySectionHandle
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');
@@ -77,8 +79,6 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					
-					
 					$xslFilePath = WORKSPACE . '/er_templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
 					
 					if (!empty($entryData) && @file_exists($xslFilePath)) {
@@ -86,7 +86,10 @@
 						$xml->setIncludeHeader(true);
 						
 						foreach ($entryData as $fieldId => $data) {
-							$entryFields[$fieldId]->appendFormattedElement($xml, $data);
+							if ($includedElements[$entrySectionHandle] === true || 
+								in_array($entryFields[$fieldId]->get('element_name'), $includedElements[$entrySectionHandle])) {
+								$entryFields[$fieldId]->appendFormattedElement($xml, $data);
+							}
 						}
 						
 						$mode = $parentField->get('mode');
@@ -156,6 +159,38 @@
 			
 			//return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
 			return $field->preparePlainTextValue($data[$field->get('id')], $entry->get('id'));
+		}
+		
+		public function parseIncludedElements($field) {
+			$elements = $field->get('elements');
+			$parsedElements = array();
+			if (!empty($elements)) {
+				$elements = array_map(trim, explode(',', $elements));
+				foreach ($elements as $element) {
+					$parts = array_map(trim, explode('.', $element));
+					if (count($parts) === 2) {
+						$sectionname = $parts[0];
+						$fieldname = $parts[1];
+						
+						// skip all included
+						if ($parsedElements[$sectionname] === true) {
+							continue;
+						}
+						// set all included
+						else if ($fieldname == '*' || !$fieldname) {
+							$parsedElements[$sectionname] = true;
+							continue;
+						}
+						// first time seeing this section
+						else if (!is_array($parsedElements[$sectionname])) {
+							$parsedElements[$sectionname] = array();
+						}
+						// add current value
+						$parsedElements[$sectionname][] = $fieldname;
+					}
+				}
+			}
+			return $parsedElements;
 		}
 		
 	}

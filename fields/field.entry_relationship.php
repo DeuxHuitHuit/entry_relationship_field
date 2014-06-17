@@ -423,7 +423,13 @@
 		
 		public function fetchIncludableElements()
 		{
-			return array($this->get('element_name'));
+			$label = $this->get('element_name');
+			$elements = array_map(trim, explode(self::SEPARATOR, $this->get('elements')));
+			$includedElements = array($label . ': *');
+			foreach ($elements as $elem) {
+				$includedElements[] = $label . ': ' . $elem;
+			}
+			return $includedElements;
 		}
 
 		/**

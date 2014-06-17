@@ -57,6 +57,10 @@
 					$this->_Result->appendChild(new XMLElement('li', __('Entry %s not found', array($entryId))));
 				} else {
 					$entry = $entry[0];
+					$entryData = $entry->getData();
+					$entrySection = SectionManager::fetch($entry->get('section_id'));
+					$entryVisibleFields = $entrySection->fetchVisibleColumns();
+					$entryFields = $entrySection->fetchFields();
 					
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId,
@@ -64,7 +68,7 @@
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');
-					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry)));
+					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields)));
 					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
@@ -73,9 +77,7 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$entryData = $entry->getData();
-					$entrySection = SectionManager::fetch($entry->get('section_id'));
-					$entryFields = $entrySection->fetchFields();
+					
 					
 					$xslFilePath = WORKSPACE . '/er_templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
 					
@@ -141,11 +143,19 @@
 			return $this->sectionCache[$sectionId]->get($name);
 		}
 		
-		public function getEntryTitle($entry) {
+		public function getEntryTitle($entry, $entryVisibleFields, $entryFields) {
 			$data = $entry->getData();
-			$dataKeys = array_keys($data);
-			$field = FieldManager::fetch($dataKeys[0]);
-			return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
+			$field = empty($entryVisibleFields) ? $entryFields : $entryVisibleFields;
+			if (is_array($field)) {
+				$field = current($field);
+			}
+			
+			if ($field == null) {
+				return __('None');
+			}
+			
+			//return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
+			return $field->preparePlainTextValue($data[$field->get('id')], $entry->get('id'));
 		}
 		
 	}

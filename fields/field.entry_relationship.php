@@ -328,11 +328,10 @@
 			return $parent_entry_id;
 		}
 		
-		public function fetchAssociatedEntryIDs($value){
-			//var_dump($value);die;
+		public function findRelatedEntries($entry_id) {
 			$joins = '';
 			$where = '';
-			$this->buildDSRetrievalSQL(array($value), $joins, $where, true);
+			$this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
 			
 			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
 			
@@ -343,7 +342,7 @@
 			return $ids;
 		}
 		
-		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association) {
+		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '') {
 			
 			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
 			$visibleCols = $currentSection->fetchVisibleColumns();

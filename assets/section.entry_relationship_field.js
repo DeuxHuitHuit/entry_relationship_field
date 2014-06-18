@@ -82,15 +82,19 @@
 	};
 	
 	var resizeField = function (field, fieldChoices) {
+		var maxHeight = 0;
 		if (!field.is('.collapsed')) {
 			fieldChoices = fieldChoices || field.find(FIELD_CHOICES_SEL);
 			field.css('max-height', '+=' + fieldChoices.outerHeight(true) + 'px');
+			maxHeight = parseInt(field.css('max-height'));
 		} else {
+			var temp = field.css('max-height');
 			field.css('max-height', '').height();
-			field.css('max-height', field.height() + 'px');
+			maxHeight = field.height();
+			field.css('max-height', temp);
 		}
 		// update duplicator (collapsible) cached values
-		field.data('heightMax', parseInt(field.css('max-height')));
+		field.data('heightMax', maxHeight);
 	};
 	
 	var renderElementsName = function (field) {
@@ -150,7 +154,9 @@
 				var parent = t.closest(INSTANCES_SEL);
 				updateElementsNameVisibility(parent);
 			}).find(INSTANCES_SEL).each(function (index, elem) {
-				renderElementsName($(elem));
+				setTimeout(function () {
+					renderElementsName($(elem));
+				}, 100);
 			});
 		}
 	};

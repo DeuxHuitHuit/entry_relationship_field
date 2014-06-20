@@ -343,7 +343,6 @@
 		}
 		
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '') {
-			
 			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
 			$visibleCols = $currentSection->fetchVisibleColumns();
 			$outputFieldId = current(array_keys($visibleCols));
@@ -446,6 +445,9 @@
 			// selected items
 			$entries = explode(self::SEPARATOR, $data['entries']);
 			
+			// current linked entries
+			$root->setAttribute('entries', $data['entries']);
+			
 			// available sections
 			$root->setAttribute('sections', $this->get('sections'));
 			
@@ -465,17 +467,22 @@
 			foreach ($entries as $key => $eId) {
 				$item = new XMLElement('item');
 				$item->setAttribute('id', $eId);
+				$root->appendChild($item);
 				
 				// max recursion check
 				if ($this->getInt('deepness') == 0 || $this->recursiveLevel <= intval($this->get('deepness'))) {
-				
+					// current entry, without data
 					$entry = $this->fetchEntry($eId);
 					
+					// entry not found...
 					if (!$entry || empty($entry)) {
+						$item->setValue(__('Error: entry %s not found', array($eId)));
 						continue;
 					}
 					
+					// fetch section infos
 					$sectionId = $entry->get('section_id');
+					$item->setAttribute('section-id', $sectionId);
 					
 					$section = $sectionsCache[$sectionId];
 					if (!$section) {
@@ -495,8 +502,10 @@
 						}
 					}
 					
+					// current entry again, but with data
 					$entry = $this->fetchEntry($eId, $sectionElements);
 					
+					// fetch fields info
 					$sectionFields = $fieldCache[$sectionId];
 					if (!$sectionFields) {
 						$sectionFields = $section->fetchFields();
@@ -507,7 +516,8 @@
 					
 					foreach ($sectionFields as $field) {
 						// if we have the field's data
-						if (isset($entryData[$field->get('id')])) {
+						$fieldId = $field->get('id');
+						if (isset($entryData[$fieldId])) {
 							$recursiveMode = $mode; // cache mode
 							if ($field instanceof FieldEntry_relationship) {
 								$field->recursiveLevel = $this->recursiveLevel + 1;
@@ -517,16 +527,15 @@
 									$recursiveMode = implode(': ', $recursiveMode);
 								}
 							}
-							$field->appendFormattedElement($item, $entryData[$field->get('id')], $encode, $recursiveMode, $entry_id);
-						} else {
+							$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $mode, $entry_id);
+						} /*else {
 							$item->appendChild(new XMLElement($field->get('element_name'), __('Error: No value found')));
-						}
+						}*/
 					}
 				}
-				
-				$root->appendChild($item);
 			}
 			
+			// add all our data to the wrapper;
 			$wrapper->appendChild($root);
 			
 			// clean up

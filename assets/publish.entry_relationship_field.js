@@ -274,7 +274,7 @@
 		var isRendering = false;
 		
 		var render = function () {
-			if (isRendering) {
+			if (isRendering || !hidden.val()) {
 				return;
 			}
 			isRendering = true;

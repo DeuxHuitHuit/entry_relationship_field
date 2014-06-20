@@ -30,7 +30,7 @@ Version: 1.0
 
 See <http://getsymphony.com/learn/tasks/view/install-an-extension/>
 
-#### You can also use the extension downloader to install it. Just search for `entry_relationship_field`. ####
+##### You can also use the extension downloader to install it. Just search for `entry_relationship_field`. #####
 
 ### HOW TO USE ###
 

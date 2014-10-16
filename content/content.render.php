@@ -157,8 +157,7 @@
 				return __('None');
 			}
 			
-			//return trim(strip_tags($field->prepareTableValue($data[$field->get('id')], null, $entry->get('id'))));
-			return $field->preparePlainTextValue($data[$field->get('id')], $entry->get('id'));
+			return $field->prepareTextValue($data[$field->get('id')], $entry->get('id'));
 		}
 		
 		public function parseIncludedElements($field) {

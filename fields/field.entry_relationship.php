@@ -348,7 +348,7 @@
 			$outputFieldId = current(array_keys($visibleCols));
 			$outputField = FieldManager::fetch($outputFieldId);
 			
-			$value = $outputField->preparePlainTextValue($e->getData($outputFieldId), $e->get('id'));
+			$value = $outputField->prepareReadableValue($e->getData($outputFieldId), $e->get('id'), true, __('None'));
 			
 			$li = new XMLElement('li');
 			$li->setAttribute('class', 'field-' . $this->get('type'));
@@ -773,35 +773,11 @@
 
 		/**
 		 *
-		 * Build the UI for the table view
-		 * @param Array $data
-		 * @param XMLElement $link
-		 * @return string - the html of the link
-		 */
-		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null)
-		{
-			$textValue = $this->preparePlainTextValue($data, $entry_id);
-			
-			// does this cell serve as a link ?
-			if (!!$link){
-				// if so, set our html as the link's value
-				$link->setValue($textValue);
-			} else {
-				// if not, use a span
-				$link = new XMLElement('span', $textValue);
-			}
-			
-			// returns the link's html code
-			return $link->generate();
-		}
-
-		/**
-		 *
 		 * Return a plain text representation of the field's data
 		 * @param array $data
 		 * @param int $entry_id
 		 */
-		public function preparePlainTextValue($data, $entry_id = null, $truncate = false) {
+		public function prepareTextValue($data, $entry_id = null) {
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}

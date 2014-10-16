@@ -1,7 +1,11 @@
 <?php
-	
+	/*
+	Copyright: Deux Huit Huit 2014
+	LICENCE: MIT http://deuxhuithuit.mit-license.org;
+	*/
+
 	require_once(TOOLKIT . '/class.jsonpage.php');
-	
+
 	Class contentExtensionEntry_relationship_fieldSectionsinfos extends JSONPage {
 		
 		public function view() {

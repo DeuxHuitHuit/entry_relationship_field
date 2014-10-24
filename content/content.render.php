@@ -83,6 +83,7 @@
 					
 					if (!empty($entryData) && @file_exists($xslFilePath)) {
 						$xml = new XMLElement('entry');
+						$xml->setAttribute('id', $entryId);
 						$xml->setIncludeHeader(true);
 						
 						foreach ($entryData as $fieldId => $data) {

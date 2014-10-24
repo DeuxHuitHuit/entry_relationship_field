@@ -97,6 +97,8 @@
 						$mode = $parentField->get('mode');
 						if (isset($_REQUEST['debug'])) {
 							$mode = 'debug';
+						}
+						if ($mode == 'debug') {
 							$indent = true;
 						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';

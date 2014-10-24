@@ -16,6 +16,12 @@
 		 * Builds the content view
 		 */
 		public function view() {
+			if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+				$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;
+				$this->_Result['error'] = 'This page accepts posts only';
+				return;
+			}
+			
 			if (!is_array($this->_context) || empty($this->_context)) {
 				$this->_Result['error'] = 'Parameters not found';
 				return;

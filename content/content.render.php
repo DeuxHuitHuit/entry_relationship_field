@@ -93,9 +93,11 @@
 							}
 						}
 						
+						$indent = false;
 						$mode = $parentField->get('mode');
 						if (isset($_REQUEST['debug'])) {
 							$mode = 'debug';
+							$indent = true;
 						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
 						
@@ -113,7 +115,7 @@
 							</xsl:template>
 						</xsl:stylesheet>';
 						
-						$xslt = new XsltProcess($xml->generate(), $xsl);
+						$xslt = new XsltProcess($xml->generate($indent), $xsl);
 						$result = $xslt->process();
 						
 						if ($xslt->isErrors()) {

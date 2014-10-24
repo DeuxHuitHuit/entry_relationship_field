@@ -34,20 +34,24 @@
 			
 			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
 			$entriesId = array_map(intval, $entriesId);
+			if (!is_array($entriesId) || empty($entriesId)) {
+				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));
+				return;
+			}
 			
 			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
-			$parentField = FieldManager::fetch($parentFieldId);
-			$includedElements = $this->parseIncludedElements($parentField);
+			if ($parentFieldId < 1) {
+				$this->_Result->appendChild(new XMLElement('error', 'Parent id not valid'));
+				return;
+			}
 			
+			$parentField = FieldManager::fetch($parentFieldId);
 			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
 				return;
 			}
 			
-			if (!is_array($entriesId)) {
-				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));
-				return;
-			}
+			$includedElements = $this->parseIncludedElements($parentField);
 			
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from

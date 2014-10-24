@@ -204,6 +204,7 @@
 	
 	var CONTENTPAGES = '/extension/entry_relationship_field/';
 	var RENDER = baseurl() + CONTENTPAGES +'render/';
+	var SAVE = baseurl() + CONTENTPAGES +'save/';
 	
 	var renderurl = function (value, fieldid, debug) {
 		var url = RENDER + value + '/';
@@ -212,6 +213,17 @@
 		}
 		if (!!debug) {
 			url += '?debug';
+		}
+		return url;
+	};
+	
+	var saveurl = function (value, fieldid, entryid) {
+		var url = SAVE + value + '/';
+		if (!!fieldid) {
+			url += fieldid + '/';
+		}
+		if (!!entryid) {
+			url += entryid + '/';
 		}
 		return url;
 	};
@@ -306,6 +318,30 @@
 			openIframe(sections.val());
 		};
 		
+		var ajaxSaveTimeout = 0;
+		var ajaxSave = function () {
+			clearTimeout(ajaxSaveTimeout);
+			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
+				$.post(saveurl(hidden.val(), fieldId, Symphony.Context.get().env.entry_id))
+				.done(function (data) {
+					Symphony.Elements.header.find('div.notifier').trigger('attach.notify', [
+						Symphony.Language.get('The field “{$title}” has been saved', {
+							title: 'X'
+						}),
+						'success'
+					]);
+				}).error(function (data) {
+					Symphony.Elements.header.find('div.notifier').trigger('attach.notify', [
+						Symphony.Language.get('Error while save field “{$title}”. {$error}', {
+							title: 'X',
+							error: data.error
+						}),
+						'error'
+					]);
+				});
+			}, 200);
+		};
+		
 		t.find('button.create').click(btnCreateClick);
 		t.find('button.link').click(btnLinkClick);
 		t.on('click', 'a.unlink', function (e) {
@@ -332,6 +368,8 @@
 				val.push($(this).attr('data-entry-id'));
 			});
 			hidden.val(val.join(','));
+			
+			ajaxSave();
 		});
 		
 		// render

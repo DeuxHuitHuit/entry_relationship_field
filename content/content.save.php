@@ -19,6 +19,7 @@
 			if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 				$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;
 				$this->_Result['error'] = 'This page accepts posts only';
+				$this->setHttpStatus($this->_Result['status']);
 				return;
 			}
 			

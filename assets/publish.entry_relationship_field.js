@@ -236,6 +236,7 @@
 		t  = $(t);
 		var id = t.attr('id');
 		var fieldId = t.attr('data-field-id');
+		var label = t.attr('data-field-label');
 		var debug = t.is('[data-debug]');
 		var sections = t.find('select.sections');
 		var hidden = t.find('input[type="hidden"]');
@@ -320,20 +321,21 @@
 		
 		var ajaxSaveTimeout = 0;
 		var ajaxSave = function () {
+			var notifier = Symphony.Elements.header.find('div.notifier');
 			clearTimeout(ajaxSaveTimeout);
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
 				$.post(saveurl(hidden.val(), fieldId, Symphony.Context.get().env.entry_id))
 				.done(function (data) {
-					Symphony.Elements.header.find('div.notifier').trigger('attach.notify', [
+					notifier.trigger('attach.notify', [
 						Symphony.Language.get('The field “{$title}” has been saved', {
-							title: 'X'
+							title: label
 						}),
 						'success'
 					]);
 				}).error(function (data) {
-					Symphony.Elements.header.find('div.notifier').trigger('attach.notify', [
+					notifier.trigger('attach.notify', [
 						Symphony.Language.get('Error while save field “{$title}”. {$error}', {
-							title: 'X',
+							title: label,
 							error: data.error
 						}),
 						'error'

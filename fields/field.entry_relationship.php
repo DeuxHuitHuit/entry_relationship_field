@@ -258,7 +258,12 @@
 				}
 				$parent_field_id = current(array_keys($fields));
 				// create association
-				SectionManager::createSectionAssociation($parent_section_id, $child_field_id, $parent_field_id, $this->get('show_association') == 'yes');
+				SectionManager::createSectionAssociation(
+					$parent_section_id,
+					$child_field_id,
+					$parent_field_id,
+					$this->get('show_association') == 'yes'
+				);
 			}
 			
 			// declare an array contains the field's settings
@@ -766,6 +771,7 @@
 			$wrapper->appendChild($this->createEntriesHiddenInput($data));
 			$wrapper->setAttribute('data-value', $data['entries']);
 			$wrapper->setAttribute('data-field-id', $this->get('id'));
+			$wrapper->setAttribute('data-field-label', $this->get('label'));
 			if (isset($_REQUEST['debug'])) {
 				$wrapper->setAttribute('data-debug', true);
 			}

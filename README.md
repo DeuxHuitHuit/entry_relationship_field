@@ -46,6 +46,8 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 - (Optional) Select a maximum recursion level for nested fields.
 - (Optional) Select a minium and maximum number of elements for this field.
 
+There is also a [screen cast available](https://www.screenr.com/pDDN)
+
 ### AKNOWLEDGMENTS ###
 
 This field would not have been created if some other people did not released some really 

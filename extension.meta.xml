@@ -20,6 +20,7 @@
 		<type>Field</type>
 		<type>Master</type>
 		<type>Detail</type>
+		<type>Workflow</type>
 	</types>
 	<authors>
 		<author>

@@ -2,7 +2,7 @@
 
 Version: 1.0
 
-### A new way to create master-details (parent-child) relationships with Symphony's sections.
+> A new way to create master-details (parent-child) relationships with Symphony's sections.
 
 ### SPECS ###
 
@@ -20,7 +20,7 @@ Version: 1.0
 
 ### REQUIREMENTS ###
 
-- Symphony CMS version 2.4.1 and up (as of the day of the last release of this extension)
+- Symphony CMS version 2.5.1 and up (as of the day of the last release of this extension)
 
 ### INSTALLATION ###
 
@@ -28,27 +28,23 @@ Version: 1.0
 - Put into the extension directory
 - Enable/install just like any other extension
 
-See <http://getsymphony.com/learn/tasks/view/install-an-extension/>
+You can also install it using the [extension downloader](http://symphonyextensions.com/extensions/extension_downloader/).
+Just search for `entry_relationship_field`.
 
-##### You can also use the [extension downloader](https://github.com/DeuxHuitHuit/extension_downloader/) to install it. Just search for `entry_relationship_field`. #####
+For more information, see <http://getsymphony.com/learn/tasks/view/install-an-extension/>
 
 ### HOW TO USE ###
 
 - Go to the section editor and add an Entry Relationship field.
 - Give it a name.
-- Select at least one section that will be permitted as a child.
-- Select also the fields you want to be available in the backend and data sources.
+- Select at least one section that will be permitted as children.
+- Select also the fields you want to be available in the backend templates and data sources.
 - Create backend templates in the workspace/er_templates folder.
 	- The name of the filed must be section-handle.xsl
 	- Protip: add `?debug` to backend url to see the available xml for each entry.
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.
 - (Optional) Select a maximum recursion level for nested fields.
 - (Optional) Select a minium and maximum number of elements for this field.
-
-
-*Voila !*
-
-Come say hi! -> <http://www.deuxhuithuit.com/>
 
 ### AKNOWLEDGMENTS ###
 
@@ -59,9 +55,13 @@ cool stuff. We would like to thanks everybody that contributed to those projects
 - [hananils/subsectionmanager](https://github.com/hananils/subsectionmanager)
 - [psychoticmeow/content_field](https://github.com/psychoticmeow/content_field)
 
-We basically trashed things that were not necessary and re-implemented things that we likes
+We basically trashed things that were not necessary and re-implemented things that we liked
 from those extensions.
 
 ### LICENSE ###
 
 MIT <http://deuxhuithuit.mit-license.org>
+
+*Voila !*
+
+Come say hi! -> <https://deuxhuithuit.com/>

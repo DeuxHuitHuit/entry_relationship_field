@@ -494,6 +494,7 @@
 						$section = SectionManager::fetch($sectionId);
 						$sectionsCache[$sectionId] = $section;
 					}
+					$item->setAttribute('section', $section->get('handle'));
 					
 					$sectionElements = $elements[$section->get('handle')];
 					if ($mode || empty($sectionElements) || $sectionElements === true || $sectionElements === '*') {

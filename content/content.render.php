@@ -83,7 +83,7 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$xslFilePath = WORKSPACE . '/er_templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
+					$xslFilePath = WORKSPACE . '/er-templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
 					
 					if (!empty($entryData) && @file_exists($xslFilePath)) {
 						$xml = new XMLElement('entry');

@@ -33,6 +33,8 @@
 		var fieldElements = field.find(ELEMENTS_SEL);
 		var fieldChoices = field.find(FIELD_CHOICES_SEL);
 		var values = {};
+		var hiddenCount = 0;
+		var lis = fieldChoices.find('>li');
 		
 		// parse input
 		$.each(fieldElements.val().split(','), function (index, value) {
@@ -61,16 +63,21 @@
 		});
 		
 		// show/hide
-		fieldChoices.find('>li').each(function (index, value) {
+		lis.each(function (index, value) {
 			var t = $(this);
 			var sectionname = t.attr('data-section');
 			var field = t.text();
 			var fx = 'show';
-			if (values[sectionname] === true || !!~$.inArray(field, values[sectionname])) {
+			if (values['*'] === true || values[sectionname] === true || !!~$.inArray(field, values[sectionname])) {
 				fx = 'hide';
+				hiddenCount++;
 			}
 			t[fx]();
 		});
+		
+		if (hiddenCount === lis.length - 1) {
+			lis.hide();
+		}
 	};
 	
 	var createElementInstance = function (section, text) {
@@ -111,6 +118,7 @@
 		
 		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
 			if (!!data.sections) {
+				temp = temp.add(createElementInstance({handle: '*'}, '*'));
 				$.each(data.sections, function (index, section) {
 					temp = temp.add(createElementInstance(section, section.handle + '.*'));
 					$.each(section.fields, function (index, field) {

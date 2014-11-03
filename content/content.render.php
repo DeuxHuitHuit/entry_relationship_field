@@ -96,9 +96,15 @@
 							$fieldIncludedElement = $includedElements[$entrySectionHandle];
 							if ($fieldIncludedElement === true ||
 								(is_array($fieldIncludedElement) && in_array($fieldName, $fieldIncludedElement))) {
-								$encode = false;
-								$mode = null;
-								$field->appendFormattedElement($xml, $data, $encode, $mode, $entryId);
+								$fieldIncludableElements = $field->fetchIncludableElements();
+								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+									foreach ($fieldIncludableElements as $fieldIncludableElement) {
+										$mode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
+										$field->appendFormattedElement($xml, $data, false, $mode, $entryId);
+									}
+								} else {
+									$field->appendFormattedElement($xml, $data, false, null, $entryId);
+								}
 							}
 						}
 						

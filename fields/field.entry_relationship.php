@@ -523,6 +523,7 @@
 					foreach ($sectionFields as $field) {
 						// if we have the field's data
 						$fieldId = $field->get('id');
+						$fieldName = $field->get('element_name');
 						if (isset($entryData[$fieldId])) {
 							$recursiveMode = $mode; // cache mode
 							if ($field instanceof FieldEntry_relationship) {
@@ -533,10 +534,16 @@
 									$recursiveMode = implode(': ', $recursiveMode);
 								}
 							}
-							$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $mode, $entry_id);
-						} /*else {
-							$item->appendChild(new XMLElement($field->get('element_name'), __('Error: No value found')));
-						}*/
+							$fieldIncludableElements = $field->fetchIncludableElements();
+							if ($mode === null && !empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+								foreach ($fieldIncludableElements as $fieldIncludableElement) {
+									$submode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
+									$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $submode, $entry_id);
+								}
+							} else {
+								$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $mode, $entry_id);
+							}
+						}
 					}
 				}
 			}

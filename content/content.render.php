@@ -91,9 +91,20 @@
 						$xml->setIncludeHeader(true);
 						
 						foreach ($entryData as $fieldId => $data) {
-							if ($includedElements[$entrySectionHandle] === true || 
-								in_array($entryFields[$fieldId]->get('element_name'), $includedElements[$entrySectionHandle])) {
-								$entryFields[$fieldId]->appendFormattedElement($xml, $data);
+							$field = $entryFields[$fieldId];
+							$fieldName = $field->get('element_name');
+							$fieldIncludedElement = $includedElements[$entrySectionHandle];
+							if ($fieldIncludedElement === true ||
+								(is_array($fieldIncludedElement) && in_array($fieldName, $fieldIncludedElement))) {
+								$fieldIncludableElements = $field->fetchIncludableElements();
+								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+									foreach ($fieldIncludableElements as $fieldIncludableElement) {
+										$mode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
+										$field->appendFormattedElement($xml, $data, false, $mode, $entryId);
+									}
+								} else {
+									$field->appendFormattedElement($xml, $data, false, null, $entryId);
+								}
 							}
 						}
 						

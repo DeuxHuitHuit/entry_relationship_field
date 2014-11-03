@@ -21,6 +21,7 @@
 		<type>Master</type>
 		<type>Detail</type>
 		<type>Workflow</type>
+		<type>Association</type>
 	</types>
 	<authors>
 		<author>

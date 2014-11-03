@@ -295,6 +295,7 @@
 				}
 				
 				if (!found) {
+					val.push(entryId);
 					if (saveValues(val)) {
 						render();
 					}

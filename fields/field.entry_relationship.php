@@ -497,7 +497,10 @@
 						$sectionsCache[$sectionId] = $section;
 					}
 					
-					$sectionElements = $elements[$section->get('handle')];
+					$sectionName = $section->get('handle');
+					$item->setAttribute('section', $sectionName);
+					
+					$sectionElements = $elements[$sectionName];
 					if ($mode || empty($sectionElements) || $sectionElements === true || $sectionElements === '*') {
 						$sectionElements = null;
 					} else {

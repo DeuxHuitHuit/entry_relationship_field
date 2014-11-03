@@ -427,10 +427,12 @@
 		public function fetchIncludableElements()
 		{
 			$label = $this->get('element_name');
-			$elements = array_map(trim, explode(self::SEPARATOR, $this->get('elements')));
+			$elements = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('elements')))));
 			$includedElements = array($label . ': *');
 			foreach ($elements as $elem) {
-				$includedElements[] = $label . ': ' . $elem;
+				if ($elem !== '*') {
+					$includedElements[] = $label . ': ' . $elem;
+				}
 			}
 			return $includedElements;
 		}
@@ -695,7 +697,7 @@
 			$elements = new XMLElement('div');
 			$elements->setAttribute('class', '');
 			$element = Widget::Label();
-			$element->setValue(__('Included elements in Data Sources'));
+			$element->setValue(__('Included elements in Data Sources and Backend Templates'));
 			$element->setAttribute('class', 'column');
 			$element->appendChild(Widget::Input($this->createSettingsFieldName('elements'), $this->get('elements'), 'text', array(
 				'class' => 'entry_relationship-elements'

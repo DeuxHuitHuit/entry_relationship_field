@@ -74,11 +74,11 @@
 		}
 
 		public function canFilter(){
-			return true;
+			return false;
 		}
 		
 		public function canPublishFilter(){
-			return true;
+			return false;
 		}
 
 		public function canImport(){

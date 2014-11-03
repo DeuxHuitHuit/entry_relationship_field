@@ -249,6 +249,18 @@
 			var val = hidden.val() || '';
 			return val.split(',');
 		};
+		var saveValues = function (val) {
+			var oldValue = hidden.val();
+			if ($.isArray(val)) {
+				val = val.join(',');
+			}
+			var isDifferent = oldValue !== val;
+			if (isDifferent) {
+				hidden.val(val);
+				ajaxSave();
+			}
+			return isDifferent;
+		};
 		var isRendering = false;
 		var render = function () {
 			if (isRendering || !hidden.val()) {
@@ -283,9 +295,9 @@
 				}
 				
 				if (!found) {
-					val.push(entryId);
-					hidden.val(val.join(','));
-					render(hidden.val());
+					if (saveValues(val)) {
+						render();
+					}
 				}
 			},
 			unlink: function (entryId, noRender) {
@@ -297,10 +309,8 @@
 					}
 				}
 				
-				hidden.val(val.join(','));
-				
-				if (noRender !== true) {
-					render(hidden.val());
+				if (saveValues(val) && noRender !== true) {
+					render();
 				}
 			},
 			values: values,
@@ -372,12 +382,7 @@
 			list.find('li').each(function () {
 				val.push($(this).attr('data-entry-id'));
 			});
-			val = val.join(',');
-			
-			if (oldValue !== val) {
-				hidden.val();
-				ajaxSave();
-			}
+			saveValues(val);
 		});
 		
 		// render

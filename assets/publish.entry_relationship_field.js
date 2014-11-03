@@ -40,7 +40,7 @@
 			if (created) {
 				parent.link(Symphony.Context.get('env').entry_id);
 			}
-			parent.hide();
+			parent.hide(true);
 			return;
 		}
 		
@@ -116,7 +116,7 @@
 	
 	var defineExternals = function () {
 		var self = {
-			hide: function () {
+			hide: function (reRender) {
 				ctn.find('.iframe>iframe').fadeOut(300, function () {
 					$(this).empty().remove();
 					html.removeClass('no-scroll');
@@ -124,6 +124,9 @@
 				});
 				if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
 					window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(-1);
+				}
+				if (reRender) {
+					self.current.render();
 				}
 				self.current = null;
 			},
@@ -246,6 +249,25 @@
 			var val = hidden.val() || '';
 			return val.split(',');
 		};
+		var isRendering = false;
+		var render = function () {
+			if (isRendering || !hidden.val()) {
+				return;
+			}
+			isRendering = true;
+			$.get(renderurl(hidden.val(), fieldId, debug)).done(function (data) {
+				var li = $(data).find('li');
+				var fx = !li.length ? 'addClass' : 'removeClass';
+				
+				list.empty().append(li);
+				frame[fx]('empty');
+				
+				list.symphonyOrderable({});
+				
+			}).always(function () {
+				isRendering = false;
+			});
+		};
 		var self = {
 			link: function (entryId) {
 				var val = values();
@@ -281,28 +303,8 @@
 					render(hidden.val());
 				}
 			},
-			values: values
-		};
-		
-		var isRendering = false;
-		
-		var render = function () {
-			if (isRendering || !hidden.val()) {
-				return;
-			}
-			isRendering = true;
-			$.get(renderurl(hidden.val(), fieldId, debug)).done(function (data) {
-				var li = $(data).find('li');
-				var fx = !li.length ? 'addClass' : 'removeClass';
-				
-				list.empty().append(li);
-				frame[fx]('empty');
-				
-				list.symphonyOrderable({});
-				
-			}).always(function () {
-				isRendering = false;
-			});
+			values: values,
+			render: render
 		};
 		
 		var syncCurrent = function () {

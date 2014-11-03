@@ -365,13 +365,17 @@
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {
+			var oldValue = hidden.val();
 			var val = [];
 			list.find('li').each(function () {
 				val.push($(this).attr('data-entry-id'));
 			});
-			hidden.val(val.join(','));
+			val = val.join(',');
 			
-			ajaxSave();
+			if (oldValue !== val) {
+				hidden.val();
+				ajaxSave();
+			}
 		});
 		
 		// render

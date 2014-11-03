@@ -786,6 +786,16 @@
 			}
 		}
 
+		private static function formatCount($count)
+		{
+			if ($count == 0) {
+				return __('No item');
+			} else if ($count == 1) {
+				return __('1 item');
+			}
+			return __('%s items', array($count));
+		}
+
 		/**
 		 *
 		 * Return a plain text representation of the field's data
@@ -796,14 +806,17 @@
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
-			$entries = explode(self::SEPARATOR, $data['entries']);
-			$count = count($entries);
-			if ($count == 0) {
-				return __('No item');
-			} else if ($count == 1) {
-				return __('1 item');
+			$entries = array_map(intval, array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
+			$realEntries = array();
+			foreach ($entries as $entryId) {
+				$realEntries = array_merge($realEntries, EntryManager::fetch($entryId));
 			}
-			return __('%s items', array($count));
+			$count = count($entries);
+			$realCount = count($realEntries);
+			if ($count === $realCount) {
+				return self::formatCount($count);
+			}
+			return self::formatCount($realCount) . ' (' . self::formatCount($realCount - $count) . ' deleted)';
 		}
 
 

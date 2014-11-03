@@ -374,7 +374,7 @@
 		});
 		
 		if (sections.find('option').length < 2) {
-			sections.hide();
+			sections.attr('disabled', 'disabled').addClass('disabled');
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {

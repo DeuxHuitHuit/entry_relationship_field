@@ -149,6 +149,9 @@
 							<xsl:template match="/">
 								<xsl:apply-templates select="/data" ' . $xmlMode . ' />
 							</xsl:template>
+							<xsl:template match="/data" ' . $xmlMode . '>
+								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
+							</xsl:template>
 							<xsl:template match="/data" mode="debug">
 								<textarea>
 									<xsl:copy-of select="." />

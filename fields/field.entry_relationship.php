@@ -477,7 +477,8 @@
 				$root->appendChild($item);
 				
 				// max recursion check
-				if ($this->getInt('deepness') == 0 || $this->recursiveLevel <= General::intval($this->get('deepness'))) {
+				$deepness = General::intval($this->get('deepness'));
+				if ($deepness < 1 || $this->recursiveLevel <= $deepness) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
 					

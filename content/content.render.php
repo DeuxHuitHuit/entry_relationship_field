@@ -12,11 +12,25 @@
 		
 		private $sectionCache;
 		private $fieldCache;
+		private $params;
 		
 		public function __construct() {
 			parent::__construct();
+			$date = new DateTime();
 			$this->sectionCache = array();
 			$this->fieldCache = array();
+			$this->params = array(
+				'today' => $date->format('Y-m-d'),
+				'current-time' => $date->format('H:i'),
+				'this-year' => $date->format('Y'),
+				'this-month' => $date->format('m'),
+				'this-day' => $date->format('d'),
+				'timezone' => $date->format('P'),
+				'website-name' => Symphony::Configuration()->get('sitename', 'general'),
+				'root' => URL,
+				'workspace' => URL . '/workspace',
+				'http-host' => HTTP_HOST
+			);
 			// fix jquery
 			$this->_Result->setIncludeHeader(false);
 			$this->addHeaderToPage('Content-Type', 'text/html');
@@ -135,15 +149,15 @@
 							<xsl:template match="/">
 								<xsl:apply-templates select="/data" ' . $xmlMode . ' />
 							</xsl:template>
-							<xsl:template match="data" mode="debug">
+							<xsl:template match="/data" mode="debug">
 								<textarea>
 									<xsl:copy-of select="." />
 								</textarea>
 							</xsl:template>
 						</xsl:stylesheet>';
 						
-						$xslt = new XsltProcess($xmlData->generate($indent), $xsl);
-						$result = $xslt->process();
+						$xslt = new XsltProcess();
+						$result = $xslt->process($xmlData->generate($indent), $xsl, $this->params);
 						
 						if ($xslt->isErrors()) {
 							$error = $xslt->getError();
@@ -222,22 +236,9 @@
 			return $parsedElements;
 		}
 		
-		public static function getXmlParams() {
+		public function getXmlParams() {
 			$params = new XMLElement('params');
-			$date = new DateTime();
-			$p = array(
-				'today' => $date->format('Y-m-d'),
-				'current-time' => $date->format('H:i'),
-				'this-year' => $date->format('Y'),
-				'this-month' => $date->format('m'),
-				'this-day' => $date->format('d'),
-				'timezone' => $date->format('P'),
-				'website-name' => Symphony::Configuration()->get('sitename', 'general'),
-				'root' => URL,
-				'workspace' => URL . '/workspace',
-				'http-host' => HTTP_HOST
-			);
-			foreach ($p as $key => $value) {
+			foreach ($this->params as $key => $value) {
 				$params->appendChild(new XMLElement($key, $value));
 			}
 			

@@ -86,9 +86,11 @@
 					$xslFilePath = WORKSPACE . '/er-templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
 					
 					if (!empty($entryData) && @file_exists($xslFilePath)) {
+						$xmlData = new XMLElement('data');
+						$xmlData->setIncludeHeader(true);
 						$xml = new XMLElement('entry');
 						$xml->setAttribute('id', $entryId);
-						$xml->setIncludeHeader(true);
+						$xmlData->appendChild($xml);
 						foreach ($entryData as $fieldId => $data) {
 							$filteredData = array_filter($data);
 							if (empty($filteredData)) {
@@ -129,16 +131,16 @@
 							<xsl:import href="' . $xslFilePath . '"/>
 							<xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no" />
 							<xsl:template match="/">
-								<xsl:apply-templates select="./entry" ' . $xmlMode . ' />
+								<xsl:apply-templates select="/data" ' . $xmlMode . ' />
 							</xsl:template>
-							<xsl:template match="entry" mode="debug">
+							<xsl:template match="data" mode="debug">
 								<textarea>
 									<xsl:copy-of select="." />
 								</textarea>
 							</xsl:template>
 						</xsl:stylesheet>';
 						
-						$xslt = new XsltProcess($xml->generate($indent), $xsl);
+						$xslt = new XsltProcess($xmlData->generate($indent), $xsl);
 						$result = $xslt->process();
 						
 						if ($xslt->isErrors()) {

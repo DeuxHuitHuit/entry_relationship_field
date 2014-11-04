@@ -52,6 +52,7 @@
 			}
 			
 			$includedElements = $this->parseIncludedElements($parentField);
+			$xmlParams = self::getXmlParams();
 			
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from
@@ -90,6 +91,7 @@
 						$xmlData->setIncludeHeader(true);
 						$xml = new XMLElement('entry');
 						$xml->setAttribute('id', $entryId);
+						$xmlData->appendChild($xmlParams);
 						$xmlData->appendChild($xml);
 						foreach ($entryData as $fieldId => $data) {
 							$filteredData = array_filter($data);
@@ -220,4 +222,25 @@
 			return $parsedElements;
 		}
 		
+		public static function getXmlParams() {
+			$params = new XMLElement('params');
+			$date = new DateTime();
+			$p = array(
+				'today' => $date->format('Y-m-d'),
+				'current-time' => $date->format('H:i'),
+				'this-year' => $date->format('Y'),
+				'this-month' => $date->format('m'),
+				'this-day' => $date->format('d'),
+				'timezone' => $date->format('P'),
+				'website-name' => Symphony::Configuration()->get('sitename', 'general'),
+				'root' => URL,
+				'workspace' => URL . '/workspace',
+				'http-host' => HTTP_HOST
+			);
+			foreach ($p as $key => $value) {
+				$params->appendChild(new XMLElement($key, $value));
+			}
+			
+			return $params;
+		}
 	}

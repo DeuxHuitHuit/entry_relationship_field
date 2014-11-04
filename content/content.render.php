@@ -89,17 +89,23 @@
 						$xml = new XMLElement('entry');
 						$xml->setAttribute('id', $entryId);
 						$xml->setIncludeHeader(true);
-						
 						foreach ($entryData as $fieldId => $data) {
+							$filteredData = array_filter($data);
+							if (empty($filteredData)) {
+								continue;
+							}
 							$field = $entryFields[$fieldId];
 							$fieldName = $field->get('element_name');
 							$fieldIncludedElement = $includedElements[$entrySectionHandle];
 							if ($fieldIncludedElement === true ||
 								(is_array($fieldIncludedElement) && in_array($fieldName, $fieldIncludedElement))) {
 								$fieldIncludableElements = $field->fetchIncludableElements();
+								if ($field instanceof FieldEntry_relationship) {
+									$fieldIncludableElements = null;
+								}
 								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 									foreach ($fieldIncludableElements as $fieldIncludableElement) {
-										$mode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
+										$mode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
 										$field->appendFormattedElement($xml, $data, false, $mode, $entryId);
 									}
 								} else {

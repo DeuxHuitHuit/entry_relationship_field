@@ -430,6 +430,7 @@
 			$elements = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('elements')))));
 			$includedElements = array($label . ': *');
 			foreach ($elements as $elem) {
+				$elem = trim($elem);
 				if ($elem !== '*') {
 					$includedElements[] = $label . ': ' . $elem;
 				}
@@ -525,28 +526,35 @@
 					
 					$entryData = $entry->getData();
 					
-					foreach ($sectionFields as $field) {
-						// if we have the field's data
-						$fieldId = $field->get('id');
+					foreach ($entryData as $fieldId => $data) {
+						$filteredData = array_filter($data);
+						if (empty($filteredData)) {
+							continue;
+						}
+						$field = $sectionFields[$fieldId];
 						$fieldName = $field->get('element_name');
-						if (isset($entryData[$fieldId])) {
-							$recursiveMode = $mode; // cache mode
-							if ($field instanceof FieldEntry_relationship) {
-								$field->recursiveLevel = $this->recursiveLevel + 1;
-								if (!empty($recursiveMode)) {
-									$recursiveMode = explode(':', $mode);
-									array_shift($recursiveMode);
-									$recursiveMode = implode(': ', $recursiveMode);
-								}
+						$recursiveMode = $mode; // cache mode
+						if ($field instanceof FieldEntry_relationship) {
+							$field->recursiveLevel = $this->recursiveLevel + 1;
+							if (!empty($recursiveMode)) {
+								$recursiveMode = explode(':', $mode);
+								array_shift($recursiveMode);
+								$recursiveMode = implode(': ', $recursiveMode);
 							}
+						}
+						if ($sectionElements === null ||
+							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
+							if ($field instanceof FieldEntry_relationship) {
+								$fieldIncludableElements = null;
+							}
 							if ($mode === null && !empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 								foreach ($fieldIncludableElements as $fieldIncludableElement) {
-									$submode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
-									$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $submode, $entry_id);
+									$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
+									$field->appendFormattedElement($item, $data, $encode, $submode, $entry_id);
 								}
 							} else {
-								$field->appendFormattedElement($item, $entryData[$fieldId], $encode, $mode, $entry_id);
+								$field->appendFormattedElement($item, $data, $encode, $recursiveMode , $entry_id);
 							}
 						}
 					}

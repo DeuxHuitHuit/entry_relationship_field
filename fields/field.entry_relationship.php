@@ -106,7 +106,7 @@
 		}
 
 		public function getInt($name) {
-			return intval($this->get($name));
+			return General::intval($this->get($name));
 		}
 
 		/* ********** INPUT AND FIELD *********** */
@@ -132,7 +132,7 @@
 			$entries = $data['entries'];
 			
 			if (!is_array($entries)) {
-				$entries = array_map(intval, explode(self::SEPARATOR, $entries));
+				$entries = array_map(array('General', 'intval'), explode(self::SEPARATOR, $entries));
 			}
 			
 			// enforce limits only if required or it contains data
@@ -194,7 +194,7 @@
 				null;
 				
 			$new_settings['show_association'] = $settings['show_association'] == 'yes' ? 'yes' : 'no';
-			$new_settings['deepness'] = intval($settings['deepness']);
+			$new_settings['deepness'] = General::intval($settings['deepness']);
 			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
 			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
 			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
@@ -249,7 +249,7 @@
 				if (empty($sectionId)) {
 					continue;
 				}
-				$parent_section_id = intval($sectionId);
+				$parent_section_id = General::intval($sectionId);
 				$parent_section = SectionManager::fetch($sectionId);
 				$fields = $parent_section->fetchVisibleColumns();
 				if (empty($fields)) {
@@ -477,7 +477,7 @@
 				$root->appendChild($item);
 				
 				// max recursion check
-				if ($this->getInt('deepness') == 0 || $this->recursiveLevel <= intval($this->get('deepness'))) {
+				if ($this->getInt('deepness') == 0 || $this->recursiveLevel <= General::intval($this->get('deepness'))) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
 					
@@ -758,10 +758,10 @@
 			
 			if ($data['entries'] != null) {
 				$entriesId = explode(self::SEPARATOR, $data['entries']);
-				$entriesId = array_map(intval, $entriesId);
+				$entriesId = array_map(array('General', 'intval'), $entriesId);
 			}
 			
-			$sectionsId = array_map(intval, $sectionsId);
+			$sectionsId = array_map(array('General', 'intval'), $sectionsId);
 			$sections = SectionManager::fetch($sectionsId);
 			
 			$label = Widget::Label($this->get('label'));
@@ -809,7 +809,7 @@
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
-			$entries = array_map(intval, array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
+			$entries = array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
 			$realEntries = array();
 			foreach ($entries as $entryId) {
 				$realEntries = array_merge($realEntries, EntryManager::fetch($entryId));

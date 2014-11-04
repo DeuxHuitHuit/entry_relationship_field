@@ -33,13 +33,13 @@
 			}
 			
 			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
-			$entriesId = array_map(intval, $entriesId);
+			$entriesId = array_map(array('General', 'intval'), $entriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));
 				return;
 			}
 			
-			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
+			$parentFieldId = General::intval($this->_context[1]);
 			if ($parentFieldId < 1) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent id not valid'));
 				return;

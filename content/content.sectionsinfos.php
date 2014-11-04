@@ -9,7 +9,7 @@
 	Class contentExtensionEntry_relationship_fieldSectionsinfos extends JSONPage {
 		
 		public function view() {
-			$sectionIDs = array_map(intval, explode(',', General::sanitize($this->_context[0])));
+			$sectionIDs = array_map(array('General', 'intval'), explode(',', General::sanitize($this->_context[0])));
 			
 			if (empty($sectionIDs)) {
 				$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;

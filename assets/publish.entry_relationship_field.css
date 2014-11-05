@@ -39,6 +39,14 @@
 	color: #e90a20;
 }
 
+.field.field-entry_relationship .content pre {
+	max-height: 300px;
+	overflow:auto;
+}
+.field.field-entry_relationship .content pre code {
+	white-space: pre-wrap;
+}
+
 
 /**
  * CSS for entry relationship field iframe

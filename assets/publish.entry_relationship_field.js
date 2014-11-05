@@ -274,7 +274,9 @@
 				list.empty().append(li);
 				frame[fx]('empty');
 				
-				list.symphonyOrderable({});
+				list.symphonyOrderable({
+					handles: '>header'
+				});
 				
 			}).always(function () {
 				isRendering = false;

@@ -141,7 +141,7 @@
 							$indent = true;
 						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
-						
+						$xmlString = $xmlData->generate($indent);
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
 						<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 							<xsl:import href="' . $xslFilePath . '"/>
@@ -153,14 +153,14 @@
 								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
 							</xsl:template>
 							<xsl:template match="/data" mode="debug">
-								<textarea>
-									<xsl:copy-of select="." />
-								</textarea>
+								<pre><code>' .
+									str_replace('<', '&lt;', str_replace('>', '&gt;', $xmlString)) .
+								'</code></pre>
 							</xsl:template>
 						</xsl:stylesheet>';
 						
 						$xslt = new XsltProcess();
-						$result = $xslt->process($xmlData->generate($indent), $xsl, $this->params);
+						$result = $xslt->process($xmlString, $xsl, $this->params);
 						
 						if ($xslt->isErrors()) {
 							$error = $xslt->getError();

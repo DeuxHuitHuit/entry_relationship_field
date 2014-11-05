@@ -1,6 +1,6 @@
 # Entry Relationship Field
 
-Version: 1.0
+Version: 1.0.x
 
 > A new way to create master-details (parent-child) relationships with Symphony's sections.
 

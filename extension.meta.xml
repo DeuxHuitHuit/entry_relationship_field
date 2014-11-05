@@ -33,6 +33,21 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="1.0.1" date="2014-11-05" min="2.5.0" max="2.5.x">
+			- Fix a bug that was preventing the render. Fixes #14
+			- Outputs all modes (formatted/unformatted). Fixes #7
+			- Only save via ajax if value changed. Fixes #6
+			- Do not output * in includable elements. Fixes #9
+			- Display real count of linked elements. Fixes #13
+			- Added section name in the DS xml. Fixes #12
+			- Turn off filtering. Re: #11
+			- Re-render after save or create. Re: #1
+			- Save the field value when it changes. Fixes #1
+			- Always show linking section. Fixes #3
+			- Added some xml params into backend templates. Fixes #8
+			- Added runtime params. Fixes #8
+			- Better debug visual
+		</release>
 		<release version="1.0.0" date="2014-10-27" min="2.5.0" max="2.5.x">
 			- First release
 		</release>

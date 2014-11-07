@@ -821,7 +821,10 @@
 			$entries = array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
 			$realEntries = array();
 			foreach ($entries as $entryId) {
-				$realEntries = array_merge($realEntries, EntryManager::fetch($entryId));
+				$e = EntryManager::fetch($entryId);
+				if (is_array($e) && !empty($e)) {
+					$realEntries = array_merge($realEntries, $e);
+				}
 			}
 			$count = count($entries);
 			$realCount = count($realEntries);

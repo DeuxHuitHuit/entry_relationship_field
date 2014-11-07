@@ -831,7 +831,7 @@
 			if ($count === $realCount) {
 				return self::formatCount($count);
 			}
-			return self::formatCount($realCount) . ' (' . self::formatCount($realCount - $count) . ' deleted)';
+			return self::formatCount($realCount) . ' (' . self::formatCount($count - $realCount) . ' not found)';
 		}
 
 

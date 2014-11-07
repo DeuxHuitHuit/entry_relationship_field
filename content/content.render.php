@@ -74,7 +74,18 @@
 			foreach ($entriesId as $key => $entryId) {
 				$entry = EntryManager::fetch($entryId);
 				if (empty($entry)) {
-					$this->_Result->appendChild(new XMLElement('li', __('Entry %s not found', array($entryId))));
+					$li = new XMLElement('li', null, array(
+						'data-entry-id' => $entryId
+					));
+					$header = new XMLElement('header', null, array('class' => 'frame-header'));
+					$title = new XMLElement('h4');
+					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
+					$header->appendChild($title);
+					$options = new XMLElement('div', null, array('class' => 'destructor'));
+					$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					$header->appendChild($options);
+					$li->appendChild($header);
+					$this->_Result->appendChild($li);
 				} else {
 					$entry = $entry[0];
 					$entryData = $entry->getData();

@@ -109,9 +109,9 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$xslFilePath = WORKSPACE . '/er-templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
+					$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
 					
-					if (!empty($entryData) && @file_exists($xslFilePath)) {
+					if (!empty($entryData) && !!@file_exists($xslFilePath)) {
 						$xmlData = new XMLElement('data');
 						$xmlData->setIncludeHeader(true);
 						$xml = new XMLElement('entry');

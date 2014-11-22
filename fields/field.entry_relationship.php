@@ -451,7 +451,7 @@
 			$root = new XMLElement($this->get('element_name'));
 			
 			// selected items
-			$entries = explode(self::SEPARATOR, $data['entries']);
+			$entries = array_filter(explode(self::SEPARATOR, $data['entries']));
 			
 			// current linked entries
 			$root->setAttribute('entries', $data['entries']);

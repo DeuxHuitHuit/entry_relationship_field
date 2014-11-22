@@ -475,7 +475,6 @@
 			foreach ($entries as $key => $eId) {
 				$item = new XMLElement('item');
 				$item->setAttribute('id', $eId);
-				$root->appendChild($item);
 				
 				// max recursion check
 				$deepness = General::intval($this->get('deepness'));
@@ -485,7 +484,10 @@
 					
 					// entry not found...
 					if (!$entry || empty($entry)) {
-						$item->setValue(__('Error: entry %s not found', array($eId)));
+						$error = new XMLElement('error');
+						$error->setAttribute('id', $eId);
+						$error->setValue(__('Error: entry `%s` not found', array($eId)));
+						$root->prependChild($error);
 						continue;
 					}
 					
@@ -559,6 +561,8 @@
 						}
 					}
 				}
+				// append item when done
+				$root->appendChild($item);
 			}
 			
 			// add all our data to the wrapper;

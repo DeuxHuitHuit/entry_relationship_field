@@ -570,8 +570,6 @@
 			
 			// clean up
 			$this->recursiveLevel = 0;
-			$sectionsCache = null;
-			$fieldCache = null;
 		}
 
 
@@ -765,7 +763,6 @@
 		{
 			$isRequired = $this->get('required') == 'yes';
 			
-			$value = '';
 			$entriesId = array();
 			$sectionsId = explode(self::SEPARATOR, $this->get('sections'));
 			

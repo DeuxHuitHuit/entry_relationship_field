@@ -215,7 +215,7 @@
 				return __('None');
 			}
 			
-			return $field->prepareTextValue($data[$field->get('id')], $entry->get('id'));
+			return $field->prepareReadableValue($data[$field->get('id')], $entry->get('id'), true);
 		}
 		
 		public function parseIncludedElements($field) {

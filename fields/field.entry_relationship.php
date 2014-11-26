@@ -446,7 +446,7 @@
 		public function appendFormattedElement(&$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
 		{
 			if(!is_array($data) || empty($data)) return;
-			
+
 			// root for all values
 			$root = new XMLElement($this->get('element_name'));
 			
@@ -494,29 +494,57 @@
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
 					$item->setAttribute('section-id', $sectionId);
-					
 					$section = $sectionsCache[$sectionId];
 					if (!$section) {
 						$section = SectionManager::fetch($sectionId);
 						$sectionsCache[$sectionId] = $section;
 					}
-					
 					$sectionName = $section->get('handle');
 					$item->setAttribute('section', $sectionName);
 					
+					// adjust the mode for the current section
+					$curMode = $mode;
+					if ($curMode) {
+						// remove section name from current mode, i.e sectionName.field
+						if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
+							$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
+						}
+						// remove section name from current mode, i.e sectionName
+						else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
+							$curMode = null;
+						}
+						// mode forbids this section, bail out
+						else if (preg_match('/\./sU', $curMode)) {
+							$root->appendChild($item);
+							continue;
+						}
+					}
+					
+					// Get the valid elements for this section only
 					$sectionElements = $elements[$sectionName];
-					if ($mode || empty($sectionElements) || $sectionElements === true || $sectionElements === '*') {
+					// get all if no mode is set or section element is empty
+					// or mode is * and * is allowed
+					if (!$curMode || empty($sectionElements) || 
+						($curMode === '*' && in_array('*', $sectionElements))) {
+						// setting null = get all
 						$sectionElements = null;
-					} else {
-						foreach ($sectionElements as $sectionElement) {
-							if ($sectionElement === '*') {
-								$sectionElements = null;
-								break;
+					}
+					// everything is allowed but we have a mode
+					else if (in_array('*', $sectionElements)) {
+						// get only the mode
+						$sectionElements = array($curMode);
+					}
+					// filter out what is allowed with the mode
+					// this may leave the array empty (mode is not allowed)
+					else {
+						foreach ($sectionElements as $secElemIndex => $sectionElement) {
+							if ($curMode != $sectionElement) {
+								unset($sectionElements[$secElemIndex]);
 							}
 						}
 					}
 					
-					// current entry again, but with data
+					// current entry again, but with data and the allowed schema
 					$entry = $this->fetchEntry($eId, $sectionElements);
 					
 					// fetch fields info
@@ -526,8 +554,10 @@
 						$fieldCache[$sectionId] = $sectionFields;
 					}
 					
+					// cache the entry data
 					$entryData = $entry->getData();
 					
+					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
 						$filteredData = array_filter($data);
 						if (empty($filteredData)) {
@@ -535,22 +565,22 @@
 						}
 						$field = $sectionFields[$fieldId];
 						$fieldName = $field->get('element_name');
-						$recursiveMode = $mode; // cache mode
+						$recursiveMode = $curMode; // cache mode
 						if ($field instanceof FieldEntry_relationship) {
 							$field->recursiveLevel = $this->recursiveLevel + 1;
 							if (!empty($recursiveMode)) {
-								$recursiveMode = explode(':', $mode);
+								$recursiveMode = explode(':', $curMode);
 								array_shift($recursiveMode);
 								$recursiveMode = implode(': ', $recursiveMode);
 							}
 						}
-						if ($sectionElements === null ||
-							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
+						//if ($sectionElements === null ||
+						//	(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
 							if ($field instanceof FieldEntry_relationship) {
 								$fieldIncludableElements = null;
 							}
-							if ($mode === null && !empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+							if ($curMode === null && !empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 								foreach ($fieldIncludableElements as $fieldIncludableElement) {
 									$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
 									$field->appendFormattedElement($item, $data, $encode, $submode, $entry_id);
@@ -558,7 +588,7 @@
 							} else {
 								$field->appendFormattedElement($item, $data, $encode, $recursiveMode , $entry_id);
 							}
-						}
+						//}
 					}
 				}
 				// append item when done

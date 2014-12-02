@@ -1,0 +1,37 @@
+<?php
+	/*
+	Copyright: Deux Huit Huit 2014
+	LICENCE: MIT http://deuxhuithuit.mit-license.org;
+	*/
+	
+	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
+	
+	class CacheableFetch {
+		
+		private $className;
+		private $cache = array();
+		
+		public function __construct($className) {
+			$this->className = $className;
+		}
+		
+		public function fetch($id) {
+			$args = func_get_args();
+			if ($id && isset($this->cache[$id])) {
+				return $this->cache[$id];
+			}
+			$ret = forward_static_call_array(array($this->className, 'fetch'), $args);
+			if (is_array($ret)) {
+				foreach ($ret as $key => $value) {
+					$this->cache[$key] = $value;
+				}
+			} else {
+				$this->cache[$id] = $ret;
+			}
+			return $ret;
+		}
+		
+		public function clear() {
+			$this->cache = array();
+		}
+	}

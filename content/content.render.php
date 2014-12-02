@@ -7,18 +7,21 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 
 	require_once(TOOLKIT . '/class.xmlpage.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 
 	class contentExtensionEntry_Relationship_FieldRender extends XMLPage {
 		
-		private $sectionCache;
-		private $fieldCache;
+		private $sectionManager;
+		private $fieldManager;
+		private $entryManager;
 		private $params;
 		
 		public function __construct() {
 			parent::__construct();
+			$this->sectionManager = new CacheableFetch('SectionManager');
+			$this->fieldManager = new CacheableFetch('FieldManager');
+			$this->entryManager = new CacheableFetch('EntryManager');
 			$date = new DateTime();
-			$this->sectionCache = array();
-			$this->fieldCache = array();
 			$this->params = array(
 				'today' => $date->format('Y-m-d'),
 				'current-time' => $date->format('H:i'),
@@ -59,7 +62,7 @@
 				return;
 			}
 			
-			$parentField = FieldManager::fetch($parentFieldId);
+			$parentField = $this->fieldManager->fetch($parentFieldId);
 			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
 				return;
@@ -72,7 +75,7 @@
 			// different sections, which prevents us from
 			// passing an array of entryId.
 			foreach ($entriesId as $key => $entryId) {
-				$entry = EntryManager::fetch($entryId);
+				$entry = $this->entryManager->fetch($entryId);
 				if (empty($entry)) {
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId
@@ -89,7 +92,7 @@
 				} else {
 					$entry = $entry[0];
 					$entryData = $entry->getData();
-					$entrySection = SectionManager::fetch($entry->get('section_id'));
+					$entrySection = $this->sectionManager->fetch($entry->get('section_id'));
 					$entryVisibleFields = $entrySection->fetchVisibleColumns();
 					$entryFields = $entrySection->fetchFields();
 					$entrySectionHandle = $this->getSectionName($entry, 'handle');
@@ -188,20 +191,11 @@
 				}
 				
 			}
-			
-			// clean up
-			$this->sectionCache = null;
-			$this->fieldCache = null;
 		}
 		
 		public function getSectionName($entry, $name = 'name') {
 			$sectionId = $entry->get('section_id');
-			
-			if (!isset($this->sectionCache[$sectionId])) {
-				$this->sectionCache[$sectionId] = SectionManager::fetch($sectionId);
-			}
-			
-			return $this->sectionCache[$sectionId]->get($name);
+			return $this->sectionManager->fetch($sectionId)->get($name);
 		}
 		
 		public function getEntryTitle($entry, $entryVisibleFields, $entryFields) {

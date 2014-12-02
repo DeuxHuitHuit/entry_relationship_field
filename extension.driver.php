@@ -11,7 +11,7 @@
 	/**
 	 *
 	 * @author Deux Huit Huit
-	 * http://www.deuxhuithuit.com
+	 * https://deuxhuithuit.com/
 	 *
 	 */
 	class extension_entry_relationship_field extends Extension {

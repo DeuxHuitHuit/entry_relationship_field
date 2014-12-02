@@ -7,6 +7,7 @@
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 	require_once(TOOLKIT . '/class.field.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	
 	/**
 	 *
@@ -463,8 +464,7 @@
 			$elements = $this->parseElements();
 			
 			// cache
-			$sectionsCache = array();
-			$fieldCache = array();
+			$sectionsCache = new CacheableFetch('SectionManager');
 			
 			// DS mode
 			if (!$mode || $mode == '*') {
@@ -494,11 +494,7 @@
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
 					$item->setAttribute('section-id', $sectionId);
-					$section = $sectionsCache[$sectionId];
-					if (!$section) {
-						$section = SectionManager::fetch($sectionId);
-						$sectionsCache[$sectionId] = $section;
-					}
+					$section = $sectionsCache->fetch($sectionId);
 					$sectionName = $section->get('handle');
 					$item->setAttribute('section', $sectionName);
 					
@@ -547,11 +543,9 @@
 					// current entry again, but with data and the allowed schema
 					$entry = $this->fetchEntry($eId, $sectionElements);
 					
-					// fetch fields info
-					$sectionFields = $fieldCache[$sectionId];
-					if (!$sectionFields) {
-						$sectionFields = $section->fetchFields();
-						$fieldCache[$sectionId] = $sectionFields;
+					// cache fields info
+					if (!isset($section->er_field_cache)) {
+						$section->er_field_cache = $section->fetchFields();
 					}
 					
 					// cache the entry data
@@ -563,7 +557,7 @@
 						if (empty($filteredData)) {
 							continue;
 						}
-						$field = $sectionFields[$fieldId];
+						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
 						$recursiveMode = $curMode; // cache mode
 						if ($field instanceof FieldEntry_relationship) {

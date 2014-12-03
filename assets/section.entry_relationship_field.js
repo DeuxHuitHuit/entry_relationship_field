@@ -12,6 +12,9 @@
 	
 	'use strict';
 	
+	var MODES = /^(.+):(.+)/i;
+	var WHITESPACE = /\s*/i;
+	
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
@@ -38,7 +41,8 @@
 		
 		// parse input
 		$.each(fieldElements.val().split(','), function (index, value) {
-			value = value.replace(/\s/gi, '');
+			// remove all whitespace
+			value = value.replace(WHITESPACE, '');
 			var parts = value.split('.');
 			if (!!parts.length) {
 				var sectionname = parts[0];
@@ -66,9 +70,31 @@
 		lis.each(function (index, value) {
 			var t = $(this);
 			var sectionname = t.attr('data-section');
-			var field = t.text();
+			var field = t.text().replace(WHITESPACE, '');
 			var fx = 'show';
-			if (values['*'] === true || values[sectionname] === true || !!~$.inArray(field, values[sectionname])) {
+			
+			var isFieldSelected = function () {
+				if (!values[sectionname]) {
+					return false;
+				}
+				var found = false;
+				$.each(values[sectionname], function (index, elem) {
+					if (field === elem) {
+						found = true;
+						return false;
+					}
+					// detect presence of a mode
+					else if (!!~field.indexOf(':')) {
+						if (field.replace(MODES, '$1') === elem) {
+							found = true;
+							return false;
+						}
+					}
+				});
+				return found;
+			};
+			
+			if (values['*'] === true || values[sectionname] === true || isFieldSelected()) {
 				fx = 'hide';
 				hiddenCount++;
 			}

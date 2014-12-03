@@ -518,6 +518,7 @@
 					
 					// Get the valid elements for this section only
 					$sectionElements = $elements[$sectionName];
+					
 					// get all if no mode is set or section element is empty
 					// or mode is * and * is allowed
 					if (!$curMode || empty($sectionElements) || 
@@ -560,6 +561,8 @@
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
 						$recursiveMode = $curMode; // cache mode
+						
+						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
 							$field->recursiveLevel = $this->recursiveLevel + 1;
 							if (!empty($recursiveMode)) {
@@ -568,8 +571,9 @@
 								$recursiveMode = implode(': ', $recursiveMode);
 							}
 						}
-						//if ($sectionElements === null ||
-						//	(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
+						// filter out elements per what's allowed
+						if ($sectionElements === null ||
+							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
 							if ($field instanceof FieldEntry_relationship) {
 								$fieldIncludableElements = null;
@@ -582,7 +586,7 @@
 							} else {
 								$field->appendFormattedElement($item, $data, $encode, $recursiveMode , $entry_id);
 							}
-						//}
+						}
 					}
 				}
 				// append item when done

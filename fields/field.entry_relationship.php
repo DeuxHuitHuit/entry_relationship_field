@@ -897,16 +897,31 @@
 					`id` 			int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`field_id` 		int(11) unsigned NOT NULL,
 					`sections`		varchar(255) NULL COLLATE utf8_unicode_ci,
-					`show_association` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					`show_association` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`deepness` 		int(2) unsigned NULL,
 					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
 					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
 					`min_entries`	int(5) unsigned NULL,
 					`max_entries`	int(5) unsigned NULL,
+					`allow-edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow-new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow-link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			");
+		}
+		
+		public static function update_102() {
+			$tbl = self::FIELD_TBL_NAME;
+			$sql = "
+				ALTER TABLE `$tbl`
+					ADD COLUMN `allow-edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					ADD COLUMN `allow-new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					ADD COLUMN `allow-link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
+					AFTER `max_entries`
+			";
+			return Symphony::Database()->query($sql);
 		}
 		
 		

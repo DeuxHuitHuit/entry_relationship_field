@@ -68,6 +68,10 @@
 			// no limit
 			$this->set('min_entries', null);
 			$this->set('max_entries', null);
+			// all permissions
+			$this->set('allow_new', 'yes');
+			$this->set('allow_edit', 'yes');
+			$this->set('allow_link', 'yes');
 		}
 
 		public function isSortable(){
@@ -199,6 +203,9 @@
 			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
 			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
 			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
+			$new_settings['allow_new'] = $settings['allow_new'] == 'yes' ? 'yes' : 'no';
+			$new_settings['allow_edit'] = $settings['allow_edit'] == 'yes' ? 'yes' : 'no';
+			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
 			
 			// save it into the array
 			$this->setArray($new_settings);
@@ -276,6 +283,9 @@
 				'mode' => $this->get('mode'),
 				'min_entries' => $this->get('min_entries'),
 				'max_entries' => $this->get('max_entries'),
+				'allow_new' => $this->get('allow_new'),
+				'allow_edit' => $this->get('allow_edit'),
+				'allow_link' => $this->get('allow_link'),
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -774,8 +784,29 @@
 			
 			$wrapper->appendChild($limits);
 			
+			// permissions
+			$permissions = new XMLElement('fieldset');
+			$permissions->setAttribute('class', 'two columns');
+			$permissions->appendChild($this->createCheckbox('allow_new', 'Show new button'));
+			$permissions->appendChild($this->createCheckbox('allow_edit', 'Show edit button'));
+			$permissions->appendChild($this->createCheckbox('allow_link', 'Show link button'));
+			
+			$wrapper->appendChild($permissions);
+			
 			// footer
 			$this->appendStatusFooter($wrapper);
+		}
+		
+		private function createCheckbox($fieldName, $text) {
+			$chk = Widget::Label();
+			$chk->setAttribute('class', 'column');
+			$attrs = null;
+			if ($this->get($fieldName) == 'yes') {
+				$attrs = array('checked' => 'checked');
+			}
+			$chk->appendChild(Widget::Input($this->createSettingsFieldName($fieldName), 'yes', 'checkbox', $attrs));
+			$chk->setValue(__($text));
+			return $chk;
 		}
 
 		/**
@@ -903,9 +934,9 @@
 					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
 					`min_entries`	int(5) unsigned NULL,
 					`max_entries`	int(5) unsigned NULL,
-					`allow-edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow-new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow-link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -916,9 +947,9 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow-edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
-					ADD COLUMN `allow-new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
-					ADD COLUMN `allow-link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
+					ADD COLUMN `allow_edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					ADD COLUMN `allow_new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
+					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
 					AFTER `max_entries`
 			";
 			return Symphony::Database()->query($sql);

@@ -57,6 +57,7 @@
 		S.Elements.header.detach();
 		S.Elements.contents.find('table th:not([id])').remove();
 		S.Elements.contents.find('table td:not([class])').remove();
+		S.Elements.contents.find('#drawer-section-associations').remove();
 		S.Elements.context.find('#drawer-filtering').remove();
 		var btnClose = $('<button />').attr('type', 'button').text('Close').click(function (e) {
 			parent.hide();

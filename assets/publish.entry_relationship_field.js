@@ -66,6 +66,9 @@
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);
 		
+		// makes all link open in new window/tab
+		form.find('table tr td a').attr('target', '_blank');
+
 		form.find('table tr td').css('cursor', 'pointer').click(function (e) {
 			var t = $(this);
 			var target = $(e.target);

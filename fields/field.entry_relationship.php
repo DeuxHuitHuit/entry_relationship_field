@@ -114,8 +114,8 @@
 			return General::intval($this->get($name));
 		}
 
-		public function is($prop) {
-			return $this->get($prop) == 'yes';
+		public function is($name) {
+			return $this->get($name) == 'yes';
 		}
 
 		/* ********** INPUT AND FIELD *********** */

@@ -66,13 +66,20 @@
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);
 		
-		form.find('tr td:first-child a').click(function (e) {
-			e.preventDefault();
+		form.find('table tr td').css('cursor', 'pointer').click(function (e) {
 			var t = $(this);
+			var target = $(e.target);
+			// click on a link, but not in the first td
+			if (!!target.closest('a').length && !target.closest('tr td:first-child').length) {
+				// bail out
+				return true;
+			}
+
+			e.preventDefault();
 			
 			if (!t.closest('.inactive').length) {
 				var entryId = t.closest('tr').attr('id').replace('id-', '');
-				
+				t.closest('tr').addClass('selected');
 				parent.link(entryId);
 				parent.hide();
 			}

@@ -114,6 +114,10 @@
 			return General::intval($this->get($name));
 		}
 
+		public function is($prop) {
+			return $this->get($prop) == 'yes';
+		}
+
 		/* ********** INPUT AND FIELD *********** */
 
 
@@ -683,17 +687,22 @@
 			$wrap = new XMLElement('fieldset');
 			$wrap->setAttribute('class', 'single');
 			
-			$options = array();
-			foreach ($sections as $section) {
-				$options[] = array($section->get('handle'), false, $section->get('name'));
+			if ($this->is('allow_new') || $this->is('allow_link')) {
+				$options = array();
+				foreach ($sections as $section) {
+					$options[] = array($section->get('handle'), false, $section->get('name'));
+				}
+				$select = Widget::Select('', $options, array('class' => 'sections'));
+				$selectWrap = new XMLElement('div');
+				$selectWrap->appendChild($select);
+				$wrap->appendChild($selectWrap);
 			}
-			$select = Widget::Select('', $options, array('class' => 'sections'));
-			$selectWrap = new XMLElement('div');
-			$selectWrap->appendChild($select);
-			
-			$wrap->appendChild($selectWrap);
-			$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button', 'class' => 'create')));
-			$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button', 'class' => 'link')));
+			if ($this->is('allow_new')) {
+				$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button', 'class' => 'create')));
+			}
+			if ($this->is('allow_link')) {
+				$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button', 'class' => 'link')));
+			}
 			
 			return $wrap;
 		}

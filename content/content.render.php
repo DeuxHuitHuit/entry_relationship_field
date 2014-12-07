@@ -85,7 +85,9 @@
 					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					if ($parentField->is('allow_link')) {
+						$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					}
 					$header->appendChild($options);
 					$li->appendChild($header);
 					$this->_Result->appendChild($li);
@@ -107,8 +109,12 @@
 					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					$options->appendChild(new XMLElement('a', __('Edit'), array('class' => 'edit')));
-					$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					if ($parentField->is('allow_edit')) {
+						$options->appendChild(new XMLElement('a', __('Edit'), array('class' => 'edit')));
+					}
+					if ($parentField->is('allow_link')) {
+						$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					}
 					$header->appendChild($options);
 					$li->appendChild($header);
 					

@@ -336,13 +336,15 @@
 		};
 		
 		var btnCreateClick = function (e) {
+			var t = $(this);
 			syncCurrent();
-			openIframe(sections.val(), 'new');
+			openIframe(t.attr('data-create') || sections.val(), 'new');
 		};
 		
 		var btnLinkClick = function (e) {
+			var t = $(this);
 			syncCurrent();
-			openIframe(sections.val());
+			openIframe(t.attr('data-link') || sections.val());
 		};
 		
 		var ajaxSaveTimeout = 0;
@@ -373,15 +375,17 @@
 		t.on('click', '[data-create]', btnCreateClick);
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', function (e) {
+			var t = $(this);
 			var li = $(this).closest('li');
-			var id = li.attr('data-entry-id');
+			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
 		});
 		t.on('click', '[data-edit]', function (e) {
+			var t = $(this);
 			syncCurrent();
 			var li = $(this).closest('li');
-			var id = li.attr('data-entry-id');
+			var id = t.attr('data-edit') || li.attr('data-entry-id');
 			var section = li.attr('data-section');
 			openIframe(section, 'edit/' + id);
 		});

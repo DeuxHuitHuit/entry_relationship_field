@@ -7,16 +7,33 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 
 	require_once(TOOLKIT . '/class.xmlpage.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 
 	class contentExtensionEntry_Relationship_FieldRender extends XMLPage {
 		
-		private $sectionCache;
-		private $fieldCache;
+		private $sectionManager;
+		private $fieldManager;
+		private $entryManager;
+		private $params;
 		
 		public function __construct() {
 			parent::__construct();
-			$this->sectionCache = array();
-			$this->fieldCache = array();
+			$this->sectionManager = new CacheableFetch('SectionManager');
+			$this->fieldManager = new CacheableFetch('FieldManager');
+			$this->entryManager = new CacheableFetch('EntryManager');
+			$date = new DateTime();
+			$this->params = array(
+				'today' => $date->format('Y-m-d'),
+				'current-time' => $date->format('H:i'),
+				'this-year' => $date->format('Y'),
+				'this-month' => $date->format('m'),
+				'this-day' => $date->format('d'),
+				'timezone' => $date->format('P'),
+				'website-name' => Symphony::Configuration()->get('sitename', 'general'),
+				'root' => URL,
+				'workspace' => URL . '/workspace',
+				'http-host' => HTTP_HOST
+			);
 			// fix jquery
 			$this->_Result->setIncludeHeader(false);
 			$this->addHeaderToPage('Content-Type', 'text/html');
@@ -33,37 +50,51 @@
 			}
 			
 			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
-			$entriesId = array_map(intval, $entriesId);
+			$entriesId = array_map(array('General', 'intval'), $entriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', 'No entry no found'));
 				return;
 			}
 			
-			$parentFieldId = intval(MySQL::cleanValue($this->_context[1]));
+			$parentFieldId = General::intval($this->_context[1]);
 			if ($parentFieldId < 1) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent id not valid'));
 				return;
 			}
 			
-			$parentField = FieldManager::fetch($parentFieldId);
+			$parentField = $this->fieldManager->fetch($parentFieldId);
 			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', 'Parent field not found'));
 				return;
 			}
 			
 			$includedElements = $this->parseIncludedElements($parentField);
+			$xmlParams = self::getXmlParams();
 			
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from
 			// passing an array of entryId.
 			foreach ($entriesId as $key => $entryId) {
-				$entry = EntryManager::fetch($entryId);
+				$entry = $this->entryManager->fetch($entryId);
 				if (empty($entry)) {
-					$this->_Result->appendChild(new XMLElement('li', __('Entry %s not found', array($entryId))));
+					$li = new XMLElement('li', null, array(
+						'data-entry-id' => $entryId
+					));
+					$header = new XMLElement('header', null, array('class' => 'frame-header'));
+					$title = new XMLElement('h4');
+					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
+					$header->appendChild($title);
+					$options = new XMLElement('div', null, array('class' => 'destructor'));
+					if ($parentField->is('allow_link')) {
+						$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					}
+					$header->appendChild($options);
+					$li->appendChild($header);
+					$this->_Result->appendChild($li);
 				} else {
 					$entry = $entry[0];
 					$entryData = $entry->getData();
-					$entrySection = SectionManager::fetch($entry->get('section_id'));
+					$entrySection = $this->sectionManager->fetch($entry->get('section_id'));
 					$entryVisibleFields = $entrySection->fetchVisibleColumns();
 					$entryFields = $entrySection->fetchFields();
 					$entrySectionHandle = $this->getSectionName($entry, 'handle');
@@ -78,28 +109,48 @@
 					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					$options->appendChild(new XMLElement('a', __('Edit'), array('class' => 'edit')));
-					$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+					if ($parentField->is('allow_edit')) {
+						$title->setAttribute('data-edit', $entryId);
+						$options->appendChild(new XMLElement('a', __('Edit'), array(
+							'class' => 'edit',
+							'data-edit' => $entryId,
+						)));
+					}
+					if ($parentField->is('allow_link')) {
+						$options->appendChild(new XMLElement('a', __('Un-link'), array(
+							'class' => 'unlink',
+							'data-unlink' => $entryId,
+						)));
+					}
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$xslFilePath = WORKSPACE . '/er-templates/' . $this->getSectionName($entry, 'handle') . '.xsl';
+					$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
 					
-					if (!empty($entryData) && @file_exists($xslFilePath)) {
+					if (!empty($entryData) && !!@file_exists($xslFilePath)) {
+						$xmlData = new XMLElement('data');
+						$xmlData->setIncludeHeader(true);
 						$xml = new XMLElement('entry');
 						$xml->setAttribute('id', $entryId);
-						$xml->setIncludeHeader(true);
-						
+						$xmlData->appendChild($xmlParams);
+						$xmlData->appendChild($xml);
 						foreach ($entryData as $fieldId => $data) {
+							$filteredData = array_filter($data);
+							if (empty($filteredData)) {
+								continue;
+							}
 							$field = $entryFields[$fieldId];
 							$fieldName = $field->get('element_name');
 							$fieldIncludedElement = $includedElements[$entrySectionHandle];
 							if ($fieldIncludedElement === true ||
 								(is_array($fieldIncludedElement) && in_array($fieldName, $fieldIncludedElement))) {
 								$fieldIncludableElements = $field->fetchIncludableElements();
+								if ($field instanceof FieldEntry_relationship) {
+									$fieldIncludableElements = null;
+								}
 								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 									foreach ($fieldIncludableElements as $fieldIncludableElement) {
-										$mode = preg_replace('/' . $fieldName . '\s*\:\s*/', '', $fieldIncludableElement, 1);
+										$mode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
 										$field->appendFormattedElement($xml, $data, false, $mode, $entryId);
 									}
 								} else {
@@ -117,23 +168,26 @@
 							$indent = true;
 						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
-						
+						$xmlString = $xmlData->generate($indent);
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
 						<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 							<xsl:import href="' . $xslFilePath . '"/>
 							<xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no" />
 							<xsl:template match="/">
-								<xsl:apply-templates select="./entry" ' . $xmlMode . ' />
+								<xsl:apply-templates select="/data" ' . $xmlMode . ' />
 							</xsl:template>
-							<xsl:template match="entry" mode="debug">
-								<textarea>
-									<xsl:copy-of select="." />
-								</textarea>
+							<xsl:template match="/data" ' . $xmlMode . '>
+								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
+							</xsl:template>
+							<xsl:template match="/data" mode="debug">
+								<pre><code>' .
+									str_replace('<', '&lt;', str_replace('>', '&gt;', $xmlString)) .
+								'</code></pre>
 							</xsl:template>
 						</xsl:stylesheet>';
 						
-						$xslt = new XsltProcess($xml->generate($indent), $xsl);
-						$result = $xslt->process();
+						$xslt = new XsltProcess();
+						$result = $xslt->process($xmlString, $xsl, $this->params);
 						
 						if ($xslt->isErrors()) {
 							$error = $xslt->getError();
@@ -150,20 +204,11 @@
 				}
 				
 			}
-			
-			// clean up
-			$this->sectionCache = null;
-			$this->fieldCache = null;
 		}
 		
 		public function getSectionName($entry, $name = 'name') {
 			$sectionId = $entry->get('section_id');
-			
-			if (!isset($this->sectionCache[$sectionId])) {
-				$this->sectionCache[$sectionId] = SectionManager::fetch($sectionId);
-			}
-			
-			return $this->sectionCache[$sectionId]->get($name);
+			return $this->sectionManager->fetch($sectionId)->get($name);
 		}
 		
 		public function getEntryTitle($entry, $entryVisibleFields, $entryFields) {
@@ -177,7 +222,7 @@
 				return __('None');
 			}
 			
-			return $field->prepareTextValue($data[$field->get('id')], $entry->get('id'));
+			return $field->prepareReadableValue($data[$field->get('id')], $entry->get('id'), true);
 		}
 		
 		public function parseIncludedElements($field) {
@@ -212,4 +257,12 @@
 			return $parsedElements;
 		}
 		
+		public function getXmlParams() {
+			$params = new XMLElement('params');
+			foreach ($this->params as $key => $value) {
+				$params->appendChild(new XMLElement($key, $value));
+			}
+			
+			return $params;
+		}
 	}

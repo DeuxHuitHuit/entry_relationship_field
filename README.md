@@ -1,6 +1,6 @@
-# Entry Relationship Field
+# Entry Relationship Field [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/DeuxHuitHuit/entry_relationship_field/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/DeuxHuitHuit/entry_relationship_field/?branch=master)
 
-Version: 1.0
+Version: 1.0.x
 
 > A new way to create master-details (parent-child) relationships with Symphony's sections.
 

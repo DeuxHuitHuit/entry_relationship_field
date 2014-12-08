@@ -11,7 +11,7 @@
 	/**
 	 *
 	 * @author Deux Huit Huit
-	 * http://www.deuxhuithuit.com
+	 * https://deuxhuithuit.com/
 	 *
 	 */
 	class extension_entry_relationship_field extends Extension {
@@ -87,14 +87,21 @@
 		}
 
 		/**
-		 * Creates the table needed for the settings of the field
+		 * This method will update the extension according to the
+		 * previous and current version parameters.
+		 * @param string $previousVersion
 		 */
-		public function update($previousVersion) {
-			return true;
+		public function update($previousVersion = false) {
+			$ret = true;
+			
+			// less than 1.0.2
+			if ($ret && version_compare($previousVersion, '1.0.2') == -1) {
+				$ret = FieldEntry_relationship::update_102();
+			}
+			return $ret;
 		}
 
 		/**
-		 *
 		 * Drops the table needed for the settings of the field
 		 */
 		public function uninstall() {

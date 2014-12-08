@@ -94,6 +94,10 @@
 		public function update($previousVersion = false) {
 			$ret = true;
 			
+			if (!$previousVersion) {
+				$previousVersion = '0.0.1';
+			}
+			
 			// less than 1.0.2
 			if ($ret && version_compare($previousVersion, '1.0.2') == -1) {
 				$ret = FieldEntry_relationship::update_102();

@@ -635,6 +635,9 @@
 			return $name;
 		}
 		
+		/**
+		 * @param string $name
+		 */
 		private function createSettingsFieldName($name, $multiple = false) {
 			return $this->createFieldName($this->get('sortorder'), $name, $multiple);
 		}

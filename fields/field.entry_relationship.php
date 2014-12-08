@@ -698,10 +698,18 @@
 				$wrap->appendChild($selectWrap);
 			}
 			if ($this->is('allow_new')) {
-				$wrap->appendChild(new XMLElement('button', __('Create new'), array('type' => 'button', 'class' => 'create')));
+				$wrap->appendChild(new XMLElement('button', __('Create new'), array(
+					'type' => 'button',
+					'class' => 'create',
+					'data-create' => '',
+				)));
 			}
 			if ($this->is('allow_link')) {
-				$wrap->appendChild(new XMLElement('button', __('Link to entry'), array('type' => 'button', 'class' => 'link')));
+				$wrap->appendChild(new XMLElement('button', __('Link to entry'), array(
+					'type' => 'button',
+					'class' => 'link',
+					'data-link' => '',
+				)));
 			}
 			
 			return $wrap;

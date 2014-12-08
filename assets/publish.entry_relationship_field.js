@@ -370,15 +370,15 @@
 			}, 200);
 		};
 		
-		t.on('click', 'button.create', btnCreateClick);
-		t.on('click', 'button.link', btnLinkClick);
-		t.on('click', 'a.unlink', function (e) {
+		t.on('click', '[data-create]', btnCreateClick);
+		t.on('click', '[data-link]', btnLinkClick);
+		t.on('click', '[data-unlink]', function (e) {
 			var li = $(this).closest('li');
 			var id = li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
 		});
-		t.on('click', 'a.edit', function (e) {
+		t.on('click', '[data-edit]', function (e) {
 			syncCurrent();
 			var li = $(this).closest('li');
 			var id = li.attr('data-entry-id');

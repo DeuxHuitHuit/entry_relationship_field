@@ -110,10 +110,17 @@
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
 					if ($parentField->is('allow_edit')) {
-						$options->appendChild(new XMLElement('a', __('Edit'), array('class' => 'edit')));
+						$title->setAttribute('data-edit', $entryId);
+						$options->appendChild(new XMLElement('a', __('Edit'), array(
+							'class' => 'edit',
+							'data-edit' => $entryId,
+						)));
 					}
 					if ($parentField->is('allow_link')) {
-						$options->appendChild(new XMLElement('a', __('Un-link'), array('class' => 'unlink')));
+						$options->appendChild(new XMLElement('a', __('Un-link'), array(
+							'class' => 'unlink',
+							'data-unlink' => $entryId,
+						)));
 					}
 					$header->appendChild($options);
 					$li->appendChild($header);

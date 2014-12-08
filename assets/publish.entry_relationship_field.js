@@ -370,8 +370,8 @@
 			}, 200);
 		};
 		
-		t.find('button.create').click(btnCreateClick);
-		t.find('button.link').click(btnLinkClick);
+		t.on('click', 'button.create', btnCreateClick);
+		t.on('click', 'button.link', btnLinkClick);
 		t.on('click', 'a.unlink', function (e) {
 			var li = $(this).closest('li');
 			var id = li.attr('data-entry-id');

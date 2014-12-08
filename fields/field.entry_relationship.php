@@ -42,7 +42,6 @@
 		/**
 		 *
 		 * Constructor for the oEmbed Field object
-		 * @param mixed $parent
 		 */
 		public function __construct(){
 			// call the parent constructor
@@ -110,10 +109,16 @@
 			return true;
 		}
 
+		/**
+		 * @param string $name
+		 */
 		public function getInt($name) {
 			return General::intval($this->get($name));
 		}
 
+		/**
+		 * @param string $name
+		 */
 		public function is($name) {
 			return $this->get($name) == 'yes';
 		}
@@ -379,6 +384,10 @@
 			return $li;
 		}
 		
+		/**
+		 * @param string $joins
+		 * @param string $where
+		 */
 		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
 			$field_id = $this->get('id');
 			
@@ -629,6 +638,9 @@
 			return $this->createFieldName($this->get('sortorder'), $name, $multiple);
 		}
 		
+		/**
+		 * @param string $name
+		 */
 		private function createPublishFieldName($name, $multiple = false) {
 			return $this->createFieldName($this->get('element_name'), $name, $multiple);
 		}
@@ -814,6 +826,10 @@
 			$this->appendStatusFooter($wrapper);
 		}
 		
+		/**
+		 * @param string $fieldName
+		 * @param string $text
+		 */
 		private function createCheckbox($fieldName, $text) {
 			$chk = Widget::Label();
 			$chk->setAttribute('class', 'column');
@@ -875,6 +891,9 @@
 			}
 		}
 
+		/**
+		 * @param integer $count
+		 */
 		private static function formatCount($count)
 		{
 			if ($count == 0) {

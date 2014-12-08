@@ -11,6 +11,9 @@
 		private $className;
 		private $cache = array();
 		
+		/**
+		 * @param string $className
+		 */
 		public function __construct($className) {
 			$this->className = $className;
 		}

@@ -391,7 +391,8 @@
 		});
 		
 		if (sections.find('option').length < 2) {
-			sections.attr('disabled', 'disabled').addClass('disabled');
+			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
+			sections.after($('<label />').text(sections.text()));
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {

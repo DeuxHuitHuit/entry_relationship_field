@@ -177,8 +177,18 @@
 		 */
 		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null) {
 			$status = self::__OK__;
+			$entries = null;
 			
-			$entries = $data['entries'];
+			if (!is_array($data) || !is_string($data)) {
+				return null;
+			}
+			
+			if (isset($data['entries'])) {
+				$entries = $data['entries'];
+			}
+			else if (is_string($data)) {
+				$entries = $data;
+			}
 			
 			$row = array(
 				'entries' => $entries

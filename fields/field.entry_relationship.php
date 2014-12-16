@@ -637,6 +637,11 @@
 
 		/* ********* Utils *********** */
 		
+		/**
+		 * @param string $prefix
+		 * @param string $name
+		 * @param @optional bool $multiple
+		 */
 		private function createFieldName($prefix, $name, $multiple = false) {
 			$name = "fields[$prefix][$name]";
 			if ($multiple) {

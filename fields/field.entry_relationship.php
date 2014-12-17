@@ -41,6 +41,13 @@
 		
 		/**
 		 *
+		 * Parent's maximum recursive level of output
+		 *  @var int
+		 */
+		protected $recursiveDeepness = null;
+		
+		/**
+		 *
 		 * Constructor for the oEmbed Field object
 		 */
 		public function __construct(){
@@ -56,6 +63,8 @@
 			$this->_showassociation = true;
 			// current recursive level
 			$this->recursiveLevel = 0;
+			// parent's maximum recursive level of output
+			$this->recursiveDeepness = null;
 			// set as not required by default
 			$this->set('required', 'no');
 			// show association by default
@@ -504,6 +513,11 @@
 				$mode = null;
 			}
 			
+			$deepness = General::intval($this->recursiveDeepness);
+			if ($deepness < 1) {
+				$deepness = General::intval($this->get('deepness'));
+			}
+			
 			// build entries
 			foreach ($entries as $key => $eId) {
 				$item = new XMLElement('item');
@@ -511,7 +525,7 @@
 				
 				// max recursion check
 				$deepness = General::intval($this->get('deepness'));
-				if ($deepness < 1 || $this->recursiveLevel <= $deepness) {
+				if ($deepness < 1 || $this->recursiveLevel < $deepness) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
 					
@@ -599,6 +613,7 @@
 						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
 							$field->recursiveLevel = $this->recursiveLevel + 1;
+							$field->recursiveDeepness = $deepness;
 							if (!empty($recursiveMode)) {
 								$recursiveMode = explode(':', $curMode);
 								array_shift($recursiveMode);

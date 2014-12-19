@@ -513,9 +513,16 @@
 				$mode = null;
 			}
 			
-			$deepness = General::intval($this->recursiveDeepness);
-			if ($deepness < 1) {
-				$deepness = General::intval($this->get('deepness'));
+			$parentDeepness = General::intval($this->recursiveDeepness);
+			$deepness = General::intval($this->get('deepness'));
+			
+			// both deepnesses are defined and parent restricts more
+			if ($parentDeepness > 0 && $deepness > 0 && $parentDeepness < $deepness) {
+				$deepness = $parentDeepness;
+			}
+			// parent is defined, current is not
+			else if ($parentDeepness > 0 && $deepness < 1) {
+				$deepness = $parentDeepness;
 			}
 			
 			// build entries

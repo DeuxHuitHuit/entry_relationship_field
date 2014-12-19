@@ -188,7 +188,7 @@
 			$status = self::__OK__;
 			$entries = null;
 			
-			if (!is_array($data) || !is_string($data)) {
+			if (!is_array($data) && !is_string($data)) {
 				return null;
 			}
 			

@@ -345,6 +345,13 @@
 			return parent::tearDown();
 		}
 		
+		/**
+		 * Generates the where filter for searching by entry id
+		 *
+		 * @param string $value
+		 * @param @optional string $col
+		 * @param @optional boolean $andOperation
+		 */
 		public function generateWhereFilter($value, $col = 'd', $andOperation = true) {
 			$junction = $andOperation ? 'AND' : 'OR';
 			if (!$value) {
@@ -356,6 +363,11 @@
 					`{$col}`.`entries` LIKE '%,{$value},%')";
 		}
 
+		/**
+		 * Fetch the number of associated entries for a particular entry id
+		 *
+		 * @param string $value
+		 */
 		public function fetchAssociatedEntryCount($value) {
 			if (!$value) {
 				return 0;

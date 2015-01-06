@@ -464,7 +464,9 @@
 				if (!isset($elements[$parts[0]])) {
 					$elements[$parts[0]] = array();
 				}
-				$elements[$parts[0]][] = $parts[1];
+				if (isset($parts[1]) && !!$parts[1]) {
+					$elements[$parts[0]][] = $parts[1];
+				}
 			}
 			
 			return $elements;

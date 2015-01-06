@@ -596,7 +596,7 @@
 						$sectionElements = null;
 					}
 					// everything is allowed but we have a mode
-					else if (in_array('*', $sectionElements)) {
+					else if (in_array('*', $sectionElements) && !!$curMode) {
 						// get only the mode
 						$sectionElements = array($curMode);
 					}
@@ -624,6 +624,7 @@
 					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
 						$filteredData = array_filter($data);
+						
 						if (empty($filteredData)) {
 							continue;
 						}

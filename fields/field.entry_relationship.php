@@ -623,7 +623,9 @@
 					
 					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
-						$filteredData = array_filter($data);
+						$filteredData = array_filter($data, function ($value) {
+							return $value != null;
+						});
 						
 						if (empty($filteredData)) {
 							continue;

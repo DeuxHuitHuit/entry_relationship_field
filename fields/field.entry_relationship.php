@@ -758,12 +758,13 @@
 			$wrap->setAttribute('class', 'single');
 			
 			if ($this->is('allow_new') || $this->is('allow_link')) {
+				$selectWrap = new XMLElement('div');
+				$selectWrap->appendChild(new XMLElement('span', __('Related section: ')));
 				$options = array();
 				foreach ($sections as $section) {
 					$options[] = array($section->get('handle'), false, $section->get('name'));
 				}
 				$select = Widget::Select('', $options, array('class' => 'sections'));
-				$selectWrap = new XMLElement('div');
 				$selectWrap->appendChild($select);
 				$wrap->appendChild($selectWrap);
 			}

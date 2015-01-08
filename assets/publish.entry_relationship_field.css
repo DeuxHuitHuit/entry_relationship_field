@@ -21,10 +21,11 @@
 .field.field-entry_relationship > .single > button {
 	margin-right: 0px;
 	margin-left: 1rem;
+	margin-bottom: 1rem;
 }
 
 .field.field-entry_relationship > .single > div {
-	width: 250px;
+	min-width: 250px;
 	display: inline-block;
 }
 
@@ -47,6 +48,15 @@
 	white-space: pre-wrap;
 }
 
+.field.field-entry_relationship .sections {
+	display: inline-block;
+	width: auto;
+	margin: 0;
+}
+
+.field.field-entry_relationship select.sections {
+	min-width: 100px;
+}
 
 /**
  * CSS for entry relationship field iframe

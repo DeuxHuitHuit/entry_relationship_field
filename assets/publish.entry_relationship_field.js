@@ -392,7 +392,7 @@
 		
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
-			sections.after($('<label />').text(sections.text()));
+			sections.after($('<label />').text(sections.text()).addClass('sections'));
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {

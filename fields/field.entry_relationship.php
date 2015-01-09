@@ -523,8 +523,8 @@
 			$sectionsCache = new CacheableFetch('SectionManager');
 			
 			// DS mode
-			if (!$mode || $mode == '*') {
-				$mode = null;
+			if (!$mode) {
+				$mode = '*';
 			}
 			
 			$parentDeepness = General::intval($this->recursiveDeepness);
@@ -540,12 +540,12 @@
 			}
 			
 			// build entries
-			foreach ($entries as $key => $eId) {
+			foreach ($entries as $eId) {
 				$item = new XMLElement('item');
 				$item->setAttribute('id', $eId);
 				
 				// max recursion check
-				$deepness = General::intval($this->get('deepness'));
+				//$deepness = General::intval($this->get('deepness'));
 				if ($deepness < 1 || $this->recursiveLevel < $deepness) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
@@ -579,6 +579,7 @@
 						}
 						// mode forbids this section, bail out
 						else if (preg_match('/\./sU', $curMode)) {
+							$item->setAttribute('forbidden', 'yes');
 							$root->appendChild($item);
 							continue;
 						}
@@ -621,56 +622,73 @@
 					// cache the entry data
 					$entryData = $entry->getData();
 					
+					//echo 'ENTRY DATA' . PHP_EOL;
+					//var_dump($eId, $entryData);
+					
 					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
 						$filteredData = array_filter($data, function ($value) {
 							return $value != null;
 						});
-						
+					//var_dump($filteredData, $data);
 						if (empty($filteredData)) {
 							continue;
 						}
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
-						$recursiveMode = $curMode; // cache mode
+						//$recursiveMode = $curMode; // cache mode
 						
 						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
 							$field->recursiveLevel = $this->recursiveLevel + 1;
 							$field->recursiveDeepness = $deepness;
-							if (!empty($recursiveMode)) {
+							/*if (!empty($recursiveMode)) {
 								$recursiveMode = explode(':', $curMode);
 								array_shift($recursiveMode);
 								$recursiveMode = implode(': ', $recursiveMode);
-							}
+							}*/
 						}
 						// filter out elements per what's allowed
 						if ($sectionElements === null ||
 							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
+						//var_dump($fieldIncludableElements, $curMode, $mode);
+						
+							// do not use includable elements
 							if ($field instanceof FieldEntry_relationship) {
 								$fieldIncludableElements = null;
 							}
-							if ($curMode === null && !empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+							if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+								// append each includable element
 								foreach ($fieldIncludableElements as $fieldIncludableElement) {
+									// remove field name from mode
 									$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
 									$field->appendFormattedElement($item, $data, $encode, $submode, $entry_id);
 								}
 							} else {
-								$field->appendFormattedElement($item, $data, $encode, $recursiveMode , $entry_id);
+								$field->appendFormattedElement($item, $data, $encode, $curMode, $entry_id);
 							}
+						} else {
+							$item->appendChild(new XMLElement('error', __('Field "%s" not allowed', array($fieldName))));
 						}
 					}
 				}
 				// append item when done
 				$root->appendChild($item);
+				
+				// output current mode
+				$item->setAttribute('matched-element', $curMode);
 			}
+			
+			// output mode for this field
+			$root->setAttribute('ds-mode', $mode);
 			
 			// add all our data to the wrapper;
 			$wrapper->appendChild($root);
 			
 			// clean up
 			$this->recursiveLevel = 0;
+			$this->recursiveDeepness = null;
 		}
 
 

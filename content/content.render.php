@@ -135,7 +135,9 @@
 						$xmlData->appendChild($xmlParams);
 						$xmlData->appendChild($xml);
 						foreach ($entryData as $fieldId => $data) {
-							$filteredData = array_filter($data);
+							$filteredData = array_filter($data, function ($value) {
+								return $value != null;
+							});
 							if (empty($filteredData)) {
 								continue;
 							}
@@ -150,8 +152,8 @@
 								}
 								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 									foreach ($fieldIncludableElements as $fieldIncludableElement) {
-										$mode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
-										$field->appendFormattedElement($xml, $data, false, $mode, $entryId);
+										$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
+										$field->appendFormattedElement($xml, $data, false, $submode, $entryId);
 									}
 								} else {
 									$field->appendFormattedElement($xml, $data, false, null, $entryId);
@@ -164,11 +166,11 @@
 						if (isset($_REQUEST['debug'])) {
 							$mode = 'debug';
 						}
-						if ($mode == 'debug') {
+						//if ($mode == 'debug') {
 							$indent = true;
-						}
+						//}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
-						$xmlString = $xmlData->generate($indent);
+						$xmlString = $xmlData->generate($indent, 0);
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
 						<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 							<xsl:import href="' . $xslFilePath . '"/>
@@ -185,7 +187,7 @@
 								'</code></pre>
 							</xsl:template>
 						</xsl:stylesheet>';
-						
+						//echo $xmlString;die;
 						$xslt = new XsltProcess();
 						$result = $xslt->process($xmlString, $xsl, $this->params);
 						

@@ -40,11 +40,12 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 - Select at least one section that will be permitted as children.
 - Select also the fields you want to be available in the backend templates and data sources.
 - Create backend templates in the workspace/er-templates folder.
-	- The name of the filed must be section-handle.xsl
-	- Protip: add `?debug` to backend url to see the available xml for each entry.
+    - The name of the filed must be section-handle.xsl
+    - Protip: add `?debug` to backend url to see the available xml for each entry.
+    - You can also override the default debug template with `<xsl:template match="/data" mode="debug" priority="1"></xsl:template>`
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.
 - (Optional) Select a maximum recursion level for nested fields.
-- (Optional) Select a minium and maximum number of elements for this field.
+- (Optional) Select a minimum and maximum number of elements for this field.
 
 There is also a [screen cast available](https://www.screenr.com/pDDN)
 
@@ -62,8 +63,8 @@ from those extensions.
 
 ### LICENSE ###
 
-MIT <http://deuxhuithuit.mit-license.org>
+[MIT](http://deuxhuithuit.mit-license.org)
 
-*Voila !*
+Made with love in Montréal by [Deux Huit Huit](https://deuxhuithuit.com)
 
-Come say hi! -> <https://deuxhuithuit.com/>
+Copyright (c) 2014-2015

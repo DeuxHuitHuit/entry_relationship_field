@@ -622,38 +622,28 @@
 					// cache the entry data
 					$entryData = $entry->getData();
 					
-					//echo 'ENTRY DATA' . PHP_EOL;
-					//var_dump($eId, $entryData);
-					
 					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
 						$filteredData = array_filter($data, function ($value) {
 							return $value != null;
 						});
-					//var_dump($filteredData, $data);
+						
 						if (empty($filteredData)) {
 							continue;
 						}
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
-						//$recursiveMode = $curMode; // cache mode
 						
 						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
 							$field->recursiveLevel = $this->recursiveLevel + 1;
 							$field->recursiveDeepness = $deepness;
-							/*if (!empty($recursiveMode)) {
-								$recursiveMode = explode(':', $curMode);
-								array_shift($recursiveMode);
-								$recursiveMode = implode(': ', $recursiveMode);
-							}*/
 						}
 						// filter out elements per what's allowed
 						if ($sectionElements === null ||
 							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
-						//var_dump($fieldIncludableElements, $curMode, $mode);
-						
+							
 							// do not use includable elements
 							if ($field instanceof FieldEntry_relationship) {
 								$fieldIncludableElements = null;
@@ -681,7 +671,7 @@
 			}
 			
 			// output mode for this field
-			$root->setAttribute('ds-mode', $mode);
+			$root->setAttribute('data-source-mode', $mode);
 			
 			// add all our data to the wrapper;
 			$wrapper->appendChild($root);

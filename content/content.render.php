@@ -166,9 +166,9 @@
 						if (isset($_REQUEST['debug'])) {
 							$mode = 'debug';
 						}
-						//if ($mode == 'debug') {
+						if ($mode == 'debug') {
 							$indent = true;
-						//}
+						}
 						$xmlMode = empty($mode) ? '' : 'mode="' . $mode . '"';
 						$xmlString = $xmlData->generate($indent, 0);
 						$xsl = '<?xml version="1.0" encoding="UTF-8"?>
@@ -182,14 +182,17 @@
 								<xsl:apply-templates select="entry" ' . $xmlMode . ' />
 							</xsl:template>
 							<xsl:template match="/data" mode="debug">
-								<pre><code>' .
-									str_replace('<', '&lt;', str_replace('>', '&gt;', $xmlString)) .
-								'</code></pre>
+								<xsl:copy-of select="/" />
 							</xsl:template>
 						</xsl:stylesheet>';
-						//echo $xmlString;die;
 						$xslt = new XsltProcess();
 						$result = $xslt->process($xmlString, $xsl, $this->params);
+						
+						if ($mode == 'debug') {
+							$result = '<pre><code>' .
+								str_replace('<', '&lt;', str_replace('>', '&gt;', $xmlString)) .
+								'</code></pre>';
+						}
 						
 						if ($xslt->isErrors()) {
 							$error = $xslt->getError();

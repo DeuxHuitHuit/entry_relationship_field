@@ -545,7 +545,6 @@
 				$item->setAttribute('id', $eId);
 				
 				// max recursion check
-				//$deepness = General::intval($this->get('deepness'));
 				if ($deepness < 1 || $this->recursiveLevel < $deepness) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
@@ -653,10 +652,10 @@
 								foreach ($fieldIncludableElements as $fieldIncludableElement) {
 									// remove field name from mode
 									$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
-									$field->appendFormattedElement($item, $data, $encode, $submode, $entry_id);
+									$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
 								}
 							} else {
-								$field->appendFormattedElement($item, $data, $encode, $curMode, $entry_id);
+								$field->appendFormattedElement($item, $data, $encode, $curMode, $eId);
 							}
 						} else {
 							$item->appendChild(new XMLElement('error', __('Field "%s" not allowed', array($fieldName))));

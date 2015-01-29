@@ -144,8 +144,8 @@
 							$field = $entryFields[$fieldId];
 							$fieldName = $field->get('element_name');
 							$fieldIncludedElement = $includedElements[$entrySectionHandle];
-							if ($fieldIncludedElement === true ||
-								(is_array($fieldIncludedElement) && in_array($fieldName, $fieldIncludedElement))) {
+							
+							if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
 								$fieldIncludableElements = $field->fetchIncludableElements();
 								if ($field instanceof FieldEntry_relationship) {
 									$fieldIncludableElements = null;

@@ -643,8 +643,7 @@
 							$field->recursiveDeepness = $deepness;
 						}
 						// filter out elements per what's allowed
-						if ($sectionElements === null ||
-							(is_array($sectionElements) && in_array($fieldName, $sectionElements))) {
+						if (self::isFieldIncluded($fieldName, $sectionElements)) {
 							$fieldIncludableElements = $field->fetchIncludableElements();
 							
 							// do not use includable elements
@@ -685,6 +684,18 @@
 
 
 		/* ********* Utils *********** */
+		
+		/**
+		 * Return true if $fieldName is allowed in $sectionElements
+		 * @param string $fieldName
+		 * @param string $sectionElements
+		 * @return bool
+		 */
+		public static function isFieldIncluded($fieldName, $sectionElements)
+		{
+			return $sectionElements === null ||
+				(is_array($sectionElements) && in_array($fieldName, $sectionElements));
+		}
 		
 		/**
 		 * @param string $prefix

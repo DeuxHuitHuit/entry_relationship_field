@@ -37,7 +37,7 @@
 		 * Current recursive level of output
 		 *  @var int
 		 */
-		protected $recursiveLevel = 0;
+		protected $recursiveLevel = 1;
 		
 		/**
 		 *
@@ -62,7 +62,7 @@
 			// permits association
 			$this->_showassociation = true;
 			// current recursive level
-			$this->recursiveLevel = 0;
+			$this->recursiveLevel = 1;
 			// parent's maximum recursive level of output
 			$this->recursiveDeepness = null;
 			// set as not required by default
@@ -494,7 +494,7 @@
 			}
 			return $includedElements;
 		}
-
+		
 		/**
 		 * Appends data into the XML tree of a Data Source
 		 * @param $wrapper
@@ -542,7 +542,11 @@
 			// build entries
 			foreach ($entries as $eId) {
 				$item = new XMLElement('item');
+				// output id
 				$item->setAttribute('id', $eId);
+				// output recursive level
+				$item->setAttribute('level', $this->recursiveLevel);
+				$item->setAttribute('max-level', $deepness);
 				
 				// max recursion check
 				if ($deepness < 1 || $this->recursiveLevel < $deepness) {
@@ -661,12 +665,11 @@
 							$item->appendChild(new XMLElement('error', __('Field "%s" not allowed', array($fieldName))));
 						}
 					}
+					// output current mode
+					$item->setAttribute('matched-element', $curMode);
 				}
 				// append item when done
 				$root->appendChild($item);
-				
-				// output current mode
-				$item->setAttribute('matched-element', $curMode);
 			}
 			
 			// output mode for this field
@@ -676,7 +679,7 @@
 			$wrapper->appendChild($root);
 			
 			// clean up
-			$this->recursiveLevel = 0;
+			$this->recursiveLevel = 1;
 			$this->recursiveDeepness = null;
 		}
 

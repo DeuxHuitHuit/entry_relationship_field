@@ -932,10 +932,23 @@
 			$sections = SectionManager::fetch($sectionsId);
 			
 			$label = Widget::Label($this->get('label'));
+			$notes = '';
 			
-			// not required label
-			if(!$isRequired) {
-				$label->appendChild(new XMLElement('i', __('Optional')));
+			// min note
+			if (General::intval($this->get('min_entries')) > 0) {
+				$notes .= __('Minimum number of entries: <b>%s</b>. ', array($this->get('min_entries')));
+			}
+			// max note
+			if (General::intval($this->get('max_entries')) > 0) {
+				$notes .= __('Maximum number of entries: <b>%s</b>. ', array($this->get('max_entries')));
+			}
+			// not required note
+			if (!$isRequired) {
+				$notes .= __('Optional');
+			}
+			// append notes
+			if ($notes) {
+				$label->appendChild(new XMLElement('i', $notes));
 			}
 			
 			// label error management
@@ -951,6 +964,8 @@
 			$wrapper->setAttribute('data-value', $data['entries']);
 			$wrapper->setAttribute('data-field-id', $this->get('id'));
 			$wrapper->setAttribute('data-field-label', $this->get('label'));
+			$wrapper->setAttribute('data-min', $this->get('min_entries'));
+			$wrapper->setAttribute('data-max', $this->get('max_entries'));
 			if (isset($_REQUEST['debug'])) {
 				$wrapper->setAttribute('data-debug', true);
 			}

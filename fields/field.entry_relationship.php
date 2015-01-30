@@ -321,21 +321,6 @@
 
 		/**
 		 *
-		 * Remove the entry data of this field from the database, when deleting an entry
-		 * @param integer|array $entry_id
-		 * @param array $data
-		 * @return boolean
-		 */
-		public function entryDataCleanup($entry_id, array $data) {
-			if (empty($entry_id) || !parent::entryDataCleanup($entry_id, $data)) {
-				return false;
-			}
-
-			return true;
-		}
-
-		/**
-		 *
 		 * This function allows Fields to cleanup any additional things before it is removed
 		 * from the section.
 		 * @return boolean

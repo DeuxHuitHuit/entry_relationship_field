@@ -181,7 +181,7 @@
 			$entries = $data['entries'];
 			
 			if (!is_array($entries)) {
-				$entries = array_map(array('General', 'intval'), explode(self::SEPARATOR, $entries));
+				$entries = array_map(array('General', 'intval'), array_filter(explode(self::SEPARATOR, $entries)));
 			}
 			
 			// enforce limits only if required or it contains data

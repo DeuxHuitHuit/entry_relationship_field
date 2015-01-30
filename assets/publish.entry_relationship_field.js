@@ -73,17 +73,22 @@
 		
 		// makes all link open in new window/tab
 		form.find('table tr td a').attr('target', '_blank');
-
+		// disable breadcrumbs links
+		S.Elements.context.find('#breadcrumbs nav a').attr('href', '#').click(function (e) {
+			e.preventDefault();
+			return false;
+		});
 		form.find('table tr td').css('cursor', 'pointer').click(function (e) {
 			var t = $(this);
 			var target = $(e.target);
+			
+			e.preventDefault();
+			
 			// click on a link, but not in the first td
 			if (!!target.closest('a').length && !target.closest('tr td:first-child').length) {
 				// bail out
 				return true;
 			}
-
-			e.preventDefault();
 			
 			if (!t.closest('.inactive').length) {
 				var entryId = t.closest('tr').attr('id').replace('id-', '');

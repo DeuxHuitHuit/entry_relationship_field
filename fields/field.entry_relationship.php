@@ -87,7 +87,7 @@
 		}
 
 		public function canFilter(){
-			return false;
+			return true;
 		}
 		
 		public function canPublishFilter(){

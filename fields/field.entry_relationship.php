@@ -15,7 +15,8 @@
 	 * @author Deux Huit Huit
 	 *
 	 */
-	class FieldEntry_relationship extends Field {
+	class FieldEntry_relationship extends Field
+	{
 		
 		/**
 		 *
@@ -50,7 +51,8 @@
 		 *
 		 * Constructor for the oEmbed Field object
 		 */
-		public function __construct(){
+		public function __construct()
+		{
 			// call the parent constructor
 			parent::__construct();
 			// set the name of the field
@@ -82,46 +84,56 @@
 			$this->set('allow_link', 'yes');
 		}
 
-		public function isSortable(){
+		public function isSortable()
+		{
 			return false;
 		}
 
-		public function canFilter(){
+		public function canFilter()
+		{
 			return true;
 		}
 		
-		public function canPublishFilter(){
+		public function canPublishFilter()
+		{
 			return false;
 		}
 
-		public function canImport(){
+		public function canImport()
+		{
 			return false;
 		}
 
-		public function canPrePopulate(){
+		public function canPrePopulate()
+		{
 			return false;
 		}
 		
-		public function mustBeUnique(){
+		public function mustBeUnique()
+		{
 			return false;
 		}
 
-		public function allowDatasourceOutputGrouping(){
+		public function allowDatasourceOutputGrouping()
+		{
 			return false;
 		}
 
-		public function requiresSQLGrouping(){
+		public function requiresSQLGrouping()
+		{
 			return false;
 		}
 
-		public function allowDatasourceParamOutput(){
+		public function allowDatasourceParamOutput()
+		{
 			return true;
 		}
 
 		/**
 		 * @param string $name
 		 */
-		public function getInt($name) {
+		public function getInt($name)
+		{
 			return General::intval($this->get($name));
 		}
 
@@ -156,7 +168,8 @@
 		 * @param $message
 		 * @param $entry_id
 		 */
-		public function checkPostFieldData($data, &$message, $entry_id=NULL){
+		public function checkPostFieldData($data, &$message, $entry_id=NULL)
+		{
 			$message = NULL;
 			$required = $this->isRequired();
 			
@@ -197,7 +210,8 @@
 		 *
 		 * @return Array - data to be inserted into DB
 		 */
-		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null) {
+		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null)
+		{
 			$status = self::__OK__;
 			$entries = null;
 			
@@ -226,8 +240,8 @@
 		 * @param array $settings
 		 *	the data array to initialize if necessary.
 		 */
-		public function setFromPOST(Array &$settings = array()) {
-
+		public function setFromPOST(Array &$settings = array())
+		{
 			// call the default behavior
 			parent::setFromPOST($settings);
 
@@ -257,7 +271,8 @@
 		 *
 		 * Validates the field settings before saving it into the field's table
 		 */
-		public function checkFields(Array &$errors, $checkForDuplicates) {
+		public function checkFields(Array &$errors, $checkForDuplicates)
+		{
 			$parent = parent::checkFields($errors, $checkForDuplicates);
 			if ($parent != self::__OK__) {
 				return $parent;
@@ -338,7 +353,8 @@
 		 * from the section.
 		 * @return boolean
 		 */
-		public function tearDown() {
+		public function tearDown()
+		{
 			self::removeSectionAssociation($this->get('id'));
 			return parent::tearDown();
 		}
@@ -350,7 +366,8 @@
 		 * @param @optional string $col
 		 * @param @optional boolean $andOperation
 		 */
-		public function generateWhereFilter($value, $col = 'd', $andOperation = true) {
+		public function generateWhereFilter($value, $col = 'd', $andOperation = true)
+		{
 			$junction = $andOperation ? 'AND' : 'OR';
 			if (!$value) {
 				return "{$junction} (`{$col}`.`entries` IS NULL)";
@@ -366,7 +383,8 @@
 		 *
 		 * @param string $value
 		 */
-		public function fetchAssociatedEntryCount($value) {
+		public function fetchAssociatedEntryCount($value)
+		{
 			if (!$value) {
 				return 0;
 			}
@@ -378,11 +396,13 @@
 			return count($entries);
 		}
 		
-		public function fetchAssociatedEntrySearchValue($data, $field_id = null, $parent_entry_id = null){
+		public function fetchAssociatedEntrySearchValue($data, $field_id = null, $parent_entry_id = null)
+		{
 			return $parent_entry_id;
 		}
 		
-		public function findRelatedEntries($entry_id) {
+		public function findRelatedEntries($entry_id)
+		{
 			$joins = '';
 			$where = '';
 			$this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
@@ -396,7 +416,8 @@
 			return $ids;
 		}
 		
-		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '') {
+		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '')
+		{
 			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
 			$visibleCols = $currentSection->fetchVisibleColumns();
 			$outputFieldId = current(array_keys($visibleCols));
@@ -417,7 +438,8 @@
 		 * @param string $joins
 		 * @param string $where
 		 */
-		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
+		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false)
+		{
 			$field_id = $this->get('id');
 			
 			// REGEX filtering is a special case, and will only work on the first item
@@ -700,7 +722,8 @@
 		 * @param string $name
 		 * @param @optional bool $multiple
 		 */
-		private function createFieldName($prefix, $name, $multiple = false) {
+		private function createFieldName($prefix, $name, $multiple = false)
+		{
 			$name = "fields[$prefix][$name]";
 			if ($multiple) {
 				$name .= '[]';
@@ -711,18 +734,21 @@
 		/**
 		 * @param string $name
 		 */
-		private function createSettingsFieldName($name, $multiple = false) {
+		private function createSettingsFieldName($name, $multiple = false)
+		{
 			return $this->createFieldName($this->get('sortorder'), $name, $multiple);
 		}
 		
 		/**
 		 * @param string $name
 		 */
-		private function createPublishFieldName($name, $multiple = false) {
+		private function createPublishFieldName($name, $multiple = false)
+		{
 			return $this->createFieldName($this->get('element_name'), $name, $multiple);
 		}
 		
-		private function buildSectionSelect($name) {
+		private function buildSectionSelect($name)
+		{
 			$sections = SectionManager::fetch();
 			$options = array();
 			$selectedSections = explode(self::SEPARATOR, $this->get('sections'));
@@ -736,7 +762,8 @@
 			return Widget::Select($name, $options, array('multiple' => 'multiple'));
 		} 
 		
-		private function appendSelectionSelect(&$wrapper) {
+		private function appendSelectionSelect(&$wrapper)
+		{
 			$name = $this->createSettingsFieldName('sections', true);
 
 			$input = $this->buildSectionSelect($name);
@@ -750,7 +777,8 @@
 			$wrapper->appendChild($label);
 		}
 
-		private function createEntriesList($entries) {
+		private function createEntriesList($entries)
+		{
 			$wrap = new XMLElement('div');
 			$wrap->setAttribute('class', 'frame collapsible orderable' . (count($entries) > 0 ? '' : ' empty'));
 			
@@ -762,7 +790,8 @@
 			return $wrap;
 		}
 		
-		private function createEntriesHiddenInput($data) {
+		private function createEntriesHiddenInput($data)
+		{
 			$hidden = new XMLElement('input', null, array(
 				'type' => 'hidden',
 				'name' => $this->createPublishFieldName('entries'),
@@ -772,7 +801,8 @@
 			return $hidden;
 		}
 		
-		private function createPublishMenu($sections) {
+		private function createPublishMenu($sections)
+		{
 			$wrap = new XMLElement('fieldset');
 			$wrap->setAttribute('class', 'single');
 			
@@ -1001,7 +1031,8 @@
 		 * @param array $data
 		 * @param int $entry_id
 		 */
-		public function prepareTextValue($data, $entry_id = null) {
+		public function prepareTextValue($data, $entry_id = null)
+		{
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
@@ -1029,7 +1060,8 @@
 		 *
 		 * Creates table needed for entries of individual fields
 		 */
-		public function createTable(){
+		public function createTable()
+		{
 			$id = $this->get('id');
 
 			return Symphony::Database()->query("
@@ -1046,8 +1078,8 @@
 		/**
 		 * Creates the table needed for the settings of the field
 		 */
-		public static function createFieldTable() {
-
+		public static function createFieldTable()
+		{
 			$tbl = self::FIELD_TBL_NAME;
 
 			return Symphony::Database()->query("
@@ -1070,7 +1102,8 @@
 			");
 		}
 		
-		public static function update_102() {
+		public static function update_102()
+		{
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
@@ -1087,7 +1120,8 @@
 		 *
 		 * Drops the table needed for the settings of the field
 		 */
-		public static function deleteFieldTable() {
+		public static function deleteFieldTable()
+		{
 			$tbl = self::FIELD_TBL_NAME;
 			
 			return Symphony::Database()->query("
@@ -1095,7 +1129,8 @@
 			");
 		}
 		
-		private static function removeSectionAssociation($child_field_id) {
+		private static function removeSectionAssociation($child_field_id)
+		{
 			return Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
 		}
 	}

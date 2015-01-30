@@ -976,11 +976,11 @@
 			$notes = '';
 			
 			// min note
-			if (General::intval($this->get('min_entries')) > 0) {
+			if ($this->getInt('min_entries') > 0) {
 				$notes .= __('Minimum number of entries: <b>%s</b>. ', array($this->get('min_entries')));
 			}
 			// max note
-			if (General::intval($this->get('max_entries')) > 0) {
+			if ($this->getInt('max_entries') > 0) {
 				$notes .= __('Maximum number of entries: <b>%s</b>. ', array($this->get('max_entries')));
 			}
 			// not required note

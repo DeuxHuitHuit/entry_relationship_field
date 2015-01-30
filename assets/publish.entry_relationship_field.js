@@ -107,7 +107,7 @@
 	var resizeIframe = function (iframe) {
 		var parent = window.parent !== window;
 		offsetY = !parent ? 
-			S.Elements.header.outerHeight() + S.Elements.context.outerHeight() : 
+			S.Elements.header.outerHeight() + S.Elements.context.outerHeight() + S.Elements.nav.outerHeight() :
 			S.Elements.context.outerHeight();
 		var css = {
 			left: '7px',
@@ -133,10 +133,10 @@
 	var defineExternals = function () {
 		var self = {
 			hide: function (reRender) {
-				ctn.find('.iframe>iframe').fadeOut(300, function () {
+				ctn.removeClass('show').find('.iframe>iframe').fadeOut(300, function () {
 					$(this).empty().remove();
 					html.removeClass('no-scroll');
-					ctn.css('background-color', '').removeClass('show');
+					ctn.css('background-color', '');
 				});
 				if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
 					window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(-1);
@@ -148,19 +148,21 @@
 			},
 			show: function (url) {
 				var ictn = $('<div />').attr('class', 'iframe');
-				var iframe = $('<iframe />')
-						.attr('src', url);
+				var iframe = $('<iframe />').attr('src', url);
 				
+				html.addClass('no-scroll');
 				ictn.append(iframe);
 				resizeIframe(iframe);
-				ctn.empty().append(ictn).height();
-				ctn.addClass('show');
-				ctn.find('.iframe>iframe').delay(500).fadeIn(300);
-				html.addClass('no-scroll');
+				ctn.empty().append(ictn);
 				
-				if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
-					window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(1);
-				}
+				Symphony.Utilities.requestAnimationFrame(function () {
+					ctn.addClass('show');
+					ctn.find('.iframe>iframe').delay(300).fadeIn(200);
+					
+					if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
+						window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(1);
+					}
+				});
 			},
 			link: function (entryId) {
 				if (!self.current) {
@@ -344,12 +346,14 @@
 			var t = $(this);
 			syncCurrent();
 			openIframe(t.attr('data-create') || sections.val(), 'new');
+			e.stopPropagation();
 		};
 		
 		var btnLinkClick = function (e) {
 			var t = $(this);
 			syncCurrent();
 			openIframe(t.attr('data-link') || sections.val());
+			e.stopPropagation();
 		};
 		
 		var ajaxSaveTimeout = 0;
@@ -385,6 +389,7 @@
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
+			e.stopPropagation();
 		});
 		t.on('click', '[data-edit]', function (e) {
 			var t = $(this);
@@ -393,6 +398,7 @@
 			var id = t.attr('data-edit') || li.attr('data-entry-id');
 			var section = li.attr('data-section');
 			openIframe(section, 'edit/' + id);
+			e.stopPropagation();
 		});
 		
 		if (sections.find('option').length < 2) {

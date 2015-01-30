@@ -126,10 +126,23 @@
 		}
 
 		/**
+		 * Check if a given property is == 'yes'
 		 * @param string $name
+		 * @return bool
+		 *  True if the current field's value is 'yes'
 		 */
-		public function is($name) {
+		public function is($name)
+		{
 			return $this->get($name) == 'yes';
+		}
+
+		/**
+		 * @return bool
+		 *  True if the current field is required
+		 */
+		public function isRequired()
+		{
+			return $this->is('required');
 		}
 
 		/* ********** INPUT AND FIELD *********** */
@@ -145,7 +158,7 @@
 		 */
 		public function checkPostFieldData($data, &$message, $entry_id=NULL){
 			$message = NULL;
-			$required = ($this->get('required') == 'yes');
+			$required = $this->isRequired();
 			
 			if ($required && (!is_array($data) || count($data) == 0 || strlen($data['entries']) < 1)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
@@ -918,8 +931,6 @@
 		 */
 		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null)
 		{
-			$isRequired = $this->get('required') == 'yes';
-			
 			$entriesId = array();
 			$sectionsId = explode(self::SEPARATOR, $this->get('sections'));
 			
@@ -943,7 +954,7 @@
 				$notes .= __('Maximum number of entries: <b>%s</b>. ', array($this->get('max_entries')));
 			}
 			// not required note
-			if (!$isRequired) {
+			if (!$this->isRequired()) {
 				$notes .= __('Optional');
 			}
 			// append notes

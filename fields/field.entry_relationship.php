@@ -624,9 +624,11 @@
 						// get only the mode
 						$sectionElements = array($curMode);
 					}
-					// filter out what is allowed with the mode
-					// this may leave the array empty (mode is not allowed)
-					else {
+					// filter out what is allowed with the current DS mode.
+					// this may leave the array empty (mode is not allowed).
+					// do the filtering only if data-source ask for anything else than *,
+					// if not, let the array as-is
+					else if ($curMode !== '*') {
 						foreach ($sectionElements as $secElemIndex => $sectionElement) {
 							if ($curMode != $sectionElement) {
 								unset($sectionElements[$secElemIndex]);
@@ -664,12 +666,23 @@
 						}
 						// filter out elements per what's allowed
 						if (self::isFieldIncluded($fieldName, $sectionElements)) {
-							$fieldIncludableElements = $field->fetchIncludableElements();
+							$parentIncludableElement = self::getSectionElementName($fieldName, $sectionElements);
+							$fieldIncludableElements = null;
+							// if the includable element is not just the field name
+							if ($parentIncludableElement != $fieldName) {
+								// use the includable element's mode
+								$curMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement , 1);
+							} else {
+								// revert to the field's includable elements
+								$fieldIncludableElements = $field->fetchIncludableElements();
+							}
 							
 							// do not use includable elements
 							if ($field instanceof FieldEntry_relationship) {
 								$fieldIncludableElements = null;
 							}
+							
+							// include children
 							if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
 								// append each includable element
 								foreach ($fieldIncludableElements as $fieldIncludableElement) {
@@ -713,8 +726,22 @@
 		 */
 		public static function isFieldIncluded($fieldName, $sectionElements)
 		{
-			return $sectionElements === null ||
-				(is_array($sectionElements) && in_array($fieldName, $sectionElements));
+			if ($sectionElements === null) {
+				return true;
+			}
+			return self::getSectionElementName($fieldName, $sectionElements) !== null;
+		}
+		
+		public static function getSectionElementName($fieldName, $sectionElements)
+		{
+			if (is_array($sectionElements)) {
+				foreach ($sectionElements as $element) {
+					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/', $element) == 1) {
+						return $element;
+					}
+				}
+			}
+			return null;
 		}
 		
 		/**

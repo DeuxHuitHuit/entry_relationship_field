@@ -559,17 +559,21 @@
 				$deepness = $parentDeepness;
 			}
 			
+			// cache recursive level because recursion might
+			// change its value later on.
+			$recursiveLevel = $this->recursiveLevel;
+			
 			// build entries
 			foreach ($entries as $eId) {
 				$item = new XMLElement('item');
 				// output id
 				$item->setAttribute('id', $eId);
 				// output recursive level
-				$item->setAttribute('level', $this->recursiveLevel);
+				$item->setAttribute('level', $recursiveLevel);
 				$item->setAttribute('max-level', $deepness);
 				
 				// max recursion check
-				if ($deepness < 1 || $this->recursiveLevel < $deepness) {
+				if ($deepness < 1 || $recursiveLevel < $deepness) {
 					// current entry, without data
 					$entry = $this->fetchEntry($eId);
 					
@@ -661,7 +665,7 @@
 						
 						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
-							$field->recursiveLevel = $this->recursiveLevel + 1;
+							$field->recursiveLevel = $recursiveLevel + 1;
 							$field->recursiveDeepness = $deepness;
 						}
 						// filter out elements per what's allowed

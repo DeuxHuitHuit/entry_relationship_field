@@ -40,7 +40,8 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 - Select at least one section that will be permitted as children.
 - Select also the fields you want to be available in the backend templates and data sources.
 - Create backend templates in the workspace/er-templates folder.
-    - The name of the filed must be section-handle.xsl
+    - The name of the file must be `section-handle.xsl`
+    - You need at least one template that matches `entry`
     - Protip: add `?debug` to backend url to see the available xml for each entry.
     - You can also override the default debug template with `<xsl:template match="/data" mode="debug" priority="1"></xsl:template>`
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.

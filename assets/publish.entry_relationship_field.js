@@ -49,7 +49,7 @@
 		if (!!parent) {
 			// block already link items
 			$.each(parent.current.values(), function (index, value) {
-				form.find('#id-' + value).addClass('inactive');
+				form.find('#id-' + value).addClass('inactive er-already-linked');
 			});
 		}
 		
@@ -90,7 +90,7 @@
 				return true;
 			}
 			
-			if (!t.closest('.inactive').length) {
+			if (!t.closest('.er-already-linked').length) {
 				var entryId = t.closest('tr').attr('id').replace('id-', '');
 				t.closest('tr').addClass('selected');
 				parent.link(entryId);

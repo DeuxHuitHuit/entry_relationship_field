@@ -445,8 +445,7 @@
 			// REGEX filtering is a special case, and will only work on the first item
 			// in the array. You cannot specify multiple filters when REGEX is involved.
 			if (self::isFilterRegex($data[0])) {
-				$this->buildRegexSQL($data[0], array('entries'), $joins, $where);
-				return;
+				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
 			}
 			
 			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
@@ -467,6 +466,8 @@
 			}
 			
 			$where .= ')';
+			
+			return true; // this tells the DS Manager that filters are OK!!
 		}
 
 		/* ******* DATA SOURCE ******* */

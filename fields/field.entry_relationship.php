@@ -307,7 +307,7 @@
 			// delete associations, only where we are the child
 			self::removeSectionAssociation($child_field_id);
 			
-			$sections = explode(self::SEPARATOR, $this->get('sections'));
+			$sections = $this->getSelectedSectionsArray();
 			
 			foreach ($sections as $key => $sectionId) {
 				if (empty($sectionId)) {
@@ -779,11 +779,22 @@
 			return $this->createFieldName($this->get('element_name'), $name, $multiple);
 		}
 		
+		private function getSelectedSectionsArray()
+		{
+			$selectedSections = $this->get('sections');
+			if (is_string($selectedSections) && strlen($selectedSections) > 0) {
+				$selectedSections = explode(self::SEPARATOR, $selectedSections);
+			} else {
+				$selectedSections = array();
+			}
+			return $selectedSections;
+		}
+		
 		private function buildSectionSelect($name)
 		{
 			$sections = SectionManager::fetch();
 			$options = array();
-			$selectedSections = explode(self::SEPARATOR, $this->get('sections'));
+			$selectedSections = $this->getSelectedSectionsArray();
 			
 			foreach ($sections as $section) {
 				$driver = $section->get('id');
@@ -994,7 +1005,7 @@
 		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null)
 		{
 			$entriesId = array();
-			$sectionsId = explode(self::SEPARATOR, $this->get('sections'));
+			$sectionsId = $this->getSelectedSectionsArray();
 			
 			if ($data['entries'] != null) {
 				$entriesId = explode(self::SEPARATOR, $data['entries']);

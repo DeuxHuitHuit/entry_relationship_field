@@ -251,7 +251,7 @@
 			// set new settings
 			$new_settings['sections'] = is_array($settings['sections']) ? 
 				implode(self::SEPARATOR, $settings['sections']) : 
-				null;
+				(is_string($settings['sections']) ? $settings['sections'] : null);
 				
 			$new_settings['show_association'] = $settings['show_association'] == 'yes' ? 'yes' : 'no';
 			$new_settings['deepness'] = General::intval($settings['deepness']);
@@ -782,10 +782,13 @@
 		private function getSelectedSectionsArray()
 		{
 			$selectedSections = $this->get('sections');
-			if (is_string($selectedSections) && strlen($selectedSections) > 0) {
-				$selectedSections = explode(self::SEPARATOR, $selectedSections);
-			} else {
-				$selectedSections = array();
+			if (!is_array($selectedSections)) {
+				if (is_string($selectedSections) && strlen($selectedSections) > 0) {
+					$selectedSections = explode(self::SEPARATOR, $selectedSections);
+				}
+				else {
+					$selectedSections = array();
+				}
 			}
 			return $selectedSections;
 		}
@@ -888,7 +891,6 @@
 		 */
 		public function displaySettingsPanel(&$wrapper, $errors=NULL)
 		{
-			
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
 			

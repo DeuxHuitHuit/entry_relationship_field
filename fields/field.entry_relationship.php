@@ -448,21 +448,18 @@
 				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
 			}
 			
+			$this->_key++;
+			
 			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
 			
+			$joins .= "
+				INNER JOIN
+					`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
+					ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
+			";
+			
 			foreach ($data as $value) {
-				$this->_key++;
-				
-				$value = $this->cleanValue($value);
-				
-				$joins .= "
-					INNER JOIN
-						`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
-						ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
-				";
-				
-				$where .= $this->generateWhereFilter($value, "t{$field_id}_{$this->_key}", $andOperation);
-				
+				$where .= $this->generateWhereFilter($this->cleanValue($value), "t{$field_id}_{$this->_key}", $andOperation);
 			}
 			
 			$where .= ')';

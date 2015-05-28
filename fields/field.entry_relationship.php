@@ -157,6 +157,11 @@
 			return $this->is('required');
 		}
 
+		public static function getEntries(array $data)
+		{
+			return array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
+		}
+
 		/* ********** INPUT AND FIELD *********** */
 
 
@@ -181,7 +186,7 @@
 			$entries = $data['entries'];
 			
 			if (!is_array($entries)) {
-				$entries = array_map(array('General', 'intval'), array_filter(explode(self::SEPARATOR, $entries)));
+				$entries = static::getEntries($data);
 			}
 			
 			// enforce limits only if required or it contains data
@@ -526,7 +531,7 @@
 			$root = new XMLElement($this->get('element_name'));
 			
 			// selected items
-			$entries = array_filter(explode(self::SEPARATOR, $data['entries']));
+			$entries = static::getEntries($data);
 			
 			// current linked entries
 			$root->setAttribute('entries', $data['entries']);
@@ -1007,8 +1012,7 @@
 			$sectionsId = $this->getSelectedSectionsArray();
 			
 			if ($data['entries'] != null) {
-				$entriesId = explode(self::SEPARATOR, $data['entries']);
-				$entriesId = array_map(array('General', 'intval'), $entriesId);
+				$entriesId = static::getEntries($data);
 			}
 			
 			$sectionsId = array_map(array('General', 'intval'), $sectionsId);
@@ -1078,7 +1082,7 @@
 			if ($entry_id == null || empty($data)) {
 				return __('None');
 			}
-			$entries = array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
+			$entries = static::getEntries($data);
 			$realEntries = array();
 			foreach ($entries as $entryId) {
 				$e = EntryManager::fetch($entryId);

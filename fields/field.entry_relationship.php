@@ -722,6 +722,11 @@
 			$this->recursiveDeepness = null;
 		}
 
+		public function getParameterPoolValue(array $data, $entry_id = null)
+		{
+			if(!is_array($data) || empty($data)) return;
+			return static::getEntries($data);
+		}
 
 		/* ********* Utils *********** */
 		

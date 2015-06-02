@@ -1119,7 +1119,7 @@
 				CREATE TABLE `tbl_entries_data_$id` (
 					`id` int(11) 		unsigned NOT NULL AUTO_INCREMENT,
 					`entry_id` 			int(11) unsigned NOT NULL,
-					`entries` 			varchar(255) COLLATE utf8_unicode_ci NULL,
+					`entries` 			text COLLATE utf8_unicode_ci NULL,
 					PRIMARY KEY  (`id`),
 					UNIQUE KEY `entry_id` (`entry_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1163,7 +1163,21 @@
 					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
 					AFTER `max_entries`
 			";
-			return Symphony::Database()->query($sql);
+			$addColumns = Symphony::Database()->query($sql);
+			if (!$addColumns) {
+				return false;
+			}
+
+			$fields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+			if (!empty($fields) && is_array($fields)) {
+				foreach ($fields as $fieldId => $field) {
+					$sql = "ALTER TABLE `tbl_entries_data_$fieldId` MODIFY `entries` TEXT";
+					if (!Symphony::Database()->query($sql)) {
+						throw new Exception(__('Could not update table `tbl_entries_data_`.'));
+					}
+				}
+			}
+			return true;
 		}
 		
 		

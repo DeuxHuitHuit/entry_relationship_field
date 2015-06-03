@@ -1173,7 +1173,7 @@
 				foreach ($fields as $fieldId => $field) {
 					$sql = "ALTER TABLE `tbl_entries_data_$fieldId` MODIFY `entries` TEXT";
 					if (!Symphony::Database()->query($sql)) {
-						throw new Exception(__('Could not update table `tbl_entries_data_`.'));
+						throw new Exception(__('Could not update table `tbl_entries_data_%s`.', array($fieldId)));
 					}
 				}
 			}

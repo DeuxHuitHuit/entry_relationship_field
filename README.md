@@ -13,11 +13,6 @@ Version: 1.0.x
 - Supports multiple level (recursive) of associations.
 - Aims to be compatible with *all* fields.
 
-#### TODO ####
-
-- Advanced filtering and sorting.
-
-
 ### REQUIREMENTS ###
 
 - Symphony CMS version 2.5.1 and up (as of the day of the last release of this extension)

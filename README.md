@@ -2,7 +2,7 @@
 
 Version: 1.0.x
 
-> A new way to create master-details (parent-child) relationships with Symphony's sections.
+> A new way to create master-details (parent -> children) relationships with Symphony's sections.
 
 ### SPECS ###
 

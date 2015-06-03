@@ -213,6 +213,7 @@
 	'use strict';
 	
 	var doc = $(document);
+	var notifier;
 	
 	var instances = {};
 	
@@ -268,6 +269,7 @@
 		var hidden = t.find('input[type="hidden"]');
 		var frame = t.find('.frame');
 		var list = frame.find('ul');
+		var memento;
 		var values = function () {
 			var val = hidden.val() || '';
 			return val.split(',');
@@ -279,6 +281,7 @@
 			}
 			var isDifferent = oldValue !== val;
 			if (isDifferent) {
+				memento = oldValue;
 				hidden.val(val);
 				ajaxSave();
 			}
@@ -300,7 +303,14 @@
 				list.symphonyOrderable({
 					handles: '>header'
 				});
-				
+			}).error(function (data) {
+				notifier.trigger('attach.notify', [
+					Symphony.Language.get('Error while rendering field “{$title}”. {$error}', {
+						title: label,
+						error: data.error || ''
+					}),
+					'error'
+				]);
 			}).always(function () {
 				isRendering = false;
 			});
@@ -363,14 +373,16 @@
 		
 		var ajaxSaveTimeout = 0;
 		var ajaxSave = function () {
-			var notifier = Symphony.Elements.header.find('div.notifier');
 			clearTimeout(ajaxSaveTimeout);
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
-				$.post(saveurl(hidden.val(), fieldId, Symphony.Context.get().env.entry_id))
+				$.post(saveurl(hidden.val(), fieldId, S.Context.get().env.entry_id))
 				.done(function (data) {
 					var hasError = !data.ok || !!data.error;
 					var msg = hasError ?
-						Symphony.Language.get('Error') + '! ' + data.error :
+						Symphony.Language.get('Error while saving field “{$title}”. {$error}', {
+							title: label,
+							error: data.error
+						}) :
 						Symphony.Language.get('The field “{$title}” has been saved', {
 							title: label
 						});
@@ -378,9 +390,13 @@
 						msg,
 						hasError ? 'error' : 'success'
 					]);
+					if (hasError) {
+						// restore old value
+						hidden.val(memento);
+					}
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [
-						Symphony.Language.get('Error while save field “{$title}”. {$error}', {
+						Symphony.Language.get('Server error, field “{$title}”. {$error}', {
 							title: label,
 							error: data.error
 						}),
@@ -398,12 +414,10 @@
 		t.on('click', '[data-unlink]', function (e) {
 			var t = $(this);
 			var li = t.closest('li');
-			var ul = li.closest('ul');
-			var frame = ul.closest('.frame');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
-			if (!ul.children().length) {
+			if (!list.children().length) {
 				frame.addClass('empty');
 			}
 			e.stopPropagation();
@@ -441,6 +455,7 @@
 	
 	var init = function () {
 		//doc.on('*.entry-relationship', processEvent);
+		notifier = S.Elements.header.find('div.notifier');
 		S.Elements.contents.find('.field.field-entry_relationship').each(initOne);
 	};
 	

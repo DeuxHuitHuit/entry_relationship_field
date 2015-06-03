@@ -29,7 +29,7 @@
 				$this->_Result['error'] = 'Parameters not found';
 				return;
 			}
-			if (count($this->_context) < self::NUMBER_OF_URL_PARAMETERS) {
+			else if (count($this->_context) < self::NUMBER_OF_URL_PARAMETERS) {
 				$this->_Result['error'] = 'Not enough parameter';
 				return;
 			}

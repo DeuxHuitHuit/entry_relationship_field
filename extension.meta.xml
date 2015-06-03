@@ -33,8 +33,13 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="1.0.2.beta2" date="TBA" min="2.5.0" max="2.6.x">
-			
+		<release version="1.0.2" date="2015-06-03" min="2.5.0" max="2.6.x">
+			- Changed the column type for entries to TEXT to allow more entries to be linked
+			- Fixed a ton of bugs (#44, #42, #40, #38, #34, #33, #31, #26, #25, #24, #23, #22, #21, #20, #19, #11, #5, #4, #2)
+			- Most of the data-* api is done (See #30)
+			- Added options to hide link, new and edit buttons
+			- Better error management for the ajax save
+			- Added basic filtering (only works with entry id)
 		</release>
 		<release version="1.0.1" date="2014-11-05" min="2.5.0" max="2.5.x">
 			- Fix a bug that was preventing the render. Fixes #14

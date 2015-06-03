@@ -30,7 +30,7 @@
 				return;
 			}
 			else if (count($this->_context) < self::NUMBER_OF_URL_PARAMETERS) {
-				$this->_Result['error'] = 'Not enough parameter';
+				$this->_Result['error'] = 'Not enough parameters';
 				return;
 			}
 			else if (count($this->_context) > self::NUMBER_OF_URL_PARAMETERS) {

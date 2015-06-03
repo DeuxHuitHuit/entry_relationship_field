@@ -10,6 +10,8 @@
 	//require_once(EXTENTIONS . '/entry_relationship_field/fields/field.entry_relationship.php');
 
 	class contentExtensionEntry_Relationship_FieldSave extends JSONPage {
+
+		const NUMBER_OF_URL_PARAMETERS = 3;
 		
 		/**
 		 *
@@ -27,12 +29,29 @@
 				$this->_Result['error'] = 'Parameters not found';
 				return;
 			}
+			if (count($this->_context) < self::NUMBER_OF_URL_PARAMETERS) {
+				$this->_Result['error'] = 'Not enough parameter';
+				return;
+			}
+			else if (count($this->_context) > self::NUMBER_OF_URL_PARAMETERS) {
+				$this->_Result['error'] = 'Too many parameters';
+				return;
+			}
 			
-			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
-			$entriesId = array_map(array('General', 'intval'), $entriesId);
+			$rawEntriesId = explode(',', MySQL::cleanValue($this->_context[0]));
+			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result['error'] = 'No entry no found';
 				return;
+			}
+			if (in_array('null', $rawEntriesId)) {
+				$entriesId = array();
+			}
+			foreach ($entriesId as $entryPos => $entryId) {
+				if ($entryId < 1) {
+					$this->_Result['error'] = sprintf('Entry id `%s` not valid', $rawEntriesId[$entryPos]);
+					return;
+				}
 			}
 			
 			$parentFieldId = General::intval(MySQL::cleanValue($this->_context[1]));
@@ -47,9 +66,10 @@
 				return;
 			}
 			
-			$entryId = General::intval(MySQL::cleanValue($this->_context[2]));
+			$rawEntryId = MySQL::cleanValue($this->_context[2]);
+			$entryId = General::intval($rawEntryId );
 			if ($entryId < 1) {
-				$this->_Result['error'] = 'Parent entry id not valid';
+				$this->_Result['error'] = sprintf('Parent entry id `%s` not valid', $rawEntryId);
 				return;
 			}
 			

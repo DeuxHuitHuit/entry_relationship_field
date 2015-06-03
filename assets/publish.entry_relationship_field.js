@@ -244,7 +244,7 @@
 	};
 	
 	var saveurl = function (value, fieldid, entryid) {
-		var url = SAVE + value + '/';
+		var url = SAVE + (value || 'null') + '/';
 		if (!!fieldid) {
 			url += fieldid + '/';
 		}
@@ -368,11 +368,15 @@
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
 				$.post(saveurl(hidden.val(), fieldId, Symphony.Context.get().env.entry_id))
 				.done(function (data) {
-					notifier.trigger('attach.notify', [
+					var hasError = !data.ok || !!data.error;
+					var msg = hasError ?
+						Symphony.Language.get('Error') + '! ' + data.error :
 						Symphony.Language.get('The field “{$title}” has been saved', {
 							title: label
-						}),
-						'success'
+						});
+					notifier.trigger('attach.notify', [
+						msg,
+						hasError ? 'error' : 'success'
 					]);
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [
@@ -382,6 +386,9 @@
 						}),
 						'error'
 					]);
+				})
+				.always(function () {
+					render();
 				});
 			}, 200);
 		};
@@ -390,10 +397,15 @@
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', function (e) {
 			var t = $(this);
-			var li = $(this).closest('li');
+			var li = t.closest('li');
+			var ul = li.closest('ul');
+			var frame = ul.closest('.frame');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			self.unlink(id, true);
 			li.empty().remove();
+			if (!ul.children().length) {
+				frame.addClass('empty');
+			}
 			e.stopPropagation();
 		});
 		t.on('click', '[data-edit]', function (e) {

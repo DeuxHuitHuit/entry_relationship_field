@@ -88,9 +88,22 @@
 				$entry = $entry[0];
 			}
 			$entryData = $entry->getData();
+			// set new data
+			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
+
+			// check if data are valid
+			$resMessage = null;
+			$res = $parentField->checkPostFieldData(
+				$entryData[$parentFieldId],
+				$resMessage,
+				$entryId
+			);
+			if ($res != Field::__OK__) {
+				$this->_Result['error'] = $resMessage;
+				return;
+			}
 			
 			// save the new data
-			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
 			$entry->setData($parentFieldId, $entryData[$parentFieldId]);
 			if (!$entry->commit()) {
 				$this->_Result['error'] = __('Could not save entry');

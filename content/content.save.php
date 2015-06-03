@@ -20,28 +20,28 @@
 		public function view() {
 			if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 				$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;
-				$this->_Result['error'] = 'This page accepts posts only';
+				$this->_Result['error'] = __('This page accepts posts only');
 				$this->setHttpStatus($this->_Result['status']);
 				return;
 			}
 			
 			if (!is_array($this->_context) || empty($this->_context)) {
-				$this->_Result['error'] = 'Parameters not found';
+				$this->_Result['error'] = __('Parameters not found');
 				return;
 			}
 			else if (count($this->_context) < self::NUMBER_OF_URL_PARAMETERS) {
-				$this->_Result['error'] = 'Not enough parameters';
+				$this->_Result['error'] = __('Not enough parameters');
 				return;
 			}
 			else if (count($this->_context) > self::NUMBER_OF_URL_PARAMETERS) {
-				$this->_Result['error'] = 'Too many parameters';
+				$this->_Result['error'] = __('Too many parameters');
 				return;
 			}
 			
 			$rawEntriesId = explode(',', MySQL::cleanValue($this->_context[0]));
 			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
-				$this->_Result['error'] = 'No entry no found';
+				$this->_Result['error'] = __('No entry no found');
 				return;
 			}
 			if (in_array('null', $rawEntriesId)) {
@@ -49,33 +49,39 @@
 			}
 			foreach ($entriesId as $entryPos => $entryId) {
 				if ($entryId < 1) {
-					$this->_Result['error'] = sprintf('Entry id `%s` not valid', $rawEntriesId[$entryPos]);
+					$this->_Result['error'] = sprintf(
+						__('Entry id `%s` not valid'),
+						$rawEntriesId[$entryPos]
+					);
 					return;
 				}
 			}
 			
 			$parentFieldId = General::intval(MySQL::cleanValue($this->_context[1]));
 			if ($parentFieldId < 1) {
-				$this->_Result['error'] = 'Parent id not valid';
+				$this->_Result['error'] = __('Parent id not valid');
 				return;
 			}
 			
 			$parentField = FieldManager::fetch($parentFieldId);
 			if (!$parentField || empty($parentField)) {
-				$this->_Result['error'] = 'Parent field not found';
+				$this->_Result['error'] = __('Parent field not found');
 				return;
 			}
 			
 			$rawEntryId = MySQL::cleanValue($this->_context[2]);
 			$entryId = General::intval($rawEntryId );
 			if ($entryId < 1) {
-				$this->_Result['error'] = sprintf('Parent entry id `%s` not valid', $rawEntryId);
+				$this->_Result['error'] = sprintf(
+					__('Parent entry id `%s` not valid'),
+					$rawEntryId
+				);
 				return;
 			}
 			
 			$entry = EntryManager::fetch($entryId);
 			if ($entry == null || count($entry) != 1) {
-				$this->_Result['error'] = 'Parent entry not found';
+				$this->_Result['error'] = __('Parent entry not found');
 				return;
 			}
 			if (is_array($entry)) {
@@ -87,7 +93,7 @@
 			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
 			$entry->setData($parentFieldId, $entryData[$parentFieldId]);
 			if (!$entry->commit()) {
-				$this->_Result['error'] = 'Could not save entry';
+				$this->_Result['error'] = __('Could not save entry');
 				return;
 			}
 			

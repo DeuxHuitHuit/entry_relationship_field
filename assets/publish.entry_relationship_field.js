@@ -305,7 +305,7 @@
 				});
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
-					Symphony.Language.get('Error while rendering field “{$title}”. {$error}', {
+					S.Language.get('Error while rendering field “{$title}”. {$error}', {
 						title: label,
 						error: data.error || ''
 					}),
@@ -379,11 +379,11 @@
 				.done(function (data) {
 					var hasError = !data.ok || !!data.error;
 					var msg = hasError ?
-						Symphony.Language.get('Error while saving field “{$title}”. {$error}', {
+						S.Language.get('Error while saving field “{$title}”. {$error}', {
 							title: label,
 							error: data.error
 						}) :
-						Symphony.Language.get('The field “{$title}” has been saved', {
+						S.Language.get('The field “{$title}” has been saved', {
 							title: label
 						});
 					notifier.trigger('attach.notify', [
@@ -396,7 +396,7 @@
 					}
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [
-						Symphony.Language.get('Server error, field “{$title}”. {$error}', {
+						S.Language.get('Server error, field “{$title}”. {$error}', {
 							title: label,
 							error: data.error
 						}),

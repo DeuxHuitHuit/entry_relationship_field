@@ -119,6 +119,6 @@
 			
 			$this->_Result['entry-id'] = $entryId;
 			$this->_Result['ok'] = true;
-			$this->_Result['entries'] = $entryData[$parentFieldId];
+			$this->_Result['entries'] = $entryData[$parentFieldId]['entries'];
 		}
 	}

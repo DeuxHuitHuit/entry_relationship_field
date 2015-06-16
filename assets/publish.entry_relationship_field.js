@@ -381,7 +381,7 @@
 				}
 				$.post(saveurl(hidden.val(), fieldId, entryId))
 				.done(function (data) {
-					var hasError = !data.ok || !!data.error;
+					var hasError = !data || !data.ok || !!data.error;
 					var msg = hasError ?
 						S.Language.get('Error while saving field “{$title}”. {$error}', {
 							title: label,

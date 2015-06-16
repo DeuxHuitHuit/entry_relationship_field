@@ -331,7 +331,7 @@
 					}
 				}
 			},
-			unlink: function (entryId, noRender) {
+			unlink: function (entryId) {
 				var val = values();
 				
 				for (var x = 0; x < val.length; x++) {
@@ -339,10 +339,7 @@
 						val.splice(x, 1);
 					}
 				}
-				
-				if (saveValues(val) && noRender !== true) {
-					render();
-				}
+				saveValues(val);
 			},
 			values: values,
 			render: render
@@ -415,7 +412,7 @@
 			var t = $(this);
 			var li = t.closest('li');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
-			self.unlink(id, true);
+			self.unlink(id);
 			li.empty().remove();
 			if (!list.children().length) {
 				frame.addClass('empty');

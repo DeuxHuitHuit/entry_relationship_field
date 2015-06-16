@@ -25,6 +25,9 @@
 				return;
 			}
 			
+			// _context[0] => entry values
+			// _context[1] => fieldId
+			// _context[2] => current entry id
 			if (!is_array($this->_context) || empty($this->_context)) {
 				$this->_Result['error'] = __('Parameters not found');
 				return;
@@ -86,6 +89,10 @@
 			}
 			if (is_array($entry)) {
 				$entry = $entry[0];
+			}
+			if ($entry->get('section_id') != $parentField->get('parent_section')) {
+				$this->_Result['error'] = __('Field and entry do not belong together');
+				return;
 			}
 			$entryData = $entry->getData();
 			// set new data

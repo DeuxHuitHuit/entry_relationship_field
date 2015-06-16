@@ -326,9 +326,7 @@
 				
 				if (!found) {
 					val.push(entryId);
-					if (saveValues(val)) {
-						render();
-					}
+					saveValues(val);
 				}
 			},
 			unlink: function (entryId) {

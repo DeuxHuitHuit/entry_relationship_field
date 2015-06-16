@@ -374,6 +374,11 @@
 		var ajaxSave = function () {
 			clearTimeout(ajaxSaveTimeout);
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
+				if (!entryId) {
+					// entry is being created... we can't save right now...
+					render();
+					return;
+				}
 				$.post(saveurl(hidden.val(), fieldId, entryId))
 				.done(function (data) {
 					var hasError = !data.ok || !!data.error;

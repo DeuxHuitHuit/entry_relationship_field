@@ -53,12 +53,9 @@
 		}
 		
 		body.addClass('entry_relationship');
-		// has errors
-		if (!!S.Elements.header.find('.notifier .notice.error').length) {
-			S.Elements.header.children().not('.notifier').remove();
-		} else {
-			S.Elements.header.detach();
-		}
+		
+		// remove everything in header, except notifier
+		S.Elements.header.children().not('.notifier').remove();
 		S.Elements.contents.find('table th:not([id])').remove();
 		S.Elements.contents.find('table td:not([class])').remove();
 		S.Elements.contents.find('#drawer-section-associations').remove();

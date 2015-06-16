@@ -17,7 +17,6 @@
 	var body = $();
 	var ctn = $();
 	var loc = window.location.toString();
-	var offsetY = 0;
 	var opacity = 0.7;
 	var opacityFactor = 0.1;
 	
@@ -34,17 +33,17 @@
 	var removeUI = function () {
 		var parent = window.parent.Symphony.Extensions.EntryRelationship;
 		var saved = loc.indexOf('/saved/') !== -1;
-		var created = loc.indexOf('/created/') !== -1
+		var created = loc.indexOf('/created/') !== -1;
 		
 		if (saved || created) {
 			if (created) {
-				parent.link(Symphony.Context.get('env').entry_id);
+				parent.link(S.Context.get().env.entry_id);
 			}
 			parent.hide(true);
 			return;
 		}
 		
-		var form = Symphony.Elements.contents.find('form');
+		var form = S.Elements.contents.find('form');
 		
 		if (!!parent) {
 			// block already link items
@@ -91,8 +90,9 @@
 			}
 			
 			if (!t.closest('.er-already-linked').length) {
-				var entryId = t.closest('tr').attr('id').replace('id-', '');
-				t.closest('tr').addClass('selected');
+				var tr = t.closest('tr');
+				var entryId = tr.attr('id').replace('id-', '');
+				tr.addClass('selected');
 				parent.link(entryId);
 				parent.hide();
 			}
@@ -111,7 +111,7 @@
 	
 	var resizeIframe = function (iframe) {
 		var parent = window.parent !== window;
-		offsetY = !parent ? 
+		var offsetY = !parent ?
 			S.Elements.header.outerHeight() + S.Elements.context.outerHeight() + S.Elements.nav.outerHeight() :
 			S.Elements.context.outerHeight();
 		var css = {
@@ -160,7 +160,7 @@
 				resizeIframe(iframe);
 				ctn.empty().append(ictn);
 				
-				Symphony.Utilities.requestAnimationFrame(function () {
+				S.Utilities.requestAnimationFrame(function () {
 					ctn.addClass('show');
 					ctn.find('.iframe>iframe').delay(300).fadeIn(200);
 					
@@ -214,8 +214,7 @@
 	
 	var doc = $(document);
 	var notifier;
-	
-	var instances = {};
+
 	
 	var baseurl = function () {
 		return S.Context.get('symphony');
@@ -454,7 +453,6 @@
 	};
 	
 	var init = function () {
-		//doc.on('*.entry-relationship', processEvent);
 		notifier = S.Elements.header.find('div.notifier');
 		S.Elements.contents.find('.field.field-entry_relationship').each(initOne);
 	};

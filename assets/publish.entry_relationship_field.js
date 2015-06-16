@@ -107,17 +107,20 @@
 	};
 	
 	var resizeIframe = function (iframe) {
+		var pad = 7;
 		var parent = window.parent !== window;
 		var offsetY = !parent ?
 			S.Elements.header.outerHeight() + S.Elements.context.outerHeight() + S.Elements.nav.outerHeight() :
 			S.Elements.context.outerHeight();
+		var scrollY = win.scrollTop();
+		offsetY = Math.max(pad, offsetY - scrollY);
 		var css = {
-			left: '7px',
+			left: pad + 'px',
 			top: offsetY + 'px',
 			width: 0,
 			height: 0
 		};
-		css.width = (win.width() - parseInt(css.left)) + 'px';
+		css.width = (win.width() - pad) + 'px';
 		css.height = (win.height() - offsetY) + 'px';
 		iframe
 			.attr('width', css.width)

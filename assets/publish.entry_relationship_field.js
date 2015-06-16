@@ -245,12 +245,8 @@
 	
 	var saveurl = function (value, fieldid, entryid) {
 		var url = SAVE + (value || 'null') + '/';
-		if (!!fieldid) {
-			url += fieldid + '/';
-		}
-		if (!!entryid) {
-			url += entryid + '/';
-		}
+		url += fieldid + '/';
+		url += entryid + '/';
 		return url;
 	};
 	

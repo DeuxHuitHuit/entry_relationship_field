@@ -214,7 +214,7 @@
 	
 	var doc = $(document);
 	var notifier;
-
+	var entryId = S.Context.get().env.entry_id;
 	
 	var baseurl = function () {
 		return S.Context.get('symphony');
@@ -374,7 +374,7 @@
 		var ajaxSave = function () {
 			clearTimeout(ajaxSaveTimeout);
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
-				$.post(saveurl(hidden.val(), fieldId, S.Context.get().env.entry_id))
+				$.post(saveurl(hidden.val(), fieldId, entryId))
 				.done(function (data) {
 					var hasError = !data.ok || !!data.error;
 					var msg = hasError ?

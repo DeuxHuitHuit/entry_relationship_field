@@ -408,6 +408,7 @@
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', function (e) {
 			var t = $(this);
+			syncCurrent();
 			var li = t.closest('li');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			self.unlink(id);

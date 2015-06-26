@@ -64,6 +64,14 @@
 			parent.cancel();
 			parent.hide();
 		});
+		$(document).on('keydown', function (e) {
+			if (e.which === 27) {
+				parent.cancel();
+				parent.hide();
+				e.preventDefault();
+				return false;
+			}
+		});
 		S.Elements.wrapper.find('.actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);

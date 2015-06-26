@@ -272,6 +272,9 @@
 		var frame = t.find('.frame');
 		var list = frame.find('ul');
 		var memento, replaceId;
+		var storageKeys = {
+			selection: 'symphony.ERF.section-selection-' + id
+		};
 		var values = function () {
 			var val = hidden.val() || '';
 			return val.split(',');
@@ -447,6 +450,15 @@
 			e.stopPropagation();
 		};
 		
+		var sectionChanged = function (e) {
+			try {
+				window.localStorage.setItem(storageKeys.selection, sections.val());
+			}
+			catch (ex) {
+				console.error(ex);
+			}
+		};
+		
 		var ajaxSaveTimeout = 0;
 		var ajaxSave = function () {
 			clearTimeout(ajaxSaveTimeout);
@@ -499,6 +511,14 @@
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
 			sections.after($('<label />').text(sections.text()).addClass('sections'));
+		}
+		else if (S.Support.localStorage) {
+			var lastSelection = window.localStorage.getItem(storageKeys.selection);
+			if (!!lastSelection) {
+				sections.find('option[value="' + lastSelection + '"]')
+					.attr('selected', 'selected');
+			}
+			sections.on('change', sectionChanged);
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {

@@ -242,10 +242,8 @@
 	var SAVE = baseurl() + CONTENTPAGES +'save/';
 	
 	var renderurl = function (value, fieldid, debug) {
-		var url = RENDER + value + '/';
-		if (!!fieldid) {
-			url += fieldid + '/';
-		}
+		var url = RENDER + (value || 'null') + '/';
+		url += fieldid + '/';
 		if (!!debug) {
 			url += '?debug';
 		}

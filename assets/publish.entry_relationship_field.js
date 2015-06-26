@@ -343,20 +343,36 @@
 			}
 			isRendering = true;
 			$.get(renderurl(hidden.val(), fieldId, debug)).done(function (data) {
-				var li = $(data).find('li');
+				data = $(data);
+				var error = data.find('error');
+				var li = data.find('li');
 				var fx = !li.length ? 'addClass' : 'removeClass';
 				
-				list.empty().append(li);
-				frame[fx]('empty');
+				if (!!error.length) {
+					list.empty().append(
+						$('<li />').text(
+							S.Language.get('Error while rendering field “{$title}”: {$error}', {
+								title: label,
+								error: error.text()
+							})
+						).addClass('error invalid')
+					);
+					frame.addClass('empty');
+				}
+				else {
+					list.empty().append(li);
+					frame[fx]('empty');
+					
+					list.symphonyOrderable({
+						handles: '>header'
+					});
+				}
 				
-				list.symphonyOrderable({
-					handles: '>header'
-				});
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
-					S.Language.get('Error while rendering field “{$title}”. {$error}', {
+					S.Language.get('Error while rendering field “{$title}”: {$error}', {
 						title: label,
-						error: data.error || ''
+						error: data.statusText || ''
 					}),
 					'error'
 				]);
@@ -491,7 +507,7 @@
 					notifier.trigger('attach.notify', [
 						S.Language.get('Server error, field “{$title}”. {$error}', {
 							title: label,
-							error: data.error
+							error: typeof data.error === 'string' ? data.error : data.statusText
 						}),
 						'error'
 					]);

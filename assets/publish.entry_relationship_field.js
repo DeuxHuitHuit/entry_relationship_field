@@ -105,6 +105,7 @@
 			
 			return false;
 		});
+		win.focus();
 	};
 	
 	var appendUI = function () {
@@ -160,6 +161,7 @@
 					self.current.render();
 				}
 				self.current = null;
+				win.focus();
 			},
 			show: function (url) {
 				var ictn = $('<div />').attr('class', 'iframe');

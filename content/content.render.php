@@ -104,7 +104,8 @@
 					
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId,
-						'data-section' => $entrySectionHandle
+						'data-section' => $entrySectionHandle,
+						'data-section-id' => $entrySection->get('id'),
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4');

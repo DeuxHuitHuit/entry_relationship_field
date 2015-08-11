@@ -250,6 +250,7 @@
 	var CONTENTPAGES = '/extension/entry_relationship_field/';
 	var RENDER = baseurl() + CONTENTPAGES +'render/';
 	var SAVE = baseurl() + CONTENTPAGES +'save/';
+	var DELETE = baseurl() + CONTENTPAGES +'delete/';
 	
 	var renderurl = function (value, fieldid, debug) {
 		var url = RENDER + (value || 'null') + '/';
@@ -262,6 +263,13 @@
 	
 	var saveurl = function (value, fieldid, entryid) {
 		var url = SAVE + (value || 'null') + '/';
+		url += fieldid + '/';
+		url += entryid + '/';
+		return url;
+	};
+	
+	var deleteurl = function (entrytodeleteid, fieldid, entryid) {
+		var url = DELETE + entrytodeleteid + '/';
 		url += fieldid + '/';
 		url += entryid + '/';
 		return url;
@@ -418,6 +426,16 @@
 			}
 		};
 		
+		var unlinkAndUpdateUI = function (li, id) {
+			if (!!id) {
+				self.unlink(id);
+			}
+			li.empty().remove();
+			if (!list.children().length) {
+				frame.addClass('empty');
+			}
+		}
+		
 		var syncCurrent = function () {
 			S.Extensions.EntryRelationship.current = self;
 		};
@@ -442,11 +460,7 @@
 			syncCurrent();
 			var li = t.closest('li');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
-			self.unlink(id);
-			li.empty().remove();
-			if (!list.children().length) {
-				frame.addClass('empty');
-			}
+			unlinkAndUpdateUI(li, id);
 			e.stopPropagation();
 		};
 
@@ -466,12 +480,24 @@
 			var li = t.closest('li');
 			var id = t.attr('data-replace') || li.attr('data-entry-id');
 			if (!!unlink(id).changed) {
-				li.empty().remove();
-				if (!list.children().length) {
-					frame.addClass('empty');
-				}
+				unlinkAndUpdateUI(li);
 				replaceId = id;
 				openIframe(sections.val());
+			}
+			e.stopPropagation();
+		};
+		
+		var btnDeleteClick = function (e) {
+			var t = $(this);
+			syncCurrent();
+			var li = $(this).closest('li');
+			var id = t.attr('data-delete') || li.attr('data-entry-id');
+			var section = li.attr('data-section');
+			var confirmMsg = t.attr('data-message') || S.Language.get('Are you sure you want to un-link AND delete this entry?');
+			if (confirm(confirmMsg)) {
+				ajaxDelete(id, function () {
+					unlinkAndUpdateUI(li, id);
+				});
 			}
 			e.stopPropagation();
 		};
@@ -528,11 +554,49 @@
 			}, 200);
 		};
 		
+		var ajaxDelete = function (entryToDeleteId, success) {
+			$.post(deleteurl(entryToDeleteId, fieldId, entryId))
+			.done(function (data) {
+				var hasError = !data || !data.ok || !!data.error;
+				var msg = hasError ?
+					S.Language.get('Error while deleting entry “{$id}”. {$error}', {
+						id: entryToDeleteId,
+						error: data.error
+					}) :
+					S.Language.get('The entry “{$id}” has been deleted', {
+						id: entryToDeleteId,
+					});
+				notifier.trigger('attach.notify', [
+					msg,
+					hasError ? 'error' : 'success'
+				]);
+				if (hasError) {
+					// restore old value
+					hidden.val(memento);
+				}
+				else if ($.isFunction(success)) {
+					success(entryToDeleteId);
+				}
+			}).error(function (data) {
+				notifier.trigger('attach.notify', [
+					S.Language.get('Server error, field “{$title}”. {$error}', {
+						title: label,
+						error: typeof data.error === 'string' ? data.error : data.statusText
+					}),
+					'error'
+				]);
+			})
+			.always(function () {
+				render();
+			});
+		};
+		
 		t.on('click', '[data-create]', btnCreateClick);
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', btnUnlinkClick);
 		t.on('click', '[data-edit]', btnEditClick);
 		t.on('click', '[data-replace]', btnReplaceClick);
+		t.on('click', '[data-delete]', btnDeleteClick);
 		
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');

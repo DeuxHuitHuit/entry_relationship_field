@@ -36,7 +36,12 @@
 	border-bottom: none;
 }
 
-.field.field-entry_relationship .destructor a.unlink:hover {
+.field.field-entry_relationship .destructor a.edit:hover {
+	color: #282828;
+}
+
+.field.field-entry_relationship .destructor a.unlink:hover,
+.field.field-entry_relationship .destructor a.delete:hover {
 	color: #e90a20;
 }
 

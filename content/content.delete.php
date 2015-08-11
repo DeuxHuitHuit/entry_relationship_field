@@ -1,6 +1,6 @@
 <?php
 	/*
-	Copyright: Deux Huit Huit 2014
+	Copyright: Deux Huit Huit 2015
 	LICENCE: MIT http://deuxhuithuit.mit-license.org;
 	*/
 
@@ -8,7 +8,7 @@
 
 	require_once(TOOLKIT . '/class.jsonpage.php');
 
-	class contentExtensionEntry_Relationship_FieldSave extends JSONPage {
+	class contentExtensionEntry_Relationship_FieldDelete extends JSONPage {
 
 		const NUMBER_OF_URL_PARAMETERS = 3;
 		
@@ -24,9 +24,9 @@
 				return;
 			}
 			
-			// _context[0] => entry values
+			// _context[0] => entry id to delete
 			// _context[1] => fieldId
-			// _context[2] => current entry id
+			// _context[2] => current entry id (parent of entry id to delete)
 			if (!is_array($this->_context) || empty($this->_context)) {
 				$this->_Result['error'] = __('Parameters not found');
 				return;
@@ -40,24 +40,12 @@
 				return;
 			}
 			
-			// Validate ALL entries ID
-			$rawEntriesId = explode(',', MySQL::cleanValue($this->_context[0]));
-			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
-			if (!is_array($entriesId) || empty($entriesId)) {
+			// Validate to delete entry ID
+			$rawToDeleteEntryId = MySQL::cleanValue($this->_context[0]);
+			$toDeleteEntryId = General::intval($rawToDeleteEntryId);
+			if ($toDeleteEntryId < 1) {
 				$this->_Result['error'] = __('No entry no found');
 				return;
-			}
-			if (in_array('null', $rawEntriesId)) {
-				$entriesId = array();
-			}
-			foreach ($entriesId as $entryPos => $entryId) {
-				if ($entryId < 1) {
-					$this->_Result['error'] = sprintf(
-						__('Entry id `%s` not valid'),
-						$rawEntriesId[$entryPos]
-					);
-					return;
-				}
 			}
 			
 			// Validate parent field exists
@@ -74,7 +62,7 @@
 			
 			// Validate parent entry ID
 			$rawEntryId = MySQL::cleanValue($this->_context[2]);
-			$entryId = General::intval($rawEntryId );
+			$entryId = General::intval($rawEntryId);
 			if ($entryId < 1) {
 				$this->_Result['error'] = sprintf(
 					__('Parent entry id `%s` not valid'),
@@ -96,31 +84,27 @@
 				$this->_Result['error'] = __('Field and entry do not belong together');
 				return;
 			}
-			$entryData = $entry->getData();
-			// set new data
-			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
-
-			// check if data are valid
-			$resMessage = null;
-			$res = $parentField->checkPostFieldData(
-				$entryData[$parentFieldId],
-				$resMessage,
-				$entryId
-			);
-			if ($res != Field::__OK__) {
-				$this->_Result['error'] = $resMessage;
+			
+			// Validate to delete entry exists
+			$toDeleteEntry = EntryManager::fetch($toDeleteEntryId);
+			if ($toDeleteEntry == null || count($toDeleteEntry) != 1) {
+				$this->_Result['error'] = __('Entry not found');
 				return;
 			}
+			if (is_array($entry)) {
+				$entry = $entry[0];
+			}
 			
-			// save the new data
-			$entry->setData($parentFieldId, $entryData[$parentFieldId]);
-			if (!$entry->commit()) {
-				$this->_Result['error'] = __('Could not save entry');
+			// TODO: Validate entry is not linked anywhere else
+			
+			
+			// Delete the entry
+			if (!EntryManager::delete($toDeleteEntryId)) {
+				$this->_Result['error'] = __('Could not delete the entry');
 				return;
 			}
 			
 			$this->_Result['entry-id'] = $entryId;
 			$this->_Result['ok'] = true;
-			$this->_Result['entries'] = $entryData[$parentFieldId]['entries'];
 		}
 	}

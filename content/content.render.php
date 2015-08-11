@@ -137,11 +137,19 @@
 							'data-edit' => $entryId,
 						)));
 					}
+					if ($parentField->is('allow_delete')) {
+						$options->appendChild(new XMLElement('a', __('Delete'), array(
+							'class' => 'delete',
+							'data-delete' => $entryId,
+						)));
+					}
 					if ($parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Replace'), array(
 							'class' => 'unlink',
 							'data-replace' => $entryId,
 						)));
+					}
+					if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Un-link'), array(
 							'class' => 'unlink',
 							'data-unlink' => $entryId,

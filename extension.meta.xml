@@ -33,7 +33,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="1.0.3.beta" date="2015-06-16" min="2.5.0" max="2.6.x">
+		<release version="1.0.3.beta2" date="2015-08-11" min="2.5.0" max="2.6.x">
 			
 		</release>
 		<release version="1.0.2" date="2015-06-03" min="2.5.0" max="2.6.x">

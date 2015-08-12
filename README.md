@@ -40,6 +40,7 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
     - Protip: add `?debug` to backend url to see the available xml for each entry.
     - Protip: You can also override the default debug template with     
     `<xsl:template match="/data" mode="debug" priority="1"></xsl:template>`
+    - Protip: You can create buttons yourself, using the [data-attribute api](#Data-attribute-API).
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.
 - (Optional) Select a maximum recursion level for nested fields.
 - (Optional) Select a minimum and maximum number of elements for this field.
@@ -65,6 +66,23 @@ Here's what a basic backend template should look like.
 
 </xsl:stylesheet>
 ```
+
+### Data-attribute API
+
+In your backend template, you can create button that uses the same features as the default ones.
+The only markup needed is a data-attribute on the button.    
+The provided actions are:
+
+- Edit entry `data-edit="{entry-id}"`
+- Unlink entry `data-unlink="{entry-id}"`
+- Link entry `data-link="{section-handle}"`
+- Delete entry `data-delete="{entry-id}"`
+- Create entry `data-create="{section-handle}"`
+- Replace entry `data-replace="{entry-id}"`
+
+Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
+
+No validation is made to check if the feature has been activated in the field's setting, so use at your own risks.
 
 ### AKNOWLEDGMENTS ###
 

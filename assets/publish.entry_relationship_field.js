@@ -554,10 +554,18 @@
 			}, 200);
 		};
 		
-		var ajaxDelete = function (entryToDeleteId, success) {
-			$.post(deleteurl(entryToDeleteId, fieldId, entryId))
+		var ajaxDelete = function (entryToDeleteId, success, noAssoc) {
+			noAssoc = noAssoc === true ? '?no-assoc' : '';
+			$.post(deleteurl(entryToDeleteId, fieldId, entryId) + noAssoc)
 			.done(function (data) {
 				var hasError = !data || !data.ok || !!data.error;
+				var hasAssoc = hasError && data.assoc;
+				if (hasAssoc) {
+					if (confirm(data.error)) {
+						ajaxDelete(entryToDeleteId, success, true);
+					}
+					return;
+				}
 				var msg = hasError ?
 					S.Language.get('Error while deleting entry “{$id}”. {$error}', {
 						id: entryToDeleteId,
@@ -585,9 +593,6 @@
 					}),
 					'error'
 				]);
-			})
-			.always(function () {
-				render();
 			});
 		};
 		

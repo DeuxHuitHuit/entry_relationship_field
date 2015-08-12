@@ -91,12 +91,23 @@
 				$this->_Result['error'] = __('Entry not found');
 				return;
 			}
-			if (is_array($entry)) {
-				$entry = $entry[0];
+			if (is_array($toDeleteEntry)) {
+				$toDeleteEntry = $toDeleteEntry[0];
 			}
 			
-			// TODO: Validate entry is not linked anywhere else
-			
+			// Validate entry is not linked anywhere else
+			if (!isset($_REQUEST['no-assoc'])) {
+				//$toDeleteSection = SectionManager::fetch($toDeleteEntry->get('section_id'));
+				//$toDeleteAssoc = $toDeleteSection->fetchChildAssociations(false);
+				$toDeleteAssoc = SectionManager::fetchChildAssociations($toDeleteEntry->get('section_id'), false);
+				//var_dump($toDeleteAssoc);die;
+				// TODO: find if the toDeleteEntry is linked or not.
+				if (count($toDeleteAssoc) > 1) {
+					$this->_Result['assoc'] = true;
+					$this->_Result['error'] = __('Entry might be link elsewhere. Do you want to continue?');
+					return;
+				}
+			}
 			
 			// Delete the entry
 			if (!EntryManager::delete($toDeleteEntryId)) {

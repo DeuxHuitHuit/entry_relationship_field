@@ -33,8 +33,14 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="1.0.3.beta2" date="2015-08-11" min="2.5.0" max="2.6.x">
-			
+		<release version="1.0.3" date="2015-08-12" min="2.5.0" max="2.6.x">
+			- Added a un-link button.
+			- Entries can now be deleted straight from the field UI.
+			- Fixed some other minor bugs
+			- Add a ESC key shortcut to close the popup (#17)
+			- Show the minimum and the maximum of entries allowed (#18)
+			- Added a data-attribute based API for the backend (#30)
+			- Section choice is now saved in local storage
 		</release>
 		<release version="1.0.2" date="2015-06-03" min="2.5.0" max="2.6.x">
 			- Changed the column type for entries to TEXT to allow more entries to be linked

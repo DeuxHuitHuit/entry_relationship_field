@@ -1151,7 +1151,7 @@
 					`allow_edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_delete` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_delete` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1190,7 +1190,7 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
+					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'no'
 					AFTER `allow_link`
 			";
 			return Symphony::Database()->query($sql);

@@ -178,19 +178,24 @@
 							$fieldName = $field->get('element_name');
 							$fieldIncludedElement = $includedElements[$entrySectionHandle];
 							
-							if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
-								$fieldIncludableElements = $field->fetchIncludableElements();
-								if ($field instanceof FieldEntry_relationship) {
-									$fieldIncludableElements = null;
-								}
-								if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
-									foreach ($fieldIncludableElements as $fieldIncludableElement) {
-										$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
-										$field->appendFormattedElement($xml, $data, false, $submode, $entryId);
+							try {
+								if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
+									$fieldIncludableElements = $field->fetchIncludableElements();
+									if ($field instanceof FieldEntry_relationship) {
+										$fieldIncludableElements = null;
 									}
-								} else {
-									$field->appendFormattedElement($xml, $data, false, null, $entryId);
+									if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
+										foreach ($fieldIncludableElements as $fieldIncludableElement) {
+											$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
+											$field->appendFormattedElement($xml, $data, false, $submode, $entryId);
+										}
+									} else {
+										$field->appendFormattedElement($xml, $data, false, null, $entryId);
+									}
 								}
+							}
+							catch (Exception $ex) {
+								$xml->appendChild(new XMLElement('error', $ex->getMessage() . ' on ' . $ex->getLine() . ' of file ' . $ex->getFile()));
 							}
 						}
 						

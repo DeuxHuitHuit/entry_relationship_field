@@ -56,6 +56,8 @@
 		
 		// remove everything in header, except notifier
 		S.Elements.header.children().not('.notifier').remove();
+		// Remove everything from the notifier except errors
+		S.Elements.header.find('.notifier .notice:not(.error)').trigger('detach.notify');
 		S.Elements.contents.find('table th:not([id])').remove();
 		S.Elements.contents.find('table td:not([class]):not(:first-child)').remove();
 		S.Elements.contents.find('#drawer-section-associations').remove();

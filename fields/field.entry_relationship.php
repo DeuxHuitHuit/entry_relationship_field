@@ -601,21 +601,19 @@
 					
 					// adjust the mode for the current section
 					$curMode = $mode;
-					if ($curMode) {
-						// remove section name from current mode, i.e sectionName.field
-						if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
-							$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
-						}
-						// remove section name from current mode, i.e sectionName
-						else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
-							$curMode = null;
-						}
-						// mode forbids this section, bail out
-						else if (preg_match('/\./sU', $curMode)) {
-							$item->setAttribute('forbidden', 'yes');
-							$root->appendChild($item);
-							continue;
-						}
+					// remove section name from current mode, i.e sectionName.field
+					if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
+						$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
+					}
+					// remove section name from current mode, i.e sectionName
+					else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
+						$curMode = null;
+					}
+					// mode forbids this section, bail out
+					else if (preg_match('/\./sU', $curMode)) {
+						$item->setAttribute('forbidden', 'yes');
+						$root->appendChild($item);
+						continue;
 					}
 					$item->setAttribute('section', $section->get('handle'));
 					
@@ -639,8 +637,11 @@
 					// do the filtering only if data-source ask for anything else than *,
 					// if not, let the array as-is
 					else if ($curMode !== '*') {
+						// extract field's name
+						$fieldName = preg_replace('/:.+$\s*/sU', '', $curMode, 1);
 						foreach ($sectionElements as $secElemIndex => $sectionElement) {
-							if ($curMode != $sectionElement) {
+							// keep only allowed fields
+							if ($fieldName != $sectionElement) {
 								unset($sectionElements[$secElemIndex]);
 							}
 						}
@@ -680,9 +681,9 @@
 							$parentIncludableElement = self::getSectionElementName($fieldName, $sectionElements);
 							$fieldIncludableElements = null;
 							// if the includable element is not just the field name
-							if ($parentIncludableElement != $fieldName) {
+							if ($parentIncludableElement != null && $parentIncludableElement != $fieldName) {
 								// use the includable element's mode
-								$fieldCurMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement , 1);
+								$fieldCurMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement, 1);
 							} else {
 								// revert to the field's includable elements
 								$fieldIncludableElements = $field->fetchIncludableElements();
@@ -752,7 +753,7 @@
 		{
 			if (is_array($sectionElements)) {
 				foreach ($sectionElements as $element) {
-					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/', $element) == 1) {
+					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/sU', $element) == 1) {
 						return $element;
 					}
 				}

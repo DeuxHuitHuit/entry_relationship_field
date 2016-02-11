@@ -668,6 +668,7 @@
 						}
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
+						$fieldCurMode = $curMode;
 						
 						// Increment recursive level
 						if ($field instanceof FieldEntry_relationship) {
@@ -681,7 +682,7 @@
 							// if the includable element is not just the field name
 							if ($parentIncludableElement != $fieldName) {
 								// use the includable element's mode
-								$curMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement , 1);
+								$fieldCurMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement , 1);
 							} else {
 								// revert to the field's includable elements
 								$fieldIncludableElements = $field->fetchIncludableElements();
@@ -701,7 +702,7 @@
 									$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
 								}
 							} else {
-								$field->appendFormattedElement($item, $data, $encode, $curMode, $eId);
+								$field->appendFormattedElement($item, $data, $encode, $fieldCurMode, $eId);
 							}
 						} else {
 							$item->appendChild(new XMLElement('error', __('Field "%s" not allowed', array($fieldName))));

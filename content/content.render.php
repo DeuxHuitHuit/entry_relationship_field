@@ -85,7 +85,7 @@
 				return;
 			}
 			
-			$includedElements = $this->parseIncludedElements($parentField);
+			$includedElements = FieldEntry_relationship::parseElements($parentField);
 			$xmlParams = self::getXmlParams();
 			
 			// Get entries one by one since they may belong to
@@ -180,17 +180,27 @@
 							
 							try {
 								if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
-									$fieldIncludableElements = $field->fetchIncludableElements();
+									$parentIncludableElement = FieldEntry_relationship::getSectionElementName($fieldName, $fieldIncludedElement);
+									$parentIncludableElementMode = FieldEntry_relationship::extractMode($fieldName, $parentIncludableElement);
+									
+									// Special treatments for ERF
 									if ($field instanceof FieldEntry_relationship) {
-										$fieldIncludableElements = null;
+										// Increment recursive level
+										$field->recursiveLevel = $recursiveLevel + 1;
+										$field->recursiveDeepness = $deepness;
 									}
-									if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
-										foreach ($fieldIncludableElements as $fieldIncludableElement) {
-											$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
-											$field->appendFormattedElement($xml, $data, false, $submode, $entryId);
-										}
-									} else {
-										$field->appendFormattedElement($xml, $data, false, null, $entryId);
+									
+									if ($parentIncludableElementMode == null) {
+										$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
+											return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
+										}, $field->fetchIncludableElements());
+									}
+									else {
+										$submodes = array($parentIncludableElementMode);
+									}
+									
+									foreach ($submodes as $submode) {
+										$field->appendFormattedElement($xml, $filteredData, false, $submode, $entryId);
 									}
 								}
 							}
@@ -266,38 +276,6 @@
 			}
 			
 			return $field->prepareReadableValue($data[$field->get('id')], $entry->get('id'), true);
-		}
-		
-		public function parseIncludedElements($field) {
-			$elements = $field->get('elements');
-			$parsedElements = array();
-			if (!empty($elements)) {
-				$elements = array_map(trim, explode(',', $elements));
-				foreach ($elements as $element) {
-					$parts = array_map(trim, explode('.', $element));
-					if (count($parts) === 2) {
-						$sectionname = $parts[0];
-						$fieldname = $parts[1];
-						
-						// skip all included
-						if ($parsedElements[$sectionname] === true) {
-							continue;
-						}
-						// set all included
-						else if ($fieldname == '*' || !$fieldname) {
-							$parsedElements[$sectionname] = true;
-							continue;
-						}
-						// first time seeing this section
-						else if (!is_array($parsedElements[$sectionname])) {
-							$parsedElements[$sectionname] = array();
-						}
-						// add current value
-						$parsedElements[$sectionname][] = $fieldname;
-					}
-				}
-			}
-			return $parsedElements;
 		}
 		
 		public function getXmlParams() {

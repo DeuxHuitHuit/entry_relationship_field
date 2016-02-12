@@ -71,6 +71,8 @@
 			$this->set('required', 'no');
 			// show association by default
 			$this->set('show_association', 'yes');
+			// no sections
+			$this->set('sections', null);
 			// no max deepness
 			$this->set('deepness', null);
 			// no included elements
@@ -477,27 +479,6 @@
 
 		/* ******* DATA SOURCE ******* */
 		
-		private function parseElements()
-		{
-			$elements = array();
-			$exElements = array_map(trim, explode(self::SEPARATOR, $this->get('elements')));
-			
-			foreach ($exElements as $value) {
-				if (!$value) {
-					continue;
-				}
-				$parts = array_map(trim, explode('.', $value));
-				if (!isset($elements[$parts[0]])) {
-					$elements[$parts[0]] = array();
-				}
-				if (isset($parts[1]) && !!$parts[1]) {
-					$elements[$parts[0]][] = $parts[1];
-				}
-			}
-			
-			return $elements;
-		}
-		
 		private function fetchEntry($eId, $elements = array())
 		{
 			$entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
@@ -543,7 +524,7 @@
 			$root->setAttribute('sections', $this->get('sections'));
 			
 			// included elements
-			$elements = $this->parseElements();
+			$elements = static::parseElements($this);
 			
 			// cache
 			$sectionsCache = new CacheableFetch('SectionManager');
@@ -594,66 +575,87 @@
 					
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
-					$item->setAttribute('section-id', $sectionId);
 					$section = $sectionsCache->fetch($sectionId);
 					$sectionName = $section->get('handle');
+					// cache fields info
+					if (!isset($section->er_field_cache)) {
+						$section->er_field_cache = $section->fetchFields();
+					}
+					
+					// set section related attributes
+					$item->setAttribute('section-id', $sectionId);
 					$item->setAttribute('section', $sectionName);
+					
+					// Get the valid elements for this section only
+					$validElements = $elements[$sectionName];
 					
 					// adjust the mode for the current section
 					$curMode = $mode;
+					
 					// remove section name from current mode, i.e sectionName.field
 					if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
 						$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
 					}
 					// remove section name from current mode, i.e sectionName
 					else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
-						$curMode = null;
+						$curMode = '*';
 					}
-					// mode forbids this section, bail out
-					else if (preg_match('/\./sU', $curMode)) {
-						$item->setAttribute('forbidden', 'yes');
+					// section name was not found in mode
+					else if ($curMode != '*') {
+						// mode forbids this section
+						$validElements = null;
+					}
+					
+					// this section is not selected, bail out
+					if (!is_array($validElements)) {
+						$item->setAttribute('forbidden-by', $curMode);
 						$root->appendChild($item);
 						continue;
 					}
-					$item->setAttribute('section', $section->get('handle'));
 					
-					// Get the valid elements for this section only
-					$sectionElements = $elements[$sectionName];
+					// selected fields for fetching
+					$sectionElements = array();
 					
-					// get all if no mode is set or section element is empty
-					// or mode is * and * is allowed
-					if (!$curMode || empty($sectionElements) || 
-						($curMode === '*' && in_array('*', $sectionElements))) {
-						// setting null = get all
-						$sectionElements = null;
+					// everything is allowed
+					if (in_array('*', $validElements)) {
+						if ($curMode !== '*') {
+							// get only the mode
+							$sectionElements = array($curMode);
+						}
+						else {
+							// setting null = get all
+							$sectionElements = null;
+						}
 					}
-					// everything is allowed but we have a mode
-					else if (in_array('*', $sectionElements) && !!$curMode) {
-						// get only the mode
-						$sectionElements = array($curMode);
-					}
-					// filter out what is allowed with the current DS mode.
-					// this may leave the array empty (mode is not allowed).
-					// do the filtering only if data-source ask for anything else than *,
-					// if not, let the array as-is
-					else if ($curMode !== '*') {
-						// extract field's name
-						$fieldName = preg_replace('/:.+$\s*/sU', '', $curMode, 1);
-						foreach ($sectionElements as $secElemIndex => $sectionElement) {
-							// keep only allowed fields
-							if ($fieldName != $sectionElement) {
-								unset($sectionElements[$secElemIndex]);
+					// only use valid elements
+					else {
+						if ($curMode !== '*') {
+							// is this field allowed ?
+							if (self::isFieldIncluded($curMode, $validElements)) {
+								// get only the mode
+								$sectionElements = array($curMode);
+							}
+							else {
+								// $curMode selects something outside of
+								// the valid elements: select nothing
+								$sectionElements = array();
 							}
 						}
+						else {
+							// use field's valid elements
+							$sectionElements = $validElements;
+						}
+					}
+					
+					if (is_array($sectionElements) && empty($sectionElements)) {
+						$item->setAttribute('selection-empty', 'yes');
+						$item->setAttribute('forbidden-by', $curMode);
+						$root->appendChild($item);
+						continue;
 					}
 					
 					// current entry again, but with data and the allowed schema
 					$entry = $this->fetchEntry($eId, $sectionElements);
-					
-					// cache fields info
-					if (!isset($section->er_field_cache)) {
-						$section->er_field_cache = $section->fetchFields();
-					}
 					
 					// cache the entry data
 					$entryData = $entry->getData();
@@ -667,57 +669,65 @@
 						if (empty($filteredData)) {
 							continue;
 						}
+						
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
-						$fieldCurMode = $curMode;
+						$fieldCurMode = self::extractMode($fieldName, $curMode);
 						
-						// Increment recursive level
+						$parentIncludableElement = self::getSectionElementName($fieldName, $validElements);
+						$parentIncludableElementMode = self::extractMode($fieldName, $parentIncludableElement);
+						
+						// Special treatments for ERF
 						if ($field instanceof FieldEntry_relationship) {
+							// Increment recursive level
 							$field->recursiveLevel = $recursiveLevel + 1;
 							$field->recursiveDeepness = $deepness;
 						}
-						// filter out elements per what's allowed
-						if (self::isFieldIncluded($fieldName, $sectionElements)) {
-							$parentIncludableElement = self::getSectionElementName($fieldName, $sectionElements);
-							$fieldIncludableElements = null;
-							// if the includable element is not just the field name
-							if ($parentIncludableElement != null && $parentIncludableElement != $fieldName) {
-								// use the includable element's mode
-								$fieldCurMode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $parentIncludableElement, 1);
-							} else {
-								// revert to the field's includable elements
-								$fieldIncludableElements = $field->fetchIncludableElements();
+						
+						$submodes = null;
+						if ($parentIncludableElementMode == null) {
+							if ($fieldCurMode == null) {
+								$submodes = null;
 							}
-							
-							// do not use includable elements
-							if ($field instanceof FieldEntry_relationship) {
-								$fieldIncludableElements = null;
+							else {
+								$submodes = array($fieldCurMode);
 							}
-							
-							// include children
-							if (!empty($fieldIncludableElements) && count($fieldIncludableElements) > 1) {
-								// append each includable element
-								foreach ($fieldIncludableElements as $fieldIncludableElement) {
-									// remove field name from mode
-									$submode = preg_replace('/^' . $fieldName . '\s*\:\s*/i', '', $fieldIncludableElement, 1);
-									$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
-								}
-							} else {
-								$field->appendFormattedElement($item, $data, $encode, $fieldCurMode, $eId);
+						}
+						else {
+							if ($fieldCurMode == null || $fieldCurMode == $parentIncludableElementMode) {
+								$submodes = array($parentIncludableElementMode);
 							}
-						} else {
-							$item->appendChild(new XMLElement('error', __('Field "%s" not allowed', array($fieldName))));
+							else {
+								$item->setAttribute('selection-mode-empty', 'yes');
+								$submodes = array();
+							}
+						}
+						
+						// current selection does not specify a mode
+						if ($submodes == null) {
+							$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
+								return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
+							}, $field->fetchIncludableElements());
+						}
+						
+						foreach ($submodes as $submode) {
+							$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
 						}
 					}
 					// output current mode
 					$item->setAttribute('matched-element', $curMode);
+					// no field selected
+					if (is_array($sectionElements) && empty($sectionElements)) {
+						$item->setAttribute('empty-selection', 'yes');
+					}
 				}
 				// append item when done
 				$root->appendChild($item);
-			}
+			} // end each entries
 			
 			// output mode for this field
 			$root->setAttribute('data-source-mode', $mode);
+			$root->setAttribute('field-included-elements', $this->get('elements'));
 			
 			// add all our data to the wrapper;
 			$wrapper->appendChild($root);
@@ -743,17 +753,17 @@
 		 */
 		public static function isFieldIncluded($fieldName, $sectionElements)
 		{
-			if ($sectionElements === null) {
-				return true;
-			}
 			return self::getSectionElementName($fieldName, $sectionElements) !== null;
 		}
-		
+
 		public static function getSectionElementName($fieldName, $sectionElements)
 		{
 			if (is_array($sectionElements)) {
 				foreach ($sectionElements as $element) {
-					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/sU', $element) == 1) {
+					if ($element == '*') {
+						return $fieldName;
+					}
+					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/sU', $element)) {
 						return $element;
 					}
 				}
@@ -761,6 +771,56 @@
 			return null;
 		}
 		
+		public static function parseElements($field)
+		{
+			$elements = array();
+			$exElements = array_map(trim, explode(self::SEPARATOR, $field->get('elements')));
+			
+			if (in_array('*', $exElements)) {
+				$sections = array_map(trim, explode(self::SEPARATOR, $field->get('sections')));
+				$sections = SectionManager::fetch($sections);
+				return array_reduce($sections, function ($result, $section) {
+					$result[$section->get('handle')] = array('*');
+					return $result;
+				}, array());
+			}
+			
+			foreach ($exElements as $value) {
+				if (!$value) {
+					continue;
+				}
+				// sectionName.fieldName or sectionName.*
+				$parts = array_map(trim, explode('.', $value));
+				// first time seeing this section
+				if (!isset($elements[$parts[0]])) {
+					$elements[$parts[0]] = array();
+				}
+				// we have a value after the dot
+				if (isset($parts[1]) && !!$parts[1]) {
+					$elements[$parts[0]][] = $parts[1];
+				}
+				// sectionName only
+				else if (!isset($parts[1])) {
+					$elements[$parts[0]][] = '*';
+				}
+			}
+			
+			return $elements;
+		}
+
+		public static function extractMode($fieldName, $mode)
+		{
+			$pattern = '/^' . $fieldName . '\s*:\s*/s';
+			if (!preg_match($pattern, $mode)) {
+				return null;
+			}
+			$mode = preg_replace($pattern, '', $mode, 1);
+			if ($mode === '*') {
+				return null;
+			}
+			return $mode;
+		}
+
 		/**
 		 * @param string $prefix
 		 * @param string $name

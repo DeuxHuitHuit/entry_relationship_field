@@ -477,6 +477,17 @@
 			return true; // this tells the DS Manager that filters are OK!!
 		}
 
+		/* ******* EVENTS ******* */
+
+		public function getExampleFormMarkup()
+		{
+			$label = Widget::Label($this->get('label'));
+			$label->appendChild(Widget::Input('fields['.$this->get('element_name').'][entries]', null, 'hidden'));
+
+			return $label;
+		}
+
+
 		/* ******* DATA SOURCE ******* */
 		
 		private function fetchEntry($eId, $elements = array())

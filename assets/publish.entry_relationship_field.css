@@ -12,6 +12,7 @@
 
 .field.field-entry_relationship > .frame {
 	margin: 0;
+	border-top: 0;
 }
 
 .field.field-entry_relationship > .single {

@@ -1185,7 +1185,7 @@
 		 */
 		public function prepareTextValue($data, $entry_id = null)
 		{
-			if (!is_array($data) || empty($data)) {
+			if ($entry_id == null || !is_array($data) || empty($data)) {
 				return '';
 			}
 			return $data['entries'];
@@ -1207,7 +1207,7 @@
 		 */
 		public function prepareReadableValue($data, $entry_id = null, $truncate = false, $defaultValue = 'None')
 		{
-			if (!is_array($entry_id) || empty($data)) {
+			if ($entry_id == null || !is_array($data) || empty($data)) {
 				return __($defaultValue);
 			}
 			$entries = static::getEntries($data);

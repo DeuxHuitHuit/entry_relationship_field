@@ -916,6 +916,9 @@
 			
 			$list = new XMLElement('ul');
 			$list->setAttribute('class', '');
+			if ($this->is('allow_collapse')) {
+				$list->setAttribute('data-collapsible', '');
+			}
 			
 			$wrap->appendChild($list);
 			

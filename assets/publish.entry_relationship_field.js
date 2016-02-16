@@ -391,23 +391,25 @@
 							ignore: '.ignore-orderable, .ignore',
 						});
 					}
-					if (!list.hasClass('collapsible')) {
-						list.symphonyCollapsible({
-							items: 'li:has(.content)',
-							handles: '.frame-header',
-							content: '>.content',
-							ignore: '.ignore-collapsible, .ignore',
-							save_state: false
-						}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);
+					if (list.is('[data-collapsible]')) {
+						if (!list.hasClass('collapsible')) {
+							list.symphonyCollapsible({
+								items: 'li:has(.content)',
+								handles: '.frame-header',
+								content: '>.content',
+								ignore: '.ignore-collapsible, .ignore',
+								save_state: false
+							}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);
+						}
+						else {
+							list.find('li:has(.content)')
+								.addClass('instance')
+								.trigger('updatesize.collapsible')
+								.trigger('setsize.collapsible');
+							list.trigger('restore.collapsible');
+						}
+						restoreCollapsing();
 					}
-					else {
-						list.find('li:has(.content)')
-							.addClass('instance')
-							.trigger('updatesize.collapsible')
-							.trigger('setsize.collapsible');
-						list.trigger('restore.collapsible');
-					}
-					restoreCollapsing();
 				}
 				
 			}).error(function (data) {

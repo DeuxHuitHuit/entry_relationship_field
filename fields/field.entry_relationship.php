@@ -1168,8 +1168,30 @@
 		 */
 		public function prepareTextValue($data, $entry_id = null)
 		{
-			if ($entry_id == null || empty($data)) {
-				return __('None');
+			if (!is_array($data) || empty($data)) {
+				return '';
+			}
+			return $data['entries'];
+		}
+
+		/**
+		 * Format this field value for display as readable text value.
+		 *
+		 * @param array $data
+		 *  an associative array of data for this string. At minimum this requires a
+		 *  key of 'value'.
+		 * @param integer $entry_id (optional)
+		 *  An option entry ID for more intelligent processing. Defaults to null.
+		 * @param string $defaultValue (optional)
+		 *  The value to use when no plain text representation of the field's data
+		 *  can be made. Defaults to null.
+		 * @return string
+		 *  the readable text summary of the values of this field instance.
+		 */
+		public function prepareReadableValue($data, $entry_id = null, $truncate = false, $defaultValue = 'None')
+		{
+			if (!is_array($entry_id) || empty($data)) {
+				return __($defaultValue);
 			}
 			$entries = static::getEntries($data);
 			$realEntries = array();
@@ -1187,7 +1209,31 @@
 			return self::formatCount($realCount) . ' (' . self::formatCount($count - $realCount) . ' not found)';
 		}
 
+		/**
+		 * Format this field value for display in the publish index tables.
+		 *
+		 * @param array $data
+		 *  an associative array of data for this string. At minimum this requires a
+		 *  key of 'value'.
+		 * @param XMLElement $link (optional)
+		 *  an XML link structure to append the content of this to provided it is not
+		 *  null. it defaults to null.
+		 * @param integer $entry_id (optional)
+		 *  An option entry ID for more intelligent processing. defaults to null
+		 * @return string
+		 *  the formatted string summary of the values of this field instance.
+		 */
+		public function prepareTableValue($data, XMLElement $link = null, $entry_id = null)
+		{
+			$value = $this->prepareReadableValue($data, $entry_id, false, __('None'));
 
+			if ($link) {
+				$link->setValue($value);
+				return $link->generate();
+			}
+
+			return $value;
+		}
 
 		/* ********* SQL Data Definition ************* */
 

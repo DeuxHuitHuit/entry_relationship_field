@@ -984,8 +984,7 @@
 			parent::displaySettingsPanel($wrapper, $errors);
 			
 			// sections
-			$sections = new XMLElement('div');
-			$sections->setAttribute('class', '');
+			$sections = new XMLElement('fieldset');
 			
 			$this->appendSelectionSelect($sections);
 			if (is_array($errors) && isset($errors['sections'])) {
@@ -993,32 +992,8 @@
 			}
 			$wrapper->appendChild($sections);
 			
-			// xsl mode
-			$xslmode = Widget::Label();
-			$xslmode->setValue(__('XSL mode applied in the backend xsl file'));
-			$xslmode->setAttribute('class', 'column');
-			$xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
-			
-			// deepness
-			$deepness = Widget::Label();
-			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
-			$deepness->setAttribute('class', 'column');
-			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'number', array(
-				'min' => 0,
-				'max' => 99
-			)));
-			
-			// association
-			$assoc = new XMLElement('div');
-			$assoc->setAttribute('class', 'three columns');
-			$this->appendShowAssociationCheckbox($assoc);
-			$assoc->appendChild($xslmode);
-			$assoc->appendChild($deepness);
-			$wrapper->appendChild($assoc);
-			
 			// elements
 			$elements = new XMLElement('div');
-			$elements->setAttribute('class', '');
 			$element = Widget::Label();
 			$element->setValue(__('Included elements in Data Sources and Backend Templates'));
 			$element->setAttribute('class', 'column');
@@ -1033,7 +1008,9 @@
 			
 			// limit entries
 			$limits = new XMLElement('fieldset');
-			$limits->setAttribute('class', 'two columns');
+			$limits->appendChild(new XMLElement('legend', __('Limits')));
+			$limits_cols = new XMLElement('div');
+			$limits_cols->setAttribute('class', 'three columns');
 			// min
 			$limit_min = Widget::Label();
 			$limit_min->setValue(__('Minimum count of entries in this field'));
@@ -1042,7 +1019,7 @@
 				'min' => 0,
 				'max' => 99999
 			)));
-			$limits->appendChild($limit_min);
+			$limits_cols->appendChild($limit_min);
 			// max
 			$limit_max = Widget::Label();
 			$limit_max->setValue(__('Maximum count of entries in this field'));
@@ -1051,23 +1028,52 @@
 				'min' => 0,
 				'max' => 99999
 			)));
-			$limits->appendChild($limit_max);
+			$limits_cols->appendChild($limit_max);
 			
+			// deepness
+			$deepness = Widget::Label();
+			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
+			$deepness->setAttribute('class', 'column');
+			$deepness->appendChild(Widget::Input($this->createSettingsFieldName('deepness'), $this->get('deepness'), 'number', array(
+				'min' => 0,
+				'max' => 99
+			)));
+			$limits_cols->appendChild($deepness);
+			$limits->appendChild($limits_cols);
 			$wrapper->appendChild($limits);
+			
+			// xsl
+			$xsl = new XMLElement('fieldset');
+			$xsl->appendChild(new XMLElement('legend', __('Backend XSL templates options')));
+			$xsl_cols = new XMLElement('div');
+			$xsl_cols->setAttribute('class', 'three columns');
+			
+			// xsl mode
+			$xslmode = Widget::Label();
+			$xslmode->setValue(__('XSL mode for entries content template'));
+			$xslmode->setAttribute('class', 'column');
+			$xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
+			$xsl_cols->appendChild($xslmode);
+			
+			$xsl->appendChild($xsl_cols);
+			$wrapper->appendChild($xsl);
 			
 			// permissions
 			$permissions = new XMLElement('fieldset');
-			$permissions->setAttribute('class', 'two columns');
-			$permissions->appendChild($this->createCheckbox('allow_new', 'Show new button'));
-			$permissions->appendChild($this->createCheckbox('allow_edit', 'Show edit button'));
-			$permissions->appendChild($this->createCheckbox('allow_link', 'Show link button'));
-			$permissions->appendChild($this->createCheckbox('allow_delete', 'Show delete button'));
-			$permissions->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
-			
+			$permissions->appendChild(new XMLElement('legend', __('Permissions')));
+			$permissions_cols = new XMLElement('div');
+			$permissions_cols->setAttribute('class', 'three columns');
+			$permissions_cols->appendChild($this->createCheckbox('allow_new', 'Show new button'));
+			$permissions_cols->appendChild($this->createCheckbox('allow_edit', 'Show edit button'));
+			$permissions_cols->appendChild($this->createCheckbox('allow_link', 'Show link button'));
+			$permissions_cols->appendChild($this->createCheckbox('allow_delete', 'Show delete button'));
+			$permissions_cols->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
+			$permissions->appendChild($permissions_cols);
 			$wrapper->appendChild($permissions);
 			
 			// footer
 			$this->appendStatusFooter($wrapper);
+			$this->appendShowAssociationCheckbox($wrapper);
 		}
 		
 		/**

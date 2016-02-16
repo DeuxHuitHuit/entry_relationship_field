@@ -18,6 +18,10 @@
 	margin-top: 1.5rem;
 }
 
+.field-entry_relationship.instance fieldset legend {
+	background: transparent;
+}
+
 .field-entry_relationship.instance ul.entry_relationship-field-choices li {
 	color: #666;
 }

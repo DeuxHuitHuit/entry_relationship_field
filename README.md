@@ -28,6 +28,12 @@ Just search for `entry_relationship_field`.
 
 For more information, see <http://getsymphony.com/learn/tasks/view/install-an-extension/>
 
+### UPDATE FROM 1.0.x
+
+Some developer may have been relying on some bugs in the xslt templates which may break when updating from version before 2.0.0.
+In fact, under some circumstance, the field would output only their default mode instead of all of them.
+If this is the case, your either have to be more precise in your XPath queries or in the field's includable elements.
+
 ### HOW TO USE ###
 
 - Go to the section editor and add an Entry Relationship field.

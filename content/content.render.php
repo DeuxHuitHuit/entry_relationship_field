@@ -98,13 +98,13 @@
 						'data-entry-id' => $entryId
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
-					$title = new XMLElement('h4');
+					$title = new XMLElement('h4', null, array('class' => 'frame-header no-content'));
 					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
 					if ($parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Un-link'), array(
-							'class' => 'unlink',
+							'class' => 'unlink ignore-collapsible',
 							'data-unlink' => $entryId,
 						)));
 					}
@@ -125,39 +125,40 @@
 						'data-section-id' => $entrySection->get('id'),
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
-					$title = new XMLElement('h4');
-					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields)));
-					$title->appendChild(new XMLElement('span', $this->getSectionName($entry)));
+					$title = new XMLElement('h4', null, array('class' => 'ignore-collapsible'));
+					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')));
+					$title->appendChild(new XMLElement('span', $this->getSectionName($entry), array('class' => 'ignore-collapsible')));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
 					if ($parentField->is('allow_edit')) {
 						$title->setAttribute('data-edit', $entryId);
 						$options->appendChild(new XMLElement('a', __('Edit'), array(
-							'class' => 'edit',
+							'class' => 'edit ignore-collapsible',
 							'data-edit' => $entryId,
 						)));
 					}
 					if ($parentField->is('allow_delete')) {
 						$options->appendChild(new XMLElement('a', __('Delete'), array(
-							'class' => 'delete',
+							'class' => 'delete ignore-collapsible',
 							'data-delete' => $entryId,
 						)));
 					}
 					if ($parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Replace'), array(
-							'class' => 'unlink',
+							'class' => 'unlink ignore-collapsible',
 							'data-replace' => $entryId,
 						)));
 					}
 					if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Un-link'), array(
-							'class' => 'unlink',
+							'class' => 'unlink ignore-collapsible',
 							'data-unlink' => $entryId,
 						)));
 					}
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
+					$hasContent = false;
 					$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
 					
 					if (!empty($entryData) && !!@file_exists($xslFilePath)) {
@@ -250,9 +251,12 @@
 						if (!!$xslt && strlen($result) > 0) {
 							$content = new XMLElement('div', $result, array('class' => 'content'));
 							$li->appendChild($content);
+							$hasContent = true;
 						}
 					}
-					
+					if (!$hasContent) {
+						$header->setAttribute('class', $header->getAttribute('class') . ' no-content');
+					}
 					$this->_Result->appendChild($li);
 				}
 				

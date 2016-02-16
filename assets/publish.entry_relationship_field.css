@@ -15,6 +15,10 @@
 	border-top: 0;
 }
 
+.field.field-entry_relationship > .frame .frame-header.no-content {
+	border-bottom: none;
+}
+
 .field.field-entry_relationship > .single {
 	text-align: right;
 }

@@ -77,6 +77,9 @@
 			$this->set('deepness', null);
 			// no included elements
 			$this->set('elements', null);
+			// no modes
+			$this->set('mode', null);
+			$this->set('mode_table', null);
 			// no limit
 			$this->set('min_entries', null);
 			$this->set('max_entries', null);
@@ -267,6 +270,7 @@
 			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
 			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
 			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
+			$new_settings['mode_table'] = empty($settings['mode_table']) ? null : $settings['mode_table'];
 			$new_settings['allow_new'] = $settings['allow_new'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_edit'] = $settings['allow_edit'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
@@ -348,6 +352,7 @@
 				'deepness' => $this->get('deepness'),
 				'elements' => $this->get('elements'),
 				'mode' => $this->get('mode'),
+				'mode_table' => $this->get('mode_table'),
 				'min_entries' => $this->get('min_entries'),
 				'max_entries' => $this->get('max_entries'),
 				'allow_new' => $this->get('allow_new'),
@@ -1054,6 +1059,12 @@
 			$xslmode->setAttribute('class', 'column');
 			$xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
 			$xsl_cols->appendChild($xslmode);
+			// xsl table mode
+			$xslmodetable = Widget::Label();
+			$xslmodetable->setValue(__('XSL mode for publish table value'));
+			$xslmodetable->setAttribute('class', 'column');
+			$xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_table'), $this->get('mode_table'), 'text'));
+			$xsl_cols->appendChild($xslmodetable);
 			
 			$xsl->appendChild($xsl_cols);
 			$wrapper->appendChild($xsl);
@@ -1295,9 +1306,9 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
-					ADD COLUMN `allow_new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes',
-					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'yes'
+					ADD COLUMN `allow_edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					ADD COLUMN `allow_new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 					AFTER `max_entries`
 			";
 			$addColumns = Symphony::Database()->query($sql);
@@ -1322,8 +1333,8 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'no'
-					AFTER `allow_link`
+					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
+						AFTER `allow_link`
 			";
 			return Symphony::Database()->query($sql);
 		}
@@ -1334,7 +1345,9 @@
 			$sql = "
 				ALTER TABLE `$tbl`
 					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-					AFTER `allow_delete`
+						AFTER `allow_delete`,
+					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+						AFTER `mode`
 			";
 			return Symphony::Database()->query($sql);
 		}

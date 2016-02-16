@@ -97,12 +97,12 @@
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId
 					));
-					$header = new XMLElement('header', null, array('class' => 'frame-header'));
-					$title = new XMLElement('h4', null, array('class' => 'frame-header no-content'));
+					$header = new XMLElement('header', null, array('class' => 'frame-header no-content ignore-collapsible'));
+					$title = new XMLElement('h4');
 					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					if ($parentField->is('allow_link')) {
+					if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
 						$options->appendChild(new XMLElement('a', __('Un-link'), array(
 							'class' => 'unlink ignore-collapsible',
 							'data-unlink' => $entryId,

@@ -99,17 +99,17 @@
 			}
 			
 			// less than 1.0.2
-			if ($ret && version_compare($previousVersion, '1.0.2') == -1) {
+			if ($ret && version_compare($previousVersion, '1.0.2', '<')) {
 				$ret = FieldEntry_relationship::update_102();
 			}
 			
 			// less than 1.0.3
-			if ($ret && version_compare($previousVersion, '1.0.3') == -1) {
+			if ($ret && version_compare($previousVersion, '1.0.3', '<')) {
 				$ret = FieldEntry_relationship::update_103();
 			}
 			
 			// less than 2.0.0
-			if ($ret && version_compare($previousVersion, '2.0.0') == -1) {
+			if ($ret && version_compare($previousVersion, '2.0.0', '<')) {
 				$ret = FieldEntry_relationship::update_200();
 			}
 			

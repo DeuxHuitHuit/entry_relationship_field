@@ -17,3 +17,29 @@
 .field-entry_relationship.instance label.column.show-associations {
 	margin-top: 1.5rem;
 }
+
+.field-entry_relationship.instance ul.entry_relationship-field-choices li {
+	color: #666;
+}
+
+.field-entry_relationship.instance ul.entry_relationship-field-choices li:hover {
+	color: #333;
+}
+
+.field-entry_relationship.instance ul.entry_relationship-field-choices li.chosen {
+	color: #999;
+	text-decoration: underline;
+}
+
+.field-entry_relationship.instance ul.entry_relationship-field-choices li.header {
+	float: none;
+	display: block;
+	clear: both;
+	font-weight: bold;
+	color: #555;
+	margin-top: 0.6rem;
+}
+
+.field-entry_relationship.instance ul.entry_relationship-field-choices li.header.chosen {
+	color: #777;
+}

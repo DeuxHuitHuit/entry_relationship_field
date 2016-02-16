@@ -70,8 +70,10 @@
 		lis.each(function (index, value) {
 			var t = $(this);
 			var sectionname = t.attr('data-section');
-			var field = t.text().replace(WHITESPACE, '');
-			var fx = 'show';
+			var value = t.attr('data-value');
+			var text = t.text().replace(WHITESPACE, '');
+			var field = value || text;
+			var fx = 'removeClass';
 			
 			var isFieldSelected = function () {
 				if (!values[sectionname]) {
@@ -95,10 +97,10 @@
 			};
 			
 			if (values['*'] === true || values[sectionname] === true || isFieldSelected()) {
-				fx = 'hide';
+				fx = 'addClass';
 				hiddenCount++;
 			}
-			t[fx]();
+			t[fx]('chosen');
 		});
 		
 		if (hiddenCount === lis.length - 1) {
@@ -106,11 +108,13 @@
 		}
 	};
 	
-	var createElementInstance = function (section, text) {
+	var createElementInstance = function (section, text, cssclass) {
 		var li = $('<li />')
 			.attr('data-section', section.handle)
 			.text(text);
-		
+		if (!!cssclass) {
+			li.addClass(cssclass);
+		}
 		return li;
 	};
 	
@@ -144,11 +148,12 @@
 		
 		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
 			if (!!data.sections) {
-				temp = temp.add(createElementInstance({handle: '*'}, '*'));
+				temp = temp.add(createElementInstance({handle: '*'}, '*', 'header'));
 				$.each(data.sections, function (index, section) {
-					temp = temp.add(createElementInstance(section, section.handle + '.*'));
+					temp = temp.add(createElementInstance(section, section.handle + '.*', 'header'));
 					$.each(section.fields, function (index, field) {
-						var li = createElementInstance(section, section.handle + '.' + field.handle);
+						var li = createElementInstance(section, field.handle);
+						li.attr('data-value', section.handle + '.' + field.handle);
 						temp = temp.add(li);
 					});
 				});
@@ -177,10 +182,11 @@
 				var parent = t.closest(INSTANCES_SEL);
 				var elements = parent.find(ELEMENTS_SEL);
 				var val = elements.val() || '';
+				var value = t.attr('data-value') || t.text();
 				if (!!val) {
 					val += ', ';
 				}
-				val += t.text();
+				val += value;
 				elements.val(val);
 				updateElementsNameVisibility(parent);
 			}).on('keyup', ELEMENTS_SEL, function () {

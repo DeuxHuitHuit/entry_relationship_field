@@ -144,7 +144,7 @@
 					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode');
 					
 					if ($content) {
-						$li->appendChild($content);
+						$li->appendChild(new XMLElement('div', $content, array('class' => 'content')));
 					}
 					else {
 						$header->setAttribute('class', $header->getAttribute('class') . ' no-content');

@@ -113,8 +113,8 @@
 					$result = $error[1]['message'];
 				}
 				
-				if (General::strlen($result) > 0) {
-					return new XMLElement('div', $result, array('class' => 'content'));
+				if (General::strlen(trim($result)) > 0) {
+					return $result;
 				}
 			}
 			return null;

@@ -1,6 +1,6 @@
 # Entry Relationship Field [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/DeuxHuitHuit/entry_relationship_field/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/DeuxHuitHuit/entry_relationship_field/?branch=master)
 
-Version: 1.0.x
+Version: 2.0.x
 
 > A new way to create master-details (parent -> children) relationships with Symphony's sections.
 
@@ -102,4 +102,4 @@ from those extensions.
 
 Made with love in Montréal by [Deux Huit Huit](https://deuxhuithuit.com)
 
-Copyright (c) 2014-2015
+Copyright (c) 2014-2016

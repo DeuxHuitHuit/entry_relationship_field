@@ -1346,7 +1346,7 @@
 				ALTER TABLE `$tbl`
 					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 						AFTER `allow_delete`,
-					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
 						AFTER `mode`
 			";
 			return Symphony::Database()->query($sql);

@@ -8,6 +8,7 @@
 
 	require_once(TOOLKIT . '/class.field.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 	
 	/**
 	 *
@@ -46,6 +47,10 @@
 		 *  @var int
 		 */
 		protected $recursiveDeepness = null;
+		
+		/* Cacheable Managers */
+		private $sectionManager;
+		private $entryManager;
 		
 		/**
 		 *
@@ -89,6 +94,9 @@
 			$this->set('allow_link', 'yes');
 			$this->set('allow_delete', 'no');
 			$this->set('allow_collapse', 'yes');
+			
+			$this->sectionManager = new CacheableFetch('SectionManager');
+			$this->entryManager = new CacheableFetch('EntryManager');
 		}
 
 		public function isSortable()
@@ -545,9 +553,6 @@
 			// included elements
 			$elements = static::parseElements($this);
 			
-			// cache
-			$sectionsCache = new CacheableFetch('SectionManager');
-			
 			// DS mode
 			if (!$mode) {
 				$mode = '*';
@@ -594,7 +599,7 @@
 					
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
-					$section = $sectionsCache->fetch($sectionId);
+					$section = $this->sectionsManager->fetch($sectionId);
 					$sectionName = $section->get('handle');
 					// cache fields info
 					if (!isset($section->er_field_cache)) {
@@ -1247,6 +1252,22 @@
 			if ($link) {
 				$link->setValue($value);
 				return $link->generate();
+			}
+			else if ($entry_id != null && $this->get('mode_table')) {
+				$entries = static::getEntries($data);
+				$cellcontent = '';
+				foreach ($entries as $child_entry_id) {
+					$entry = current($this->entryManager->fetch($child_entry_id));
+					$section = $this->sectionManager->fetch($entry->get('section_id'));
+					$content = ERFXSLTUTilities::entryToXml($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table');
+					if ($content) {
+						$cellcontent .= $content;
+					}
+				}
+				
+				if (General::strlen(trim($cellcontent))) {
+					return $cellcontent;
+				}
 			}
 
 			return $value;

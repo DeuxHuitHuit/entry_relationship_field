@@ -108,6 +108,11 @@
 				$ret = FieldEntry_relationship::update_103();
 			}
 			
+			// less than 2.0.0
+			if ($ret && version_compare($previousVersion, '2.0.0') == -1) {
+				$ret = FieldEntry_relationship::update_200();
+			}
+			
 			return $ret;
 		}
 

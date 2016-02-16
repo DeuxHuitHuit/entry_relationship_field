@@ -148,7 +148,9 @@
 		
 		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
 			if (!!data.sections) {
-				temp = temp.add(createElementInstance({handle: '*'}, '*', 'header'));
+				var all = createElementInstance({handle: '*'}, 'Include all elements', 'header');
+				all.attr('data-value', '*');
+				temp = temp.add(all);
 				$.each(data.sections, function (index, section) {
 					temp = temp.add(createElementInstance(section, section.handle + '.*', 'header'));
 					$.each(section.fields, function (index, field) {
@@ -183,10 +185,28 @@
 				var elements = parent.find(ELEMENTS_SEL);
 				var val = elements.val() || '';
 				var value = t.attr('data-value') || t.text();
-				if (!!val) {
-					val += ', ';
+				var patternText = value;
+				if (patternText === '*') {
+					patternText = '[^.]*';
 				}
-				val += value;
+				patternText = patternText.replace('*', '\\*').replace('.', '\\.');
+				var pattern = new RegExp(patternText + '([,][\s]*|$)');
+				if (pattern.test(' ' + val)) {
+					// append a space to fix beginning of line problems
+					val = ' ' + val;
+					// remove it
+					val = val.replace(pattern, '');
+					val = val.replace(/^[\s]*/g, '');
+					val = val.replace(/,\s*,/g, ', ');
+					val = val.replace(/,\s*$/g, '');
+				}
+				else {
+					// append it
+					if (!!val) {
+						val += ', ';
+					}
+					val += value;
+				}
 				elements.val(val);
 				updateElementsNameVisibility(parent);
 			}).on('keyup', ELEMENTS_SEL, function () {

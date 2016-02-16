@@ -33,12 +33,13 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="2.0.0.beta1" date="2016-02-16" min="2.5.0" max="2.6.x">
+		<release version="2.0.0.beta2" date="2016-02-16" min="2.5.0" max="2.6.x">
 			- Better UI for the selection of included elements (#57)
 			- Fixed frontend event form markup (#54)
 			- Allow collapsing of entries content (#16)
 			- Fixed some bugs regarding data-source output (#55) which may impact the compatibility with previous xstl templates
 			- Fixed some minor UI quirks
+			- Added the ability to create XSL templates for the publish table view (#45)
 		</release>
 		<release version="1.0.3" date="2015-08-12" min="2.5.0" max="2.6.x">
 			- Added a un-link button.

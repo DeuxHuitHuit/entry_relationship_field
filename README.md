@@ -48,6 +48,7 @@ If this is the case, your either have to be more precise in your XPath queries o
     `<xsl:template match="/data" mode="debug" priority="1"></xsl:template>`
     - Protip: You can create buttons yourself, using the [data-attribute api](#Data-attribute-API).
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.
+- (Optional) Select an xsl mode to customize the publish table view.
 - (Optional) Select a maximum recursion level for nested fields.
 - (Optional) Select a minimum and maximum number of elements for this field.
 

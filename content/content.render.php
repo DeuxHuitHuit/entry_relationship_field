@@ -141,7 +141,7 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields);
+					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode');
 					
 					if ($content) {
 						$li->appendChild($content);

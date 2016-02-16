@@ -85,6 +85,7 @@
 			$this->set('allow_edit', 'yes');
 			$this->set('allow_link', 'yes');
 			$this->set('allow_delete', 'no');
+			$this->set('allow_collapse', 'yes');
 		}
 
 		public function isSortable()
@@ -270,6 +271,7 @@
 			$new_settings['allow_edit'] = $settings['allow_edit'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_delete'] = $settings['allow_delete'] == 'yes' ? 'yes' : 'no';
+			$new_settings['allow_collapse'] = $settings['allow_collapse'] == 'yes' ? 'yes' : 'no';
 			
 			// save it into the array
 			$this->setArray($new_settings);
@@ -352,6 +354,7 @@
 				'allow_edit' => $this->get('allow_edit'),
 				'allow_link' => $this->get('allow_link'),
 				'allow_delete' => $this->get('allow_delete'),
+				'allow_collapse' => $this->get('allow_collapse'),
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -1056,6 +1059,7 @@
 			$permissions->appendChild($this->createCheckbox('allow_edit', 'Show edit button'));
 			$permissions->appendChild($this->createCheckbox('allow_link', 'Show link button'));
 			$permissions->appendChild($this->createCheckbox('allow_delete', 'Show delete button'));
+			$permissions->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
 			
 			$wrapper->appendChild($permissions);
 			
@@ -1265,6 +1269,17 @@
 				ALTER TABLE `$tbl`
 					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci  DEFAULT 'no'
 					AFTER `allow_link`
+			";
+			return Symphony::Database()->query($sql);
+		}
+		
+		public static function update_200()
+		{
+			$tbl = self::FIELD_TBL_NAME;
+			$sql = "
+				ALTER TABLE `$tbl`
+					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+					AFTER `allow_delete`
 			";
 			return Symphony::Database()->query($sql);
 		}

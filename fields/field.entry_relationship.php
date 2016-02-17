@@ -1327,12 +1327,15 @@
 					`deepness` 		int(2) unsigned NULL,
 					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
 					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
+					`mode_table`	varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`mode_header`	varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
 					`min_entries`	int(5) unsigned NULL,
 					`max_entries`	int(5) unsigned NULL,
 					`allow_edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_delete` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
+					`allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

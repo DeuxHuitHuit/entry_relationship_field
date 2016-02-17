@@ -20,6 +20,7 @@
 
 .field-entry_relationship.instance fieldset legend {
 	background: transparent;
+	padding-right: 1rem;
 }
 
 .field-entry_relationship.instance ul.entry_relationship-field-choices li {

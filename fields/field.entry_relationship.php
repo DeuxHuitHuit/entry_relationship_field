@@ -1087,9 +1087,17 @@
 			$permissions->appendChild($permissions_cols);
 			$wrapper->appendChild($permissions);
 			
+			// assoc
+			$assoc = new XMLElement('fieldset');
+			$assoc->appendChild(new XMLElement('legend', __('Associations')));
+			$assoc_cols = new XMLElement('div');
+			$assoc_cols->setAttribute('class', 'three columns');
+			$this->appendShowAssociationCheckbox($assoc_cols);
+			$assoc->appendChild($assoc_cols);
+			$wrapper->appendChild($assoc);
+			
 			// footer
 			$this->appendStatusFooter($wrapper);
-			$this->appendShowAssociationCheckbox($wrapper);
 		}
 		
 		/**

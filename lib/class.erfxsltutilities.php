@@ -7,7 +7,7 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 	
 	class ERFXSLTUTilities {
-		public static function entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, $mode)
+		public static function entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false)
 		{
 			$date = new DateTime();
 			$params = array(
@@ -77,7 +77,7 @@
 				
 				$indent = false;
 				$mode = $parentField->get($mode);
-				if (isset($_REQUEST['debug'])) {
+				if ($debug) {
 					$mode = 'debug';
 				}
 				if ($mode == 'debug') {

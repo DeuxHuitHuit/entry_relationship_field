@@ -1276,7 +1276,7 @@
 				foreach ($entries as $child_entry_id) {
 					$entry = current($this->entryManager->fetch($child_entry_id));
 					$section = $this->sectionManager->fetch($entry->get('section_id'));
-					$content = ERFXSLTUTilities::entryToXml($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table');
+					$content = ERFXSLTUTilities::entryToXml($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']));
 					if ($content) {
 						$cellcontent .= $content;
 					}

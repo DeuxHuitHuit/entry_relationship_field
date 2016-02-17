@@ -109,8 +109,13 @@
 					));
 					$header = new XMLElement('header', null, array('class' => 'frame-header'));
 					$title = new XMLElement('h4', null, array('class' => 'ignore-collapsible'));
-					$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')));
-					$title->appendChild(new XMLElement('span', $this->getSectionName($entry), array('class' => 'ignore-collapsible')));
+					if (!$parentField->get('mode_header')) {
+						$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')));
+						$title->appendChild(new XMLElement('span', $this->getSectionName($entry), array('class' => 'ignore-collapsible')));
+					}
+					else {
+						$title->setValue(ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
+					}
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
 					if ($parentField->is('allow_edit')) {
@@ -141,7 +146,7 @@
 					$header->appendChild($options);
 					$li->appendChild($header);
 					
-					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode');
+					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
 					
 					if ($content) {
 						$li->appendChild(new XMLElement('div', $content, array('class' => 'content')));

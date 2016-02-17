@@ -85,6 +85,7 @@
 			// no modes
 			$this->set('mode', null);
 			$this->set('mode_table', null);
+			$this->set('mode_header', null);
 			// no limit
 			$this->set('min_entries', null);
 			$this->set('max_entries', null);
@@ -279,6 +280,7 @@
 			$new_settings['elements'] = empty($settings['elements']) ? null : $settings['elements'];
 			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
 			$new_settings['mode_table'] = empty($settings['mode_table']) ? null : $settings['mode_table'];
+			$new_settings['mode_header'] = empty($settings['mode_header']) ? null : $settings['mode_header'];
 			$new_settings['allow_new'] = $settings['allow_new'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_edit'] = $settings['allow_edit'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
@@ -361,6 +363,7 @@
 				'elements' => $this->get('elements'),
 				'mode' => $this->get('mode'),
 				'mode_table' => $this->get('mode_table'),
+				'mode_header' => $this->get('mode_header'),
 				'min_entries' => $this->get('min_entries'),
 				'max_entries' => $this->get('max_entries'),
 				'allow_new' => $this->get('allow_new'),
@@ -1056,7 +1059,7 @@
 			$xsl = new XMLElement('fieldset');
 			$xsl->appendChild(new XMLElement('legend', __('Backend XSL templates options')));
 			$xsl_cols = new XMLElement('div');
-			$xsl_cols->setAttribute('class', 'three columns');
+			$xsl_cols->setAttribute('class', 'four columns');
 			
 			// xsl mode
 			$xslmode = Widget::Label();
@@ -1064,6 +1067,12 @@
 			$xslmode->setAttribute('class', 'column');
 			$xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
 			$xsl_cols->appendChild($xslmode);
+			// xsl header mode
+			$xslmodetable = Widget::Label();
+			$xslmodetable->setValue(__('XSL mode for entries header template'));
+			$xslmodetable->setAttribute('class', 'column');
+			$xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_header'), $this->get('mode_header'), 'text'));
+			$xsl_cols->appendChild($xslmodetable);
 			// xsl table mode
 			$xslmodetable = Widget::Label();
 			$xslmodetable->setValue(__('XSL mode for publish table value'));
@@ -1376,7 +1385,9 @@
 					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 						AFTER `allow_delete`,
 					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode`
+						AFTER `mode`,
+					ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+						AFTER `mode_table`
 			";
 			return Symphony::Database()->query($sql);
 		}

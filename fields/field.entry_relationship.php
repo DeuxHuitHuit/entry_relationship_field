@@ -1089,6 +1089,12 @@
 			$xslmodetable->setAttribute('class', 'column');
 			$xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_table'), $this->get('mode_table'), 'text'));
 			$xsl_cols->appendChild($xslmodetable);
+			// xsl action bar mode
+			$xslmodetable = Widget::Label();
+			$xslmodetable->setValue(__('XSL mode for publish action bar'));
+			$xslmodetable->setAttribute('class', 'column');
+			$xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_footer'), $this->get('mode_footer'), 'text'));
+			$xsl_cols->appendChild($xslmodetable);
 			
 			$xsl->appendChild($xsl_cols);
 			$wrapper->appendChild($xsl);
@@ -1348,6 +1354,7 @@
 					`mode`				varchar(50) NULL COLLATE utf8_unicode_ci,
 					`mode_table`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
 					`mode_header`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`mode_footer`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
 					`min_entries`		int(5) unsigned NULL,
 					`max_entries`		int(5) unsigned NULL,
 					`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
@@ -1412,7 +1419,9 @@
 					ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
 						AFTER `mode_table`,
 					ADD COLUMN `show_header` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-						AFTER `allow_collapse`
+						AFTER `allow_collapse`,
+					ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+						AFTER `mode_header`
 			";
 			return Symphony::Database()->query($sql);
 		}

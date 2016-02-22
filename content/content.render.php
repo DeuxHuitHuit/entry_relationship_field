@@ -116,7 +116,7 @@
 							$title->appendChildArray($this->buildDefaultTitle($entry, $entryVisibleFields, $entryFields));
 						}
 						else {
-							$title->setValue(ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
+							$title->setValue(ERFXSLTUTilities::processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
 						}
 						$header->appendChild($title);
 						
@@ -150,7 +150,7 @@
 						$li->appendChild($header);
 					}
 					
-					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
+					$content = ERFXSLTUTilities::processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
 					
 					if ($content) {
 						$li->appendChild(new XMLElement('div', $content, array(

@@ -959,7 +959,7 @@
 			return $hidden;
 		}
 		
-		private function createPublishMenu($sections)
+		private function createActionBarMenu($sections)
 		{
 			$wrap = new XMLElement('fieldset');
 			$wrap->setAttribute('class', 'single');
@@ -1199,7 +1199,7 @@
 			}
 			
 			$wrapper->appendChild($this->createEntriesList($entriesId));
-			$wrapper->appendChild($this->createPublishMenu($sections));
+			$wrapper->appendChild($this->createActionBarMenu($sections));
 			$wrapper->appendChild($this->createEntriesHiddenInput($data));
 			$wrapper->setAttribute('data-value', $data['entries']);
 			$wrapper->setAttribute('data-field-id', $this->get('id'));
@@ -1301,7 +1301,7 @@
 				foreach ($entries as $child_entry_id) {
 					$entry = current($this->entryManager->fetch($child_entry_id));
 					$section = $this->sectionManager->fetch($entry->get('section_id'));
-					$content = ERFXSLTUTilities::entryToXml($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']));
+					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']));
 					if ($content) {
 						$cellcontent .= $content;
 					}

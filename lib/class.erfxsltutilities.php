@@ -7,7 +7,7 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 	
 	class ERFXSLTUTilities {
-		public static function entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false)
+		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false)
 		{
 			$date = new DateTime();
 			$params = array(
@@ -22,79 +22,25 @@
 				'workspace' => URL . '/workspace',
 				'http-host' => HTTP_HOST
 			);
-			$entryData = $entry->getData();
-			$entryId = General::intval($entry->get('id'));
-			$includedElements = FieldEntry_relationship::parseElements($parentField);
 			
 			$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
-			if (!empty($entryData) && !!@file_exists($xslFilePath)) {
+			if (!!@file_exists($xslFilePath)) {
 				$xmlData = new XMLElement('data');
 				$xmlData->setIncludeHeader(true);
-				$xml = new XMLElement('entry');
-				$xml->setAttribute('id', $entryId);
+				
+				// params
+				$xmlData->appendChild(self::getXmlParams($params));
 				
 				// entry data
-				$xmlData->appendChild(self::getXmlParams($params));
-				$xmlData->appendChild($xml);
-				foreach ($entryData as $fieldId => $data) {
-					$filteredData = array_filter($data, function ($value) {
-						return $value != null;
-					});
-					if (empty($filteredData)) {
-						continue;
-					}
-					$field = $entryFields[$fieldId];
-					$fieldName = $field->get('element_name');
-					$fieldIncludedElement = $includedElements[$entrySectionHandle];
-					
-					try {
-						if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
-							$parentIncludableElement = FieldEntry_relationship::getSectionElementName($fieldName, $fieldIncludedElement);
-							$parentIncludableElementMode = FieldEntry_relationship::extractMode($fieldName, $parentIncludableElement);
-							
-							// Special treatments for ERF
-							if ($field instanceof FieldEntry_relationship) {
-								// Increment recursive level
-								$field->recursiveLevel = $recursiveLevel + 1;
-								$field->recursiveDeepness = $deepness;
-							}
-							
-							if ($parentIncludableElementMode == null) {
-								$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
-									return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
-								}, $field->fetchIncludableElements());
-							}
-							else {
-								$submodes = array($parentIncludableElementMode);
-							}
-							
-							foreach ($submodes as $submode) {
-								$field->appendFormattedElement($xml, $filteredData, false, $submode, $entryId);
-							}
-						}
-					}
-					catch (Exception $ex) {
-						$xml->appendChild(new XMLElement('error', $ex->getMessage() . ' on ' . $ex->getLine() . ' of file ' . $ex->getFile()));
-					}
+				if ($entry) {
+					$includedElements = FieldEntry_relationship::parseElements($parentField);
+					$xmlData->appendChild(self::entryToXML($entry, $includedElements, $entryFields));
 				}
 				
 				// field data
-				$xmlField = new XMLElement('field');
-				$xmlField->setAttribute('id', $parentField->get('id'));
-				$xmlField->setAttribute('handle', $parentField->get('element_name'));
-				$xmlField->appendChild(new XMLElement('allow-new', $parentField->get('allow_new')));
-				$xmlField->appendChild(new XMLElement('allow-edit', $parentField->get('allow_edit')));
-				$xmlField->appendChild(new XMLElement('allow-delete', $parentField->get('allow_delete')));
-				$xmlField->appendChild(new XMLElement('allow-link', $parentField->get('allow_link')));
-				$xmlField->appendChild(new XMLElement('allow-collapse', $parentField->get('allow_collapse')));
-				$xmlField->appendChild(new XMLElement('show-header', $parentField->get('show_header')));
-				$xmlField->appendChild(new XMLElement('show-association', $parentField->get('show_association')));
-				$xmlField->appendChild(new XMLElement('deepness', $parentField->get('deepness')));
-				$xmlField->appendChild(new XMLElement('required', $parentField->get('required')));
-				$xmlField->appendChild(new XMLElement('min-entries', $parentField->get('min_entries')));
-				$xmlField->appendChild(new XMLElement('max-entries', $parentField->get('max_entries')));
-				$xmlData->appendChild($xmlField);
+				$xmlData->appendChild(self::fieldToXML($parentField));
 				
+				// process XSLT
 				$indent = false;
 				$mode = $parentField->get($mode);
 				if ($debug) {
@@ -146,5 +92,75 @@
 				$xmlparams->appendChild(new XMLElement($key, $value));
 			}
 			return $xmlparams;
+		}
+		
+		public static function fieldToXML($field) {
+			// field data
+			$xmlField = new XMLElement('field');
+			$xmlField->setAttribute('id', $field->get('id'));
+			$xmlField->setAttribute('handle', $field->get('element_name'));
+			$xmlField->appendChild(new XMLElement('allow-new', $field->get('allow_new')));
+			$xmlField->appendChild(new XMLElement('allow-edit', $field->get('allow_edit')));
+			$xmlField->appendChild(new XMLElement('allow-delete', $field->get('allow_delete')));
+			$xmlField->appendChild(new XMLElement('allow-link', $field->get('allow_link')));
+			$xmlField->appendChild(new XMLElement('allow-collapse', $field->get('allow_collapse')));
+			$xmlField->appendChild(new XMLElement('show-header', $field->get('show_header')));
+			$xmlField->appendChild(new XMLElement('show-association', $field->get('show_association')));
+			$xmlField->appendChild(new XMLElement('deepness', $field->get('deepness')));
+			$xmlField->appendChild(new XMLElement('required', $field->get('required')));
+			$xmlField->appendChild(new XMLElement('min-entries', $field->get('min_entries')));
+			$xmlField->appendChild(new XMLElement('max-entries', $field->get('max_entries')));
+			return $xmlField;
+		}
+		
+		public static function entryToXML($entry, $includedElements, $entryFields) {
+			$entryData = $entry->getData();
+			$entryId = General::intval($entry->get('id'));
+			$xml = new XMLElement('entry');
+			$xml->setAttribute('id', $entryId);
+			if (!empty($entryData)) {
+				foreach ($entryData as $fieldId => $data) {
+					$filteredData = array_filter($data, function ($value) {
+						return $value != null;
+					});
+					if (empty($filteredData)) {
+						continue;
+					}
+					$field = $entryFields[$fieldId];
+					$fieldName = $field->get('element_name');
+					$fieldIncludedElement = $includedElements[$entrySectionHandle];
+					
+					try {
+						if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
+							$parentIncludableElement = FieldEntry_relationship::getSectionElementName($fieldName, $fieldIncludedElement);
+							$parentIncludableElementMode = FieldEntry_relationship::extractMode($fieldName, $parentIncludableElement);
+							
+							// Special treatments for ERF
+							if ($field instanceof FieldEntry_relationship) {
+								// Increment recursive level
+								$field->recursiveLevel = $recursiveLevel + 1;
+								$field->recursiveDeepness = $deepness;
+							}
+							
+							if ($parentIncludableElementMode == null) {
+								$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
+									return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
+								}, $field->fetchIncludableElements());
+							}
+							else {
+								$submodes = array($parentIncludableElementMode);
+							}
+							
+							foreach ($submodes as $submode) {
+								$field->appendFormattedElement($xml, $filteredData, false, $submode, $entryId);
+							}
+						}
+					}
+					catch (Exception $ex) {
+						$xml->appendChild(new XMLElement('error', $ex->getMessage() . ' on ' . $ex->getLine() . ' of file ' . $ex->getFile()));
+					}
+				}
+			}
+			return $xml;
 		}
 	}

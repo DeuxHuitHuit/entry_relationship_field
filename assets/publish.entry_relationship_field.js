@@ -386,7 +386,7 @@
 					
 					if (!list.hasClass('orderable') && !!list.find('[data-orderable-handle]').length) {
 						list.symphonyOrderable({
-							items: 'li',
+							items: 'li:has([data-orderable-handle])',
 							handles: '[data-orderable-handle]',
 							ignore: '.ignore-orderable, .ignore',
 						});
@@ -394,7 +394,7 @@
 					if (list.is('[data-collapsible]') && !!list.find('[data-collapsible-handle]').length) {
 						if (!list.hasClass('collapsible')) {
 							list.symphonyCollapsible({
-								items: 'li:has(.content)',
+								items: 'li:has([data-collapsible-content]):has([data-collapsible-handle])',
 								handles: '[data-collapsible-handle]',
 								content: '[data-collapsible-content]',
 								ignore: '.ignore-collapsible, .ignore',
@@ -402,7 +402,7 @@
 							}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);
 						}
 						else {
-							list.find('li:has(.content)')
+							list.find('li:has([data-collapsible-content]):has([data-collapsible-handle]')
 								.addClass('instance')
 								.trigger('updatesize.collapsible')
 								.trigger('setsize.collapsible');

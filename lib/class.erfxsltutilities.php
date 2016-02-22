@@ -23,6 +23,7 @@
 				'http-host' => HTTP_HOST
 			);
 			$entryData = $entry->getData();
+			$entryId = General::intval($entry->get('id'));
 			$includedElements = FieldEntry_relationship::parseElements($parentField);
 			
 			$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';

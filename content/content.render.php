@@ -106,7 +106,11 @@
 						'data-section-id' => $entrySection->get('id'),
 					));
 					if ($parentField->is('show_header')) {
-						$header = new XMLElement('header', null, array('class' => 'frame-header'));
+						$header = new XMLElement('header', null, array(
+							'class' => 'frame-header',
+							'data-orderable-handle' => '',
+							'data-collapsible-handle' => ''
+						));
 						$title = new XMLElement('h4', null, array('class' => 'ignore-collapsible'));
 						if (!$parentField->get('mode_header')) {
 							$title->appendChildArray($this->buildDefaultTitle($entry, $entryVisibleFields, $entryFields));
@@ -149,7 +153,10 @@
 					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
 					
 					if ($content) {
-						$li->appendChild(new XMLElement('div', $content, array('class' => 'content')));
+						$li->appendChild(new XMLElement('div', $content, array(
+							'class' => 'content',
+							'data-collapsible-content' => '',
+						)));
 					}
 					else {
 						if ($parentField->is('show_header')) {

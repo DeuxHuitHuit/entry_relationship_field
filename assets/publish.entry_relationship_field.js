@@ -384,19 +384,19 @@
 					list.empty().append(li);
 					frame[fx]('empty');
 					
-					if (!list.hasClass('orderable')) {
+					if (!list.hasClass('orderable') && !!list.find('[data-orderable-handle]').length) {
 						list.symphonyOrderable({
 							items: 'li',
-							handles: '.frame-header',
+							handles: '[data-orderable-handle]',
 							ignore: '.ignore-orderable, .ignore',
 						});
 					}
-					if (list.is('[data-collapsible]')) {
+					if (list.is('[data-collapsible]') && !!list.find('[data-collapsible-handle]').length) {
 						if (!list.hasClass('collapsible')) {
 							list.symphonyCollapsible({
 								items: 'li:has(.content)',
-								handles: '.frame-header',
-								content: '>.content',
+								handles: '[data-collapsible-handle]',
+								content: '>[data-collapsible-content]',
 								ignore: '.ignore-collapsible, .ignore',
 								save_state: false
 							}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);

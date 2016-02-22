@@ -34,7 +34,7 @@
 				// entry data
 				if ($entry) {
 					$includedElements = FieldEntry_relationship::parseElements($parentField);
-					$xmlData->appendChild(self::entryToXML($entry, $includedElements, $entryFields));
+					$xmlData->appendChild(self::entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields));
 				}
 				
 				// field data
@@ -113,7 +113,7 @@
 			return $xmlField;
 		}
 		
-		public static function entryToXML($entry, $includedElements, $entryFields) {
+		public static function entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields) {
 			$entryData = $entry->getData();
 			$entryId = General::intval($entry->get('id'));
 			$xml = new XMLElement('entry');

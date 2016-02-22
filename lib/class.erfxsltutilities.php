@@ -31,6 +31,8 @@
 				$xmlData->setIncludeHeader(true);
 				$xml = new XMLElement('entry');
 				$xml->setAttribute('id', $entryId);
+				
+				// entry data
 				$xmlData->appendChild(self::getXmlParams($params));
 				$xmlData->appendChild($xml);
 				foreach ($entryData as $fieldId => $data) {
@@ -74,6 +76,23 @@
 						$xml->appendChild(new XMLElement('error', $ex->getMessage() . ' on ' . $ex->getLine() . ' of file ' . $ex->getFile()));
 					}
 				}
+				
+				// field data
+				$xmlField = new XMLElement('field');
+				$xmlField->setAttribute('id', $parentField->get('id'));
+				$xmlField->setAttribute('handle', $parentField->get('element_name'));
+				$xmlField->appendChild(new XMLElement('allow-new', $parentField->get('allow_new')));
+				$xmlField->appendChild(new XMLElement('allow-edit', $parentField->get('allow_edit')));
+				$xmlField->appendChild(new XMLElement('allow-delete', $parentField->get('allow_delete')));
+				$xmlField->appendChild(new XMLElement('allow-link', $parentField->get('allow_link')));
+				$xmlField->appendChild(new XMLElement('allow-collapse', $parentField->get('allow_collapse')));
+				$xmlField->appendChild(new XMLElement('show-header', $parentField->get('show_header')));
+				$xmlField->appendChild(new XMLElement('show-association', $parentField->get('show_association')));
+				$xmlField->appendChild(new XMLElement('deepness', $parentField->get('deepness')));
+				$xmlField->appendChild(new XMLElement('required', $parentField->get('required')));
+				$xmlField->appendChild(new XMLElement('min-entries', $parentField->get('min_entries')));
+				$xmlField->appendChild(new XMLElement('max-entries', $parentField->get('max_entries')));
+				$xmlData->appendChild($xmlField);
 				
 				$indent = false;
 				$mode = $parentField->get($mode);

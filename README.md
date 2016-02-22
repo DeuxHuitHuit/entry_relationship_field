@@ -4,7 +4,7 @@ Version: 2.0.x
 
 > A new way to create master-details (parent -> children) relationships with Symphony's sections.
 
-### SPECS ###
+### SPECS
 
 - Supports multiple sections for the same relationship.
 - Offers developers the possibility to create xslt templates for the field's backend UI.
@@ -13,11 +13,11 @@ Version: 2.0.x
 - Supports multiple level (recursive) of associations.
 - Aims to be compatible with *all* fields.
 
-### REQUIREMENTS ###
+### REQUIREMENTS
 
 - Symphony CMS version 2.5.1 and up (as of the day of the last release of this extension)
 
-### INSTALLATION ###
+### INSTALLATION
 
 - `git clone` / download and unpack the tarball file
 - Put into the extension directory
@@ -34,40 +34,61 @@ Some developers may have been relying on some bugs in the xslt templates which m
 In fact, under some circumstance, the field would output only their default mode instead of all of them.
 If this is the case, your either have to be more precise in your XPath queries or in the field's includable elements.
 
-### HOW TO USE ###
+### HOW TO USE
 
 - Go to the section editor and add an Entry Relationship field.
 - Give it a name.
 - Select at least one section that will be permitted as children.
 - Select also the fields you want to be available in the backend templates and data sources.
 - [Create backend templates](#backend-templates) in the `workspace/er-templates` folder.
-    - The name of the file must be `section-handle.xsl`
+    - The name of the file must be `included-section-handle.xsl`
     - You need at least one template that matches `entry`
     - Protip: add `?debug` to backend url to see the available xml for each entry.
     - Protip: You can also override the default debug template with     
     `<xsl:template match="/data" mode="debug" priority="1"></xsl:template>`
-    - Protip: You can create buttons yourself, using the [data-attribute api](#Data-attribute-API).
-- (Optional) Select an xsl mode to be able to support multiple templates for the same section.
-- (Optional) Select an xsl mode to customize the publish table view.
+    - Protip: You can create action buttons yourself, using the [data-attribute api](#Data-attribute-API).
 - (Optional) Select a maximum recursion level for nested fields.
 - (Optional) Select a minimum and maximum number of elements for this field.
+- (Optional) Select an xsl mode to be able to support multiple templates for the same section.
+- (Optional) Select an xsl mode to customize the publish table view.
+- (Optional) Select an xsl mode to customize the publish action bar.
 
 There is also a [screen cast available](https://www.screenr.com/pDDN)
 
-### Backend templates ###
+### Backend templates
+
+#### Entries / publish view templates
 
 Here's what a basic backend template should look like.
 
 ```xslt
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="entry">
     <div>
         <h1>
             <xsl:value-of select="./*[1]" />
         </h1>
+    </div>
+</xsl:template>
+
+</xsl:stylesheet>
+```
+
+#### Field action bar template
+
+Beware: this template must be in a xsl file named like the current section's handle (not the targeted sections)
+
+```xslt
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:template match="field" mode="[field settings mode]">
+    <div>
+        <xsl:if test="allow-new = 'yes'">
+            <button type="button" class="create" data-create="[section-id]">Custom create new</button>
+        </xsl:if>
     </div>
 </xsl:template>
 
@@ -86,12 +107,16 @@ The provided actions are:
 - Delete entry `data-delete="{entry-id}"`
 - Create entry `data-create="{section-handle}"`
 - Replace entry `data-replace="{entry-id}"`
+- Orderable handle selector `data-orderable-handle=""`
+- Collapsible selectors
+    - Handle `data-collapsible-handle=""`
+    - Content `data-collapsible-content=""`
 
 Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
 
-No validation is made to check if the feature has been activated in the field's setting, so use at your own risks.
+*No validation is made to check if the feature has been activated in the field's setting, so use at your own risks.*
 
-### AKNOWLEDGMENTS ###
+### AKNOWLEDGMENTS
 
 This field would not have been created if some other people did not released some really 
 cool stuff. We would like to thanks everybody that contributed to those projects:
@@ -103,7 +128,7 @@ cool stuff. We would like to thanks everybody that contributed to those projects
 We basically trashed things that were not necessary and re-implemented things that we liked
 from those extensions.
 
-### LICENSE ###
+### LICENSE
 
 [MIT](http://deuxhuithuit.mit-license.org)
 

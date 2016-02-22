@@ -86,6 +86,7 @@
 			$this->set('mode', null);
 			$this->set('mode_table', null);
 			$this->set('mode_header', null);
+			$this->set('mode_footer', null);
 			// no limit
 			$this->set('min_entries', null);
 			$this->set('max_entries', null);
@@ -282,6 +283,7 @@
 			$new_settings['mode'] = empty($settings['mode']) ? null : $settings['mode'];
 			$new_settings['mode_table'] = empty($settings['mode_table']) ? null : $settings['mode_table'];
 			$new_settings['mode_header'] = empty($settings['mode_header']) ? null : $settings['mode_header'];
+			$new_settings['mode_footer'] = empty($settings['mode_footer']) ? null : $settings['mode_footer'];
 			$new_settings['allow_new'] = $settings['allow_new'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_edit'] = $settings['allow_edit'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
@@ -366,6 +368,7 @@
 				'mode' => $this->get('mode'),
 				'mode_table' => $this->get('mode_table'),
 				'mode_header' => $this->get('mode_header'),
+				'mode_footer' => $this->get('mode_footer'),
 				'min_entries' => $this->get('min_entries'),
 				'max_entries' => $this->get('max_entries'),
 				'allow_new' => $this->get('allow_new'),
@@ -961,33 +964,45 @@
 		
 		private function createActionBarMenu($sections)
 		{
-			$wrap = new XMLElement('fieldset');
-			$wrap->setAttribute('class', 'single');
-			
-			if ($this->is('allow_new') || $this->is('allow_link')) {
-				$selectWrap = new XMLElement('div');
-				$selectWrap->appendChild(new XMLElement('span', __('Related section: ')));
-				$options = array();
-				foreach ($sections as $section) {
-					$options[] = array($section->get('handle'), false, $section->get('name'));
+			$wrap = new XMLElement('div');
+			$actionBar = '';
+			$modeFooter = $this->get('mode_footer');
+			if ($modeFooter) {
+				$section = $this->sectionManager->fetch($this->get('parent_section'));
+				$actionBar = ERFXSLTUTilities::processXSLT($this, null, $section->get('handle'), null, 'mode_footer', isset($_REQUEST['debug']), 'field');
+			}
+			if (empty($actionBar)) {
+				$fieldset = new XMLElement('fieldset');
+				$fieldset->setAttribute('class', 'single');
+				if ($this->is('allow_new') || $this->is('allow_link')) {
+					$selectWrap = new XMLElement('div');
+					$selectWrap->appendChild(new XMLElement('span', __('Related section: ')));
+					$options = array();
+					foreach ($sections as $section) {
+						$options[] = array($section->get('handle'), false, $section->get('name'));
+					}
+					$select = Widget::Select('', $options, array('class' => 'sections'));
+					$selectWrap->appendChild($select);
+					$fieldset->appendChild($selectWrap);
 				}
-				$select = Widget::Select('', $options, array('class' => 'sections'));
-				$selectWrap->appendChild($select);
-				$wrap->appendChild($selectWrap);
+				if ($this->is('allow_new')) {
+					$fieldset->appendChild(new XMLElement('button', __('Create new'), array(
+						'type' => 'button',
+						'class' => 'create',
+						'data-create' => '',
+					)));
+				}
+				if ($this->is('allow_link')) {
+					$fieldset->appendChild(new XMLElement('button', __('Link to entry'), array(
+						'type' => 'button',
+						'class' => 'link',
+						'data-link' => '',
+					)));
+				}
+				$wrap->appendChild($fieldset);
 			}
-			if ($this->is('allow_new')) {
-				$wrap->appendChild(new XMLElement('button', __('Create new'), array(
-					'type' => 'button',
-					'class' => 'create',
-					'data-create' => '',
-				)));
-			}
-			if ($this->is('allow_link')) {
-				$wrap->appendChild(new XMLElement('button', __('Link to entry'), array(
-					'type' => 'button',
-					'class' => 'link',
-					'data-link' => '',
-				)));
+			else {
+				$wrap->setValue($actionBar);
 			}
 			
 			return $wrap;

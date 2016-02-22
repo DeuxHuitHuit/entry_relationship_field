@@ -7,7 +7,7 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 	
 	class ERFXSLTUTilities {
-		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false)
+		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false, $select = 'entry')
 		{
 			$date = new DateTime();
 			$params = array(
@@ -59,7 +59,7 @@
 						<xsl:apply-templates select="/data" ' . $xmlMode . ' />
 					</xsl:template>
 					<xsl:template match="/data" ' . $xmlMode . '>
-						<xsl:apply-templates select="entry" ' . $xmlMode . ' />
+						<xsl:apply-templates select="' . $select . '" ' . $xmlMode . ' />
 					</xsl:template>
 					<xsl:template match="/data" mode="debug">
 						<xsl:copy-of select="/" />

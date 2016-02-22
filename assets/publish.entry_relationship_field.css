@@ -21,17 +21,17 @@
 	border-bottom: none;
 }
 
-.field.field-entry_relationship > .single {
+.field.field-entry_relationship fieldset.single {
 	text-align: right;
 }
 
-.field.field-entry_relationship > .single > button {
+.field.field-entry_relationship fieldset.single > button {
 	margin-right: 0px;
 	margin-left: 1rem;
 	margin-bottom: 1rem;
 }
 
-.field.field-entry_relationship > .single > div {
+.field.field-entry_relationship fieldset.single > div {
 	min-width: 250px;
 	display: inline-block;
 }

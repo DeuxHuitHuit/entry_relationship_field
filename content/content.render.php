@@ -105,44 +105,46 @@
 						'data-section' => $entrySectionHandle,
 						'data-section-id' => $entrySection->get('id'),
 					));
-					$header = new XMLElement('header', null, array('class' => 'frame-header'));
-					$title = new XMLElement('h4', null, array('class' => 'ignore-collapsible'));
-					if (!$parentField->get('mode_header')) {
-						$title->appendChild(new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')));
-						$title->appendChild(new XMLElement('span', $this->getSectionName($entry), array('class' => 'ignore-collapsible')));
+					if ($parentField->is('show_header')) {
+						$header = new XMLElement('header', null, array('class' => 'frame-header'));
+						$title = new XMLElement('h4', null, array('class' => 'ignore-collapsible'));
+						if (!$parentField->get('mode_header')) {
+							$title->appendChildArray($this->buildDefaultTitle($entry, $entryVisibleFields, $entryFields));
+						}
+						else {
+							$title->setValue(ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
+						}
+						$header->appendChild($title);
+						
+						$options = new XMLElement('div', null, array('class' => 'destructor'));
+						if ($parentField->is('allow_edit')) {
+							$title->setAttribute('data-edit', $entryId);
+							$options->appendChild(new XMLElement('a', __('Edit'), array(
+								'class' => 'edit ignore-collapsible',
+								'data-edit' => $entryId,
+							)));
+						}
+						if ($parentField->is('allow_delete')) {
+							$options->appendChild(new XMLElement('a', __('Delete'), array(
+								'class' => 'delete ignore-collapsible',
+								'data-delete' => $entryId,
+							)));
+						}
+						if ($parentField->is('allow_link')) {
+							$options->appendChild(new XMLElement('a', __('Replace'), array(
+								'class' => 'unlink ignore-collapsible',
+								'data-replace' => $entryId,
+							)));
+						}
+						if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
+							$options->appendChild(new XMLElement('a', __('Un-link'), array(
+								'class' => 'unlink ignore-collapsible',
+								'data-unlink' => $entryId,
+							)));
+						}
+						$header->appendChild($options);
+						$li->appendChild($header);
 					}
-					else {
-						$title->setValue(ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
-					}
-					$header->appendChild($title);
-					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					if ($parentField->is('allow_edit')) {
-						$title->setAttribute('data-edit', $entryId);
-						$options->appendChild(new XMLElement('a', __('Edit'), array(
-							'class' => 'edit ignore-collapsible',
-							'data-edit' => $entryId,
-						)));
-					}
-					if ($parentField->is('allow_delete')) {
-						$options->appendChild(new XMLElement('a', __('Delete'), array(
-							'class' => 'delete ignore-collapsible',
-							'data-delete' => $entryId,
-						)));
-					}
-					if ($parentField->is('allow_link')) {
-						$options->appendChild(new XMLElement('a', __('Replace'), array(
-							'class' => 'unlink ignore-collapsible',
-							'data-replace' => $entryId,
-						)));
-					}
-					if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
-						$options->appendChild(new XMLElement('a', __('Un-link'), array(
-							'class' => 'unlink ignore-collapsible',
-							'data-unlink' => $entryId,
-						)));
-					}
-					$header->appendChild($options);
-					$li->appendChild($header);
 					
 					$content = ERFXSLTUTilities::entryToXml($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
 					
@@ -150,7 +152,14 @@
 						$li->appendChild(new XMLElement('div', $content, array('class' => 'content')));
 					}
 					else {
-						$header->setAttribute('class', $header->getAttribute('class') . ' no-content');
+						if ($parentField->is('show_header')) {
+							$header->setAttribute('class', $header->getAttribute('class') . ' no-content');
+						}
+						else {
+							$content = new XMLElement('div', null, array('class' => 'content'));
+							$content->appendChildArray($this->buildDefaultTitle($entry, $entryVisibleFields, $entryFields));
+							$li->appendChild($content);
+						}
 					}
 					
 					$this->_Result->appendChild($li);
@@ -175,5 +184,12 @@
 			}
 			
 			return $field->prepareReadableValue($data[$field->get('id')], $entry->get('id'), true);
+		}
+		
+		public function buildDefaultTitle($entry, $entryVisibleFields, $entryFields) {
+			return array(
+				new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')),
+				new XMLElement('span', $this->getSectionName($entry), array('class' => 'ignore-collapsible'))
+			);
 		}
 	}

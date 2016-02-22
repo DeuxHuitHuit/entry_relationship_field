@@ -12,6 +12,8 @@
 
 .field.field-entry_relationship > .frame {
 	margin: 0;
+}
+.field.field-entry_relationship > .frame:not(.no-header) {
 	border-top: 0;
 }
 

@@ -94,8 +94,9 @@
 			$this->set('allow_edit', 'yes');
 			$this->set('allow_link', 'yes');
 			$this->set('allow_delete', 'no');
+			// display options
 			$this->set('allow_collapse', 'yes');
-			
+			$this->set('show_header', 'yes');
 			$this->sectionManager = new CacheableFetch('SectionManager');
 			$this->entryManager = new CacheableFetch('EntryManager');
 		}
@@ -286,6 +287,7 @@
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_delete'] = $settings['allow_delete'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_collapse'] = $settings['allow_collapse'] == 'yes' ? 'yes' : 'no';
+			$new_settings['show_header'] = $settings['show_header'] == 'yes' ? 'yes' : 'no';
 			
 			// save it into the array
 			$this->setArray($new_settings);
@@ -371,6 +373,7 @@
 				'allow_link' => $this->get('allow_link'),
 				'allow_delete' => $this->get('allow_delete'),
 				'allow_collapse' => $this->get('allow_collapse'),
+				'show_header' => $this->get('show_header'),
 			);
 
 			return FieldManager::saveSettings($id, $settings);
@@ -925,7 +928,14 @@
 		private function createEntriesList($entries)
 		{
 			$wrap = new XMLElement('div');
-			$wrap->setAttribute('class', 'frame collapsible orderable' . (count($entries) > 0 ? '' : ' empty'));
+			$wrapperClass = 'frame collapsible orderable';
+			if (count($entries) > 0) {
+				$wrapperClass .= ' empty';
+			}
+			if (!$this->is('show_header')) {
+				$wrapperClass .= ' no-header';
+			}
+			$wrap->setAttribute('class', $wrapperClass);
 			
 			$list = new XMLElement('ul');
 			$list->setAttribute('class', '');
@@ -1087,14 +1097,23 @@
 			$permissions = new XMLElement('fieldset');
 			$permissions->appendChild(new XMLElement('legend', __('Permissions')));
 			$permissions_cols = new XMLElement('div');
-			$permissions_cols->setAttribute('class', 'three columns');
+			$permissions_cols->setAttribute('class', 'four columns');
 			$permissions_cols->appendChild($this->createCheckbox('allow_new', 'Show new button'));
 			$permissions_cols->appendChild($this->createCheckbox('allow_edit', 'Show edit button'));
 			$permissions_cols->appendChild($this->createCheckbox('allow_link', 'Show link button'));
 			$permissions_cols->appendChild($this->createCheckbox('allow_delete', 'Show delete button'));
-			$permissions_cols->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
 			$permissions->appendChild($permissions_cols);
 			$wrapper->appendChild($permissions);
+			
+			// display options
+			$display = new XMLElement('fieldset');
+			$display->appendChild(new XMLElement('legend', __('Display options')));
+			$display_cols = new XMLElement('div');
+			$display_cols->setAttribute('class', 'four columns');
+			$display_cols->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
+			$display_cols->appendChild($this->createCheckbox('show_header', 'Show the header box before entries templates'));
+			$display->appendChild($display_cols);
+			$wrapper->appendChild($display);
 			
 			// assoc
 			$assoc = new XMLElement('fieldset');
@@ -1320,22 +1339,23 @@
 
 			return Symphony::Database()->query("
 				CREATE TABLE IF NOT EXISTS `$tbl` (
-					`id` 			int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`field_id` 		int(11) unsigned NOT NULL,
-					`sections`		varchar(255) NULL COLLATE utf8_unicode_ci,
-					`show_association` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`deepness` 		int(2) unsigned NULL,
-					`elements` 		varchar(1024) NULL COLLATE utf8_unicode_ci,
-					`mode`			varchar(50) NULL COLLATE utf8_unicode_ci,
-					`mode_table`	varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_header`	varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`min_entries`	int(5) unsigned NULL,
-					`max_entries`	int(5) unsigned NULL,
-					`allow_edit` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_new` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_link` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_delete` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
-					`allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`id` 				int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`field_id` 			int(11) unsigned NOT NULL,
+					`sections`			varchar(255) NULL COLLATE utf8_unicode_ci,
+					`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`deepness` 			int(2) unsigned NULL,
+					`elements` 			varchar(1024) NULL COLLATE utf8_unicode_ci,
+					`mode`				varchar(50) NULL COLLATE utf8_unicode_ci,
+					`mode_table`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`mode_header`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`min_entries`		int(5) unsigned NULL,
+					`max_entries`		int(5) unsigned NULL,
+					`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_new` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_delete` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
+					`allow_collapse` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`show_header` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1390,7 +1410,9 @@
 					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
 						AFTER `mode`,
 					ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_table`
+						AFTER `mode_table`,
+					ADD COLUMN `show_header` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+						AFTER `allow_collapse`
 			";
 			return Symphony::Database()->query($sql);
 		}

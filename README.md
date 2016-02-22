@@ -95,6 +95,33 @@ Beware: this template must be in a xsl file named like the current section's han
 </xsl:stylesheet>
 ```
 
+#### Default templates
+
+Since version 2.0.0, the extension ships with default xsl templates that can be imported in your customized templates.
+Also, feel free to copy and change them as required for your current project.
+
+```xslt
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:import href="../../extensions/entry_relationship_field/er-templates/action-bar.xsl" />
+<xsl:import href="../../extensions/entry_relationship_field/er-templates/entry.xsl" />
+
+<xsl:template match="entry">
+    <xsl:apply-templates select="." mode="content" />
+</xsl:template>
+
+<xsl:template match="entry" mode="[field settings mode for publish table view]">
+    <xsl:apply-templates select="." mode="table-view" />
+</xsl:template>
+
+<xsl:template match="field" mode="[field settings mode for the action bar]">
+    <xsl:apply-templates select="." mode="action-bar" />
+</xsl:template>
+
+</xsl:stylesheet>
+```
+
 ### Data-attribute API
 
 In your backend template, you can create button that uses the same features as the default ones.

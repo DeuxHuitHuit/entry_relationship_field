@@ -396,7 +396,7 @@
 							list.symphonyCollapsible({
 								items: 'li:has(.content)',
 								handles: '[data-collapsible-handle]',
-								content: '>[data-collapsible-content]',
+								content: '[data-collapsible-content]',
 								ignore: '.ignore-collapsible, .ignore',
 								save_state: false
 							}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);

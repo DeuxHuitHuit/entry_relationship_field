@@ -30,7 +30,7 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 
 ### UPDATE FROM 1.0.x
 
-Some developer may have been relying on some bugs in the xslt templates which may break when updating from version before 2.0.0.
+Some developers may have been relying on some bugs in the xslt templates which may break when updating from versions before 2.0.0.
 In fact, under some circumstance, the field would output only their default mode instead of all of them.
 If this is the case, your either have to be more precise in your XPath queries or in the field's includable elements.
 

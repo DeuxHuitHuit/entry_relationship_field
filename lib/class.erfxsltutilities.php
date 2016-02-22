@@ -110,6 +110,16 @@
 			$xmlField->appendChild(new XMLElement('required', $field->get('required')));
 			$xmlField->appendChild(new XMLElement('min-entries', $field->get('min_entries')));
 			$xmlField->appendChild(new XMLElement('max-entries', $field->get('max_entries')));
+			$sections = array_map(trim, explode(FieldEntry_relationship::SEPARATOR, $field->get('sections')));
+			$sections = SectionManager::fetch($sections);
+			$xmlSections = new XMLElement('sections');
+			foreach ($sections as $section) {
+				$xmlSections->appendChild(new XMLElement('section', $section->get('name'), array(
+					'id' => $section->get('id'),
+					'handle' => $section->get('handle'),
+				)));
+			}
+			$xmlField->appendChild($xmlSections);
 			return $xmlField;
 		}
 		

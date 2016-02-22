@@ -86,12 +86,10 @@
 					$title->appendChild(new XMLElement('strong', __('Entry %s not found', array($entryId))));
 					$header->appendChild($title);
 					$options = new XMLElement('div', null, array('class' => 'destructor'));
-					if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
-						$options->appendChild(new XMLElement('a', __('Un-link'), array(
-							'class' => 'unlink ignore-collapsible',
-							'data-unlink' => $entryId,
-						)));
-					}
+					$options->appendChild(new XMLElement('a', __('Un-link'), array(
+						'class' => 'unlink ignore-collapsible',
+						'data-unlink' => $entryId,
+					)));
 					$header->appendChild($options);
 					$li->appendChild($header);
 					$this->_Result->appendChild($li);

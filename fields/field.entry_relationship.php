@@ -608,7 +608,7 @@
 					
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
-					$section = $this->sectionsManager->fetch($sectionId);
+					$section = $this->sectionManager->fetch($sectionId);
 					$sectionName = $section->get('handle');
 					// cache fields info
 					if (!isset($section->er_field_cache)) {

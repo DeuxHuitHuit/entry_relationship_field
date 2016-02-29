@@ -128,6 +128,7 @@
 			$entryId = General::intval($entry->get('id'));
 			$xml = new XMLElement('entry');
 			$xml->setAttribute('id', $entryId);
+			$xml->setAttribute('section', $entrySectionHandle);
 			if (!empty($entryData)) {
 				foreach ($entryData as $fieldId => $data) {
 					$filteredData = array_filter($data, function ($value) {

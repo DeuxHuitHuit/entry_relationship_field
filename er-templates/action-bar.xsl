@@ -24,14 +24,18 @@
 </xsl:template>
 
 <xsl:template match="sections/section" mode="action-bar-link">
+	<xsl:param name="text" select="'Link to '" />
 	<button type="button" class="link" data-link="{@handle}">
-		Link to <xsl:value-of select="." />
+		<xsl:value-of select="$text" />
+		<xsl:value-of select="." />
 	</button>
 </xsl:template>
 
 <xsl:template match="sections/section" mode="action-bar-create">
+	<xsl:param name="text" select="'Create new '" />
 	<button type="button" class="create" data-create="{@handle}">
-		Create new <xsl:value-of select="." />
+		<xsl:value-of select="$text" />
+		<xsl:value-of select="." />
 	</button>
 </xsl:template>
 

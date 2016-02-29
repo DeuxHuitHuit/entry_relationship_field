@@ -4,12 +4,14 @@
 
 <xsl:template match="field" mode="action-bar">
 	<style scoped="">
+		<xsl:text disable-output-escaping="yes">
 		.row {
 			margin: 1rem;
 		}
 		.row button {
 			width: 15%;
 		}
+		</xsl:text>
 	</style>
 	<xsl:if test="allow-new = 'yes'">
 		<div class="row">

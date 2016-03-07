@@ -293,7 +293,7 @@
 		var list = frame.find('ul');
 		var memento;
 		var replaceId;
-		var insertPosition = false;
+		var insertPosition;
 		var storageKeys = {
 			selection: 'symphony.ERF.section-selection-' + id,
 			collapsible: 'symphony.collapsible.ERF.' + id + '.collasped'
@@ -346,17 +346,36 @@
 			val.changed = found;
 			return val;
 		};
-		var replace = function (searchId, entryId) {
+		var replace = function (entryId) {
 			var val = values();
 			var found = false;
 			
 			for (var x = 0; x < val.length; x++) {
-				if (!val[x] || val[x] === searchId) {
+				if (!val[x] || val[x] === replaceId) {
 					val[x] = entryId;
 					found = true;
 				}
 			}
 			val.changed = found;
+			return val;
+		};
+		var insert = function (entryId) {
+			var val = values();
+			var found = false;
+			for (var x = 0; x < val.length; x++) {
+				if (!val[x] || val[x] === entryId) {
+					found = true;
+				}
+			}
+			if (!found) {
+				if (insertPosition >= val.length) {
+					val.push(entryId);
+				}
+				else {
+					val.splice(insertPosition + 1, 0, entryId);
+				}
+			}
+			val.changed = !found;
 			return val;
 		};
 		var isRendering = false;
@@ -428,14 +447,22 @@
 		};
 		var self = {
 			link: function (entryId) {
-				var val = !!replaceId ?
-					replace(replaceId, entryId) :
-					link(entryId);
+				var val;
+				if (!!replaceId) {
+					val = replace(entryId);
+				}
+				else if (insertPosition !== undefined) {
+					val = insert(entryId);
+				}
+				else {
+					val = link(entryId);
+				}
 
 				if (!!val.changed) {
 					saveValues(val);
 				}
 				replaceId = undefined;
+				insertPosition = undefined;
 			},
 			unlink: function (entryId) {
 				var val = unlink(entryId);
@@ -451,6 +478,7 @@
 					render();
 					replaceId = undefined;
 				}
+				insertPosition = undefined;
 			}
 		};
 		
@@ -463,28 +491,38 @@
 				frame.addClass('empty');
 			}
 		}
-		
+
 		var syncCurrent = function () {
 			S.Extensions.EntryRelationship.current = self;
 		};
-		
+
+		var getInsertPosition = function (t) {
+			if (!!t.filter('[data-insert]').length) {
+				return t.closest('li').index();
+			}
+			return undefined;
+		};
+
 		var btnCreateClick = function (e) {
 			var t = $(this);
 			syncCurrent();
+			replaceId = undefined;
+			insertPosition = getInsertPosition(t);
 			openIframe(t.attr('data-create') || sections.val(), 'new');
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var btnLinkClick = function (e) {
 			var t = $(this);
 			syncCurrent();
 			replaceId = undefined;
+			insertPosition = getInsertPosition(t);
 			openIframe(t.attr('data-link') || sections.val());
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var btnUnlinkClick = function (e) {
 			var t = $(this);
 			syncCurrent();
@@ -498,9 +536,11 @@
 		var btnEditClick = function (e) {
 			var t = $(this);
 			syncCurrent();
-			var li = $(this).closest('li');
+			var li = t.closest('li');
 			var id = t.attr('data-edit') || li.attr('data-entry-id');
 			var section = li.attr('data-section');
+			replaceId = undefined;
+			insertPosition = undefined;
 			openIframe(section, 'edit/' + id);
 			e.stopPropagation();
 			e.preventDefault();
@@ -511,6 +551,7 @@
 			syncCurrent();
 			var li = t.closest('li');
 			var id = t.attr('data-replace') || li.attr('data-entry-id');
+			insertPosition = undefined;
 			if (!!unlink(id).changed) {
 				unlinkAndUpdateUI(li);
 				replaceId = id;

@@ -138,6 +138,7 @@ The provided actions are:
 - Collapsible selectors
     - Handle `data-collapsible-handle=""`
     - Content `data-collapsible-content=""`
+- Insert a specified index `data-insert`
 
 Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
 

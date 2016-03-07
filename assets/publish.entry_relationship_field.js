@@ -291,7 +291,9 @@
 		var hidden = t.find('input[type="hidden"]');
 		var frame = t.find('.frame');
 		var list = frame.find('ul');
-		var memento, replaceId;
+		var memento;
+		var replaceId;
+		var insertPosition = false;
 		var storageKeys = {
 			selection: 'symphony.ERF.section-selection-' + id,
 			collapsible: 'symphony.collapsible.ERF.' + id + '.collasped'

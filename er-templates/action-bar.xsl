@@ -27,7 +27,11 @@
 
 <xsl:template match="sections/section" mode="action-bar-link">
 	<xsl:param name="text" select="'Link to '" />
+	<xsl:param name="insert" select="false()" />
 	<button type="button" class="link" data-link="{@handle}">
+		<xsl:if test="$insert = true()">
+			<xsl:attribute name="data-insert" />
+		</xsl:if>
 		<xsl:value-of select="$text" />
 		<xsl:value-of select="." />
 	</button>
@@ -35,7 +39,11 @@
 
 <xsl:template match="sections/section" mode="action-bar-create">
 	<xsl:param name="text" select="'Create new '" />
+	<xsl:param name="insert" select="false()" />
 	<button type="button" class="create" data-create="{@handle}">
+		<xsl:if test="$insert = true()">
+			<xsl:attribute name="data-insert" />
+		</xsl:if>
 		<xsl:value-of select="$text" />
 		<xsl:value-of select="." />
 	</button>

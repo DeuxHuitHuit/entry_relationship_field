@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="entry_relationship_field" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+<extension id="entry_relationship_field" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Field: Entry Relationship</name>
 	<description>
 		A new way to create master-details (parent -> children) relationships with Symphony's sections.
@@ -33,7 +33,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="2.0.0.beta5" date="2016-02-22" min="2.5.1" max="2.6.x">
+		<release version="2.0.0.beta5" date="2016-02-22" min="2.5.1" max="2.x.x">
 			- Better UI for the selection of included elements (#57)
 			- Fixed frontend event form markup (#54)
 			- Allow collapsing of entries content (#16)

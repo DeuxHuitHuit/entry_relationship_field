@@ -49,5 +49,47 @@
 	</button>
 </xsl:template>
 
+<xsl:template match="entry" mode="action-bar">
+	<xsl:apply-templates select="." mode="action-bar-edit" />
+	<xsl:apply-templates select="." mode="action-bar-delete" />
+	<xsl:apply-templates select="." mode="action-bar-replace" />
+	<xsl:apply-templates select="." mode="action-bar-unlink" />
+</xsl:template>
+
+<xsl:template match="entry" mode="action-bar-edit">
+	<xsl:param name="text" select="'Edit'" />
+	<xsl:if test="../field/allow-edit = 'yes'">
+		<a class="edit ignore-collapsible" data-edit="{@id}">
+			<xsl:value-of select="$text" />
+		</a>
+	</xsl:if>
+</xsl:template>
+
+<xsl:template match="entry" mode="action-bar-delete">
+	<xsl:param name="text" select="'Delete'" />
+	<xsl:if test="../field/allow-delete = 'yes'">
+		<a class="delete ignore-collapsible" data-delete="{@id}">
+			<xsl:value-of select="$text" />
+		</a>
+	</xsl:if>
+</xsl:template>
+
+<xsl:template match="entry" mode="action-bar-replace">
+	<xsl:param name="text" select="'Replace'" />
+	<xsl:if test="../field/allow-link = 'yes'">
+		<a class="replace ignore-collapsible" data-replace="{@id}">
+			<xsl:value-of select="$text" />
+		</a>
+	</xsl:if>
+</xsl:template>
+
+<xsl:template match="entry" mode="action-bar-unlink">
+	<xsl:param name="text" select="'Remove'" />
+	<xsl:if test="../field/allow-link = 'yes' or ../field/allow-delete = 'yes'">
+		<a class="unlink ignore-collapsible" data-replace="{@id}">
+			<xsl:value-of select="$text" />
+		</a>
+	</xsl:if>
+</xsl:template>
 
 </xsl:stylesheet>

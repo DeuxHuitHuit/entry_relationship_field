@@ -13,7 +13,7 @@
 .field.field-entry_relationship > .frame {
 	margin: 0;
 }
-.field.field-entry_relationship > .frame:not(.no-header) {
+.field.field-entry_relationship > .frame:not(.no-header):not(.empty); {
 	border-top: 0;
 }
 

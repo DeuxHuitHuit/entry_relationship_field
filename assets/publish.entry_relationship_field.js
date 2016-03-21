@@ -282,11 +282,13 @@
 	};
 	
 	var initOne = function (index, t) {
-		t  = $(t);
+		t = $(t);
 		var id = t.attr('id');
 		var fieldId = t.attr('data-field-id');
 		var label = t.attr('data-field-label');
 		var debug = t.is('[data-debug]');
+		var required = t.is('[data-required="yes"]');
+		var minimum = parseInt(t.attr('data-min'), 10) || 0;
 		var sections = t.find('select.sections');
 		var hidden = t.find('input[type="hidden"]');
 		var frame = t.find('.frame');
@@ -307,11 +309,21 @@
 			if ($.isArray(val)) {
 				val = val.join(',');
 			}
+			var count = !val ? 0 : val.split(',').length;
 			var isDifferent = oldValue !== val;
 			if (isDifferent) {
 				memento = oldValue;
 				hidden.val(val);
-				ajaxSave();
+				// Only save when one of those criteria is true
+				// 1. The field is required and the minimum is reached
+				// 2. The field is optional and has the number of items is either 0 or >= minimum
+				if ((!!required && count >= minimum) ||
+					(!required && (count >= minimum || count === 0))) {
+					ajaxSave();
+				}
+				else {
+					render();
+				}
 			}
 			return isDifferent;
 		};

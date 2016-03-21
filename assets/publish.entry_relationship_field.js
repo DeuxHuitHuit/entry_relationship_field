@@ -423,7 +423,7 @@
 							}).on('collapsestop.collapsible expandstop.collapsible', collapsingChanged);
 						}
 						else {
-							list.find('li:has([data-collapsible-content]):has([data-collapsible-handle]')
+							list.find('li:has([data-collapsible-content]):has([data-collapsible-handle])')
 								.addClass('instance')
 								.trigger('updatesize.collapsible')
 								.trigger('setsize.collapsible');

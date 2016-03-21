@@ -932,7 +932,7 @@
 		{
 			$wrap = new XMLElement('div');
 			$wrapperClass = 'frame collapsible orderable';
-			if (count($entries) > 0) {
+			if (count($entries) == 0) {
 				$wrapperClass .= ' empty';
 			}
 			if (!$this->is('show_header')) {

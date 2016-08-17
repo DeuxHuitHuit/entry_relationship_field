@@ -33,6 +33,10 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="1.0.4" date="2016-08-17" min="2.5.0" max="2.6.x">
+			- Supported on PHP 7
+			- Fix params to fit parent signature
+		</release>		
 		<release version="1.0.3" date="2015-08-12" min="2.5.0" max="2.6.x">
 			- Added a un-link button.
 			- Entries can now be deleted straight from the field UI.

@@ -191,9 +191,9 @@
 		 * @param $message
 		 * @param $entry_id
 		 */
-		public function checkPostFieldData($data, &$message, $entry_id=NULL)
+		public function checkPostFieldData($data, &$message, $entry_id=null)
 		{
-			$message = NULL;
+			$message = null;
 			$required = $this->isRequired();
 			
 			if ($required && (!is_array($data) || count($data) == 0 || strlen($data['entries']) < 1)) {
@@ -263,7 +263,7 @@
 		 * @param array $settings
 		 *	the data array to initialize if necessary.
 		 */
-		public function setFromPOST(Array &$settings = array())
+		public function setFromPOST(Array $settings = array())
 		{
 			// call the default behavior
 			parent::setFromPOST($settings);
@@ -300,7 +300,7 @@
 		 *
 		 * Validates the field settings before saving it into the field's table
 		 */
-		public function checkFields(Array &$errors, $checkForDuplicates)
+		public function checkFields(Array &$errors, $checkForDuplicates = true)
 		{
 			$parent = parent::checkFields($errors, $checkForDuplicates);
 			if ($parent != self::__OK__) {
@@ -436,7 +436,7 @@
 			return $parent_entry_id;
 		}
 		
-		public function findRelatedEntries($entry_id)
+		public function findRelatedEntries($entry_id, $parent_field_id)
 		{
 			$joins = '';
 			$where = '';
@@ -543,7 +543,7 @@
 		 * @param $wrapper
 		 * @param $data
 		 */
-		public function appendFormattedElement(&$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
 		{
 			if(!is_array($data) || empty($data)) return;
 
@@ -1016,7 +1016,7 @@
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(&$wrapper, $errors=NULL)
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors=null)
 		{
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
@@ -1174,7 +1174,7 @@
 		 * @param string $fieldnamePrefix
 		 * @param string $fieldnamePostfix
 		 */
-		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL, $entry_id = null)
+		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null)
 		{
 			$entriesId = array();
 			$sectionsId = $this->getSelectedSectionsArray();
@@ -1207,7 +1207,7 @@
 			}
 			
 			// label error management
-			if ($flagWithError != NULL) {
+			if ($flagWithError != null) {
 				$wrapper->appendChild(Widget::Error($label, $flagWithError));
 			} else {
 				$wrapper->appendChild($label);

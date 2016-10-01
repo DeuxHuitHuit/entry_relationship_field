@@ -41,7 +41,7 @@
 			}
 			
 			// Validate ALL entries ID
-			$rawEntriesId = explode(',', MySQL::cleanValue($this->_context[0]));
+			$rawEntriesId = array_filter(explode(',', MySQL::cleanValue($this->_context[0])));
 			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result['error'] = __('No entry no found');

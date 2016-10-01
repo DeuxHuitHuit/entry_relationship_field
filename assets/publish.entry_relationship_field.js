@@ -731,8 +731,11 @@
 		frame.on('orderstop.orderable', '*', function () {
 			var oldValue = hidden.val();
 			var val = [];
-			list.find('li').each(function () {
-				val.push($(this).attr('data-entry-id'));
+			list.find('li[data-entry-id]').each(function () {
+				var id = $(this).attr('data-entry-id');
+				if (!!id) {
+					val.push(id);
+				}
 			});
 			saveValues(val);
 		});

@@ -40,6 +40,14 @@
 		 *  @var int
 		 */
 		protected $recursiveLevel = 1;
+		public function getRecursiveLevel()
+		{
+			return $this->recursiveLevel;
+		}
+		public function incrementRecursiveLevel($inc = 1)
+		{
+			return $this->recursiveLevel += $inc;
+		}
 		
 		/**
 		 *
@@ -47,6 +55,14 @@
 		 *  @var int
 		 */
 		protected $recursiveDeepness = null;
+		public function getRecursiveDeepness()
+		{
+			return $this->recursiveDeepness;
+		}
+		public function setRecursiveDeepness($deepness)
+		{
+			return $this->recursiveDeepness = $deepness;
+		}
 		
 		/* Cacheable Managers */
 		private $sectionManager;

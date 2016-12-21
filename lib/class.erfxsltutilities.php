@@ -150,8 +150,8 @@
 							// Special treatments for ERF
 							if ($field instanceof FieldEntry_relationship) {
 								// Increment recursive level
-								$field->recursiveLevel = $recursiveLevel + 1;
-								$field->recursiveDeepness = $deepness;
+								$field->incrementRecursiveLevel();
+								$field->setRecursiveDeepness($deepness);
 							}
 							
 							if ($parentIncludableElementMode == null) {

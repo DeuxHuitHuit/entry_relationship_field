@@ -1379,10 +1379,10 @@
 				CREATE TABLE IF NOT EXISTS `$tbl` (
 					`id` 				int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`field_id` 			int(11) unsigned NOT NULL,
-					`sections`			varchar(255) NULL COLLATE utf8_unicode_ci,
+					`sections`			varchar(2048) NULL COLLATE utf8_unicode_ci,
 					`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`deepness` 			int(2) unsigned NULL,
-					`elements` 			varchar(1024) NULL COLLATE utf8_unicode_ci,
+					`elements` 			text COLLATE utf8_unicode_ci NULL,
 					`mode`				varchar(50) NULL COLLATE utf8_unicode_ci,
 					`mode_table`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
 					`mode_header`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -1453,7 +1453,9 @@
 					ADD COLUMN `show_header` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 						AFTER `allow_collapse`,
 					ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_header`
+						AFTER `mode_header`,
+					CHANGE `sections` `sections` varchar(2048) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL,
+					CHANGE `elements` `elements` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL
 			";
 			return Symphony::Database()->query($sql);
 		}

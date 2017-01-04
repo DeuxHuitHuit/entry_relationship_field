@@ -289,6 +289,7 @@
 		var debug = t.is('[data-debug]');
 		var required = t.is('[data-required="yes"]');
 		var minimum = parseInt(t.attr('data-min'), 10) || 0;
+		var maximum = parseInt(t.attr('data-max'), 10) || 0;
 		var sections = t.find('select.sections');
 		var hidden = t.find('input[type="hidden"]');
 		var frame = t.find('.frame');
@@ -443,8 +444,10 @@
 						}
 						restoreCollapsing();
 					}
+					var createLinkBtn = t.find('[data-create],[data-link],.sections-selection');
+					var maxReached = !!maximum && li.length >= maximum;
+					createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
 				}
-				
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
 					S.Language.get('Error while rendering field “{$title}”: {$error}', {
@@ -599,7 +602,7 @@
 			catch (ex) {
 				console.error(ex);
 			}
-		}
+		};
 		
 		var sectionChanged = function (e) {
 			saveToStorage(storageKeys.selection, sections.val());
@@ -717,7 +720,7 @@
 		
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
-			sections.after($('<label />').text(sections.text()).addClass('sections'));
+			sections.after($('<label />').text(sections.text()).addClass('sections sections-selection'));
 		}
 		else if (S.Support.localStorage) {
 			var lastSelection = window.localStorage.getItem(storageKeys.selection);

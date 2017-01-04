@@ -992,12 +992,12 @@
 				$fieldset->setAttribute('class', 'single');
 				if ($this->is('allow_new') || $this->is('allow_link')) {
 					$selectWrap = new XMLElement('div');
-					$selectWrap->appendChild(new XMLElement('span', __('Related section: ')));
+					$selectWrap->appendChild(new XMLElement('span', __('Related section: '), array('class' => 'sections-selection')));
 					$options = array();
 					foreach ($sections as $section) {
 						$options[] = array($section->get('handle'), false, $section->get('name'));
 					}
-					$select = Widget::Select('', $options, array('class' => 'sections'));
+					$select = Widget::Select('', $options, array('class' => 'sections sections-selection'));
 					$selectWrap->appendChild($select);
 					$fieldset->appendChild($selectWrap);
 				}

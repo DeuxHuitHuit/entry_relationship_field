@@ -1331,7 +1331,12 @@
 				$entries = static::getEntries($data);
 				$cellcontent = '';
 				foreach ($entries as $child_entry_id) {
-					$entry = current($this->entryManager->fetch($child_entry_id));
+					$entry = $this->entryManager->fetch($child_entry_id);
+					if (!$entry || !is_array($entry) || empty($entry)) {
+						continue;
+					}
+					reset($entry);
+					$entry = current($entry);
 					$section = $this->sectionManager->fetch($entry->get('section_id'));
 					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']));
 					if ($content) {

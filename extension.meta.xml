@@ -2,7 +2,7 @@
 <extension id="entry_relationship_field" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Field: Entry Relationship</name>
 	<description>
-		A new way to create master-details (parent -> children) relationships with Symphony's sections.
+		A new way to create master-details (parent -&gt; children) relationships with Symphony's sections.
 	</description>
 	<repo type="github">https://github.com/DeuxHuitHuit/entry_relationship_field</repo>
 	<url type="discuss">http://www.getsymphony.com/discuss/thread/108680/</url>

@@ -39,6 +39,29 @@
 		}
 
 		/**
+		 * Delegate fired to add a link to Cache Management
+		 */
+		public function fetchNavigation() {
+			if (is_callable(array('Symphony', 'Author'))) {
+				$author = Symphony::Author();
+			} else {
+				$author = Administration::instance()->Author;
+			}
+
+			// Work around single group limit in nav
+			$group = $author->isDeveloper() ? 'developer' : 'manager';
+
+			return array(
+					array (
+						'location' => __('System'),
+						'name' => __('ERF Clean up'),
+						'link' => 'cleanup',
+						'limit' => $group,
+					) // nav group
+			); // nav
+		}
+
+		/**
 		 *
 		 * Appends javascript file references into the head, if needed
 		 * @param array $context

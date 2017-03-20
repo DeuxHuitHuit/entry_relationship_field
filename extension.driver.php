@@ -47,10 +47,10 @@
 			} else {
 				$author = Administration::instance()->Author;
 			}
-
+			
 			// Work around single group limit in nav
 			$group = $author->isDeveloper() ? 'developer' : 'manager';
-
+			
 			return array(
 					array (
 						'location' => __('System'),
@@ -80,7 +80,7 @@
 				);
 				Administration::instance()->Page->addScriptToHead(
 					URL . '/extensions/entry_relationship_field/assets/publish.entry_relationship_field.js',
-					time(),
+					10,
 					false
 				);
 				

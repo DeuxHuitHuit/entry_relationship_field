@@ -18,18 +18,23 @@
 			$this->className = $className;
 		}
 		
-		public function fetch($id) {
+		public function fetch($id, $secondId = null) {
 			$args = func_get_args();
+			if (!$id || $secondId) {
+				$id = sha1(serialize($args));
+			}
 			if ($id && isset($this->cache[$id])) {
 				return $this->cache[$id];
 			}
 			$ret = forward_static_call_array(array($this->className, 'fetch'), $args);
-			if (is_array($ret)) {
-				foreach ($ret as $key => $value) {
-					$this->cache[$key] = $value;
+			if ($id) {
+				if (is_array($ret)) {
+					foreach ($ret as $key => $value) {
+						$this->cache[$key] = $value;
+					}
+				} else {
+					$this->cache[$id] = $ret;
 				}
-			} else {
-				$this->cache[$id] = $ret;
 			}
 			return $ret;
 		}

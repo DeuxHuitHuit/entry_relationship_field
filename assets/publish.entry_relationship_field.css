@@ -6,14 +6,38 @@
 /**
  * CSS for entry/reverse relationship field
  */
-.field.field-entry_relationship {
-	
+
+.field-entry_relationship > label {
+	position: static;
+	margin-bottom: 1rem!important;
 }
 
-.field.field-entry_relationship > .frame,
-.field.field-reverse_relationship > .frame {
+.field-entry_relationship {
+	position: relative; padding-bottom: 0.8rem;
+}
+
+.field.field-entry_relationship > .frame {
+	margin: 1rem 0;
+	background: none;
+}
+
+.field.field-entry_relationship > .frame ul,
+.field.field-entry_relationship > .frame ol {
 	margin: 0;
 }
+
+.field.field-entry_relationship > .frame .frame-header {
+	transition: background 0.45s;
+}
+
+.field.field-entry_relationship > .frame .ordering .frame-header {
+	background: #2f77eb;
+}
+
+.field.field-entry_relationship > .frame .ordering * {
+	color: #fff;
+}
+
 .field.field-entry_relationship > .frame:not(.no-header):not(.empty); {
 	border-top: 0;
 }
@@ -22,25 +46,30 @@
 	border-bottom: none;
 }
 
-.field.field-reverse_relationship > .frame .frame-header.no-content {
-	cursor: auto;
-}
-
-.field.field-entry_relationship fieldset.single,
-.field.field-reverse_relationship fieldset.single {
-	text-align: right;
-}
-
-.field.field-entry_relationship fieldset.single > button,
-.field.field-reverse_relationship fieldset.single > button {
+.field.field-entry_relationship fieldset.single > button {
 	margin-right: 0px;
 	margin-left: 1rem;
 	margin-bottom: 1rem;
 }
 
 .field.field-entry_relationship fieldset.single > div {
-	min-width: 150px;
-	display: inline-block;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	min-width: 250px;
+}
+
+.field.field-entry_relationship fieldset.single > div > div {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.field.field-entry_relationship fieldset.single > div > button {
+	margin: 0 0 0 1rem;
 }
 
 .field.field-entry_relationship .destructor a,
@@ -49,6 +78,10 @@
 	display: inline-block;
 	padding: 0 5px;
 	border-bottom: none;
+}
+
+.field.field-entry_relationship .destructor a:hover {
+	color: #3B3D40;
 }
 
 .field.field-entry_relationship .destructor a.edit:hover {
@@ -69,11 +102,9 @@
 	white-space: pre-wrap;
 }
 
-.field.field-entry_relationship .sections,
-.field.field-reverse_relationship .reverse-selection {
-	display: inline-block;
+.field.field-entry_relationship .sections {
 	width: auto;
-	margin: 0;
+	margin: 0 0 0 1rem!important;
 }
 
 .field.field-entry_relationship select.sections {
@@ -110,8 +141,7 @@
  * CSS for entry relationship field iframe
  */
 #entry-relationship-ctn {
-	background-color: #282828;
-	background-color: rgba(40, 40, 40, 0);
+	background-color: rgba(241, 241, 241, 0);
 	position: fixed;
 	z-index: 10000;
 	top: 0;
@@ -119,7 +149,7 @@
 	bottom: 0;
 	right: 0;
 	overflow: hidden;
-	
+
 	visibility: collapse;
 	opacity: 1;
 	pointer-events: none;
@@ -130,10 +160,11 @@
 }
 
 #entry-relationship-ctn.show {
-	background-color: rgba(40, 40, 40, 0.7);
+	background: rgba(241, 241, 241, 0.9);
 	visibility: visible;
 	opacity: 1;
 	pointer-events: all;
+	cursor: pointer;
 	-webkit-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
 	-moz-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
 	-ms-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
@@ -141,51 +172,50 @@
 }
 
 #entry-relationship-ctn > .iframe {
-	opacity: 0.3;
-	position: absolute;
-	-webkit-box-shadow: 0 .4rem .5rem rgba(0, 0, 0, 0.03),0 7px 15px -5px rgba(0, 0, 0, 0.15);
-	box-shadow: 0 .4rem .5rem rgba(0, 0, 0, 0.03),0 7px 15px -5px rgba(0, 0, 0, 0.15);
+	transition: opacity 200ms ease-in;
 	box-sizing: border-box;
-	background-color: #fff;
-	-webkit-transition: -webkit-transform 100ms ease-in, opacity 200ms ease-in;
-	-moz-transition: -moz-transform 100ms ease-in, opacity 200ms ease-in;
-	-ms-transition: -ms-transform 100ms ease-in, opacity 200ms ease-in;
-	transition: transform 100ms ease-in, opacity 200ms ease-in;
-	-webkit-transform: translate(15%, 0%);
-	transform: translate(15%, 0%);
+	position: absolute;
 	top: 0;
-	left: 50%;
+	left: 0;
+	background-color: #fff;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
 }
 
 #entry-relationship-ctn.show > .iframe {
 	opacity: 1;
-	-webkit-transform: translate(0%, 0%);
-	transform: translate(0%, 0%);
 }
 
 #entry-relationship-ctn.show > .iframe > iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
 	opacity: 1;
-	display: none;
 }
-
-#entry-relationship-ctn > button {
-	
-}
-
 
 /**
  * CSS for entry relationship field page customization
  */
+
 html.no-scroll {
 	overflow: hidden;
 }
+
 body.entry_relationship {
-	
+	padding-left: 0;
 }
 
-body.entry_relationship #save-and-new, 
-body.entry_relationship #save-and-return,
-body.entry_relationship button.delete {
+body.entry_relationship #contents .actions > *:nth-child(n + 2),
+body.entry_relationship .notifier {
 	display: none;
 }
 
+body.entry_relationship #header,
+body.entry_relationship #breadcrumbs nav {
+	display: none;
+}
+
+body.entry_relationship #context {
+	left: 0;
+}

@@ -9,9 +9,9 @@
 
 /* Publish page customization */
 (function ($, S) {
-	
+
 	'use strict';
-	
+
 	var win = $(window);
 	var html = $('html');
 	var body = $();
@@ -19,7 +19,7 @@
 	var loc = window.location.toString();
 	var opacity = 0.7;
 	var opacityFactor = 0.1;
-	
+
 	var updateOpacity = function(direction) {
 		if (direction !== -1) {
 			direction = 1;
@@ -29,12 +29,12 @@
 		color = color.replace(/rgba\((\d+,)\s*(\d+,)\s*(\d+,)\s*[^\)]+\)/i, 'rgba($1 $2 $3 ' + opacity + ')');
 		ctn.css('background-color', color);
 	};
-	
+
 	var removeUI = function () {
 		var parent = window.parent.Symphony.Extensions.EntryRelationship;
 		var saved = loc.indexOf('/saved/') !== -1;
 		var created = loc.indexOf('/created/') !== -1;
-		
+
 		if (saved || created) {
 			if (created) {
 				parent.link(S.Context.get().env.entry_id);
@@ -42,18 +42,18 @@
 			parent.hide(true);
 			return;
 		}
-		
+
 		var form = S.Elements.contents.find('form');
-		
+
 		if (!!parent) {
 			// block already link items
 			$.each(parent.current.values(), function (index, value) {
 				form.find('#id-' + value).addClass('inactive er-already-linked');
 			});
 		}
-		
+
 		body.addClass('entry_relationship');
-		
+
 		// remove everything in header, except notifier
 		S.Elements.header.children().not('.notifier').remove();
 		// Remove everything from the notifier except errors
@@ -65,7 +65,10 @@
 			td.remove();
 		});
 		// Close support
-		var btnClose = $('<button />').attr('type', 'button').text('Close').click(function (e) {
+		form.removeAttr('style');
+		S.Elements.contents.find('#drawer-section-associations').remove();
+		S.Elements.context.find('#drawer-filtering').remove();
+		var btnClose = $('<button />').attr('type', 'button').append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="19.9px" height="19.9px" viewBox="0 0 19.9 19.9"><path fill="currentColor" d="M1,19.9c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4L18.2,0.3c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4L1.7,19.6C1.5,19.8,1.3,19.9,1,19.9z"/><path fill="currentColor" d="M18.9,19.9c-0.3,0-0.5-0.1-0.7-0.3L0.3,1.7c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l17.9,17.9c0.4,0.4,0.4,1,0,1.4C19.4,19.8,19.2,19.9,18.9,19.9z"/></svg>').append('<span><span>Close</span></span>').click(function (e) {
 			parent.cancel();
 			parent.hide();
 		});
@@ -78,14 +81,18 @@
 				return false;
 			}
 		});
+
 		// Drawers support
 		S.Elements.context.find('.drawer-filtering').remove(); // TODO: remove and support it
 		S.Elements.wrapper.find('.actions').filter(function () {
+		S.Elements.wrapper.removeClass('drawer-vertical-right');
+		S.Elements.wrapper.find('#context .actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).find('li').filter(function () {
 			return !$(this).find('a[href^="#drawer-"]').length || !!$(this).find('a[href^="#drawer-filtering"]').length;
 		}).remove().end().end().prepend(btnCloseWrapper);
-		
+		}).empty().append(btnClose).wrapInner('<li></li>');
+
 		// makes all link open in new window/tab
 		form.find('table tr td a').attr('target', '_blank');
 		// disable breadcrumbs links
@@ -96,15 +103,15 @@
 		form.find('table tr td').css('cursor', 'pointer').click(function (e) {
 			var t = $(this);
 			var target = $(e.target);
-			
+
 			e.preventDefault();
-			
+
 			// click on a link, but not in the first td
 			if (!!target.closest('a').length && !target.closest('tr td:first-child').length) {
 				// bail out
 				return true;
 			}
-			
+
 			if (!t.closest('.er-already-linked').length) {
 				var tr = t.closest('tr');
 				var entryId = tr.attr('id').replace('id-', '');
@@ -113,12 +120,12 @@
 				parent.link(entryId, timestamp);
 				parent.hide();
 			}
-			
+
 			return false;
 		});
 		win.focus();
 	};
-	
+
 	var appendUI = function () {
 		ctn = $('<div id="entry-relationship-ctn" />');
 		body.append(ctn);
@@ -127,36 +134,7 @@
 			S.Extensions.EntryRelationship.hide();
 		});
 	};
-	
-	var resizeIframe = function (iframe) {
-		var pad = 7;
-		var parent = window.parent !== window;
-		var offsetY = !parent ?
-			S.Elements.header.outerHeight() + S.Elements.context.outerHeight() + S.Elements.nav.outerHeight() :
-			S.Elements.context.outerHeight();
-		var scrollY = win.scrollTop();
-		offsetY = Math.max(pad, offsetY - scrollY);
-		var css = {
-			left: pad + 'px',
-			top: offsetY + 'px',
-			width: 0,
-			height: 0
-		};
-		css.width = (win.width() - pad) + 'px';
-		css.height = (win.height() - offsetY) + 'px';
-		iframe
-			.attr('width', css.width)
-			.attr('height', css.height)
-		.closest('.iframe')
-			.css(css);
-			
-		return iframe;
-	};
-	
-	var resize = function () {
-		resizeIframe(ctn.find('iframe'));
-	};
-	
+
 	var defineExternals = function () {
 		var self = {
 			hide: function (reRender) {
@@ -184,16 +162,15 @@
 			show: function (url) {
 				var ictn = $('<div />').attr('class', 'iframe');
 				var iframe = $('<iframe />').attr('src', url);
-				
+
 				html.addClass('no-scroll');
 				ictn.append(iframe);
-				resizeIframe(iframe);
 				ctn.empty().append(ictn);
-				
+
 				S.Utilities.requestAnimationFrame(function () {
 					ctn.addClass('show');
 					ctn.find('.iframe>iframe').css('opacity', 0).delay(300).fadeTo(1, 250);
-					
+
 					if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
 						window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(1);
 					}
@@ -217,50 +194,49 @@
 			instances: {},
 			current: null
 		};
-		
+
 		// export
 		S.Extensions.EntryRelationship = self;
 	};
-	
+
 	var init = function () {
 		body = $('body');
 		if (body.is('#publish')) {
-			var er = window.parent !== window && window.parent.Symphony && 
+			var er = window.parent !== window && window.parent.Symphony &&
 				window.parent.Symphony.Extensions.EntryRelationship;
 			if (!!er && !!er.current) {
 				// child (iframe)
 				removeUI();
 			}
-			
+
 			// parent (can always be parent)
 			appendUI();
-			win.resize(resize);
 		}
 	};
-	
+
 	defineExternals();
-	
+
 	$(init);
-	
+
 })(jQuery, Symphony);
 
 /* Field behavior */
 (function ($, S) {
-	
+
 	'use strict';
-	
+
 	var doc = $(document);
 	var notifier;
 	var entryId = S.Context.get().env.entry_id;
-	
+
 	var identity = function (x) {
 		return !!x;
 	};
-	
+
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
-	
+
 	var createPublishUrl = function (handle, action) {
 		var url = baseurl() + '/publish/' + handle + '/';
 		if (!!action) {
@@ -269,13 +245,13 @@
 		url += '?no-lse-redirect';
 		return url;
 	};
-	
+
 	var CONTENTPAGES = '/extension/entry_relationship_field/';
 	var RENDER = baseurl() + CONTENTPAGES +'render/';
 	var SAVE = baseurl() + CONTENTPAGES +'save/';
 	var DELETE = baseurl() + CONTENTPAGES +'delete/';
 	var SEARCH = baseurl() + CONTENTPAGES +'search/';
-	
+
 	var renderurl = function (value, fieldid, debug) {
 		var url = RENDER + (value || 'null') + '/';
 		url += fieldid + '/';
@@ -284,14 +260,14 @@
 		}
 		return url;
 	};
-	
+
 	var saveurl = function (value, fieldid, entryid) {
 		var url = SAVE + (value || 'null') + '/';
 		url += fieldid + '/';
 		url += entryid + '/';
 		return url;
 	};
-	
+
 	var searchurl = function (section, entries) {
 		var url = SEARCH + section + '/';
 		if (entries) {
@@ -299,40 +275,40 @@
 		}
 		return url;
 	};
-	
+
 	var postdata = function (timestamp) {
 		return {
 			timestamp: timestamp || $('input[name="action[timestamp]"]').val(),
 			xsrf: S.Utilities.getXSRF()
 		};
 	};
-	
+
 	var updateTimestamp = function (t) {
 		$('input[name="action[timestamp]"]').val(t || '');
 	};
-	
+
 	var deleteurl = function (entrytodeleteid, fieldid, entryid) {
 		var url = DELETE + entrytodeleteid + '/';
 		url += fieldid + '/';
 		url += entryid + '/';
 		return url;
 	};
-	
+
 	var gotourl = function (section, entry_id) {
 		return baseurl() + '/publish/' + section + '/edit/' + entry_id + '/';
 	};
-	
+
 	var openIframe = function (handle, action) {
 		S.Extensions.EntryRelationship.show(createPublishUrl(handle, action));
 	};
-	
+
 	var syncCurrent = function (self) {
 		S.Extensions.EntryRelationship.current = self;
 	};
-	
+
 	var link = function (val, entryId) {
 		var found = false;
-		
+
 		for (var x = 0; x < val.length; x++) {
 			if (!val[x]) {
 				val.splice(x, 1);
@@ -349,7 +325,7 @@
 	};
 	var unlink = function (val, entryId) {
 		var found = false;
-		
+
 		for (var x = 0; x < val.length; x++) {
 			if (!val[x] || val[x] === entryId) {
 				val.splice(x, 1);
@@ -361,7 +337,7 @@
 	};
 	var replace = function (val, entryId, replaceId) {
 		var found = false;
-		
+
 		for (var x = 0; x < val.length; x++) {
 			if (!val[x] || val[x] === replaceId) {
 				val[x] = entryId;
@@ -389,7 +365,7 @@
 		val.changed = !found;
 		return val;
 	};
-	
+
 	var initOneEntryField = function (index, t) {
 		t = $(t);
 		var id = t.attr('id');
@@ -437,16 +413,17 @@
 			}
 			return isDifferent;
 		};
+
 		var updateActionBar = function (li) {
 			var createLinkBtn = t.find('[data-create],[data-link],.sections-selection, [data-interactive].search');
 			var maxReached = !!maximum && li.length >= maximum;
 			createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
 		};
-		
+
 		var updateSearchUrl = function () {
 			t.find('[data-search]').attr('data-url', searchurl(sections.val(), hidden.val()));
 		};
-		
+
 		var isRendering = false;
 		var render = function () {
 			if (isRendering) {
@@ -462,7 +439,7 @@
 				var error = data.find('error');
 				var li = data.find('li');
 				var fx = !li.length ? 'addClass' : 'removeClass';
-				
+
 				if (!!error.length) {
 					list.empty().append(
 						$('<li />').text(
@@ -477,7 +454,7 @@
 				else {
 					list.empty().append(li);
 					frame[fx]('empty');
-					
+
 					if (!list.hasClass('orderable') && !!list.find('[data-orderable-handle]').length) {
 						list.symphonyOrderable({
 							items: 'li:has([data-orderable-handle])',
@@ -540,7 +517,7 @@
 			},
 			unlink: function (entryId) {
 				var val = unlink(values(), entryId);
-				
+
 				if (!!val.changed) {
 					saveValues(val);
 				}
@@ -555,7 +532,7 @@
 				insertPosition = undefined;
 			}
 		};
-		
+
 		var unlinkAndUpdateUI = function (li, id) {
 			if (!!id) {
 				self.unlink(id);
@@ -637,7 +614,7 @@
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var btnDeleteClick = function (e) {
 			var t = $(this);
 			syncCurrent(self);
@@ -653,7 +630,7 @@
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var searchChange = function (e) {
 			syncCurrent(self);
 			var input = t.find('[data-search]');
@@ -665,7 +642,7 @@
 				self.link(id);
 			}
 		};
-		
+
 		var saveToStorage = function (key, value) {
 			if (!S.Support.localStorage) {
 				return;
@@ -677,11 +654,11 @@
 				console.error(ex);
 			}
 		};
-		
+
 		var sectionChanged = function (e) {
 			saveToStorage(storageKeys.selection, sections.val());
 		};
-		
+
 		var collapsingChanged = function (e) {
 			var collapsed = [];
 			list.filter('.orderable').find('.instance.collapsed').each(function (index, elem) {
@@ -689,7 +666,7 @@
 			});
 			saveToStorage(storageKeys.collapsible, collapsed.join(','));
 		};
-		
+
 		var restoreCollapsing = function (e) {
 			if (!S.Support.localStorage) {
 				return;
@@ -699,7 +676,7 @@
 				list.find('.instance[data-entry-id="' + id + '"]').trigger('collapse.collapsible', [0]);
 			});
 		};
-		
+
 		var ajaxSaveTimeout = 0;
 		var ajaxSave = function () {
 			clearTimeout(ajaxSaveTimeout);
@@ -744,7 +721,7 @@
 				});
 			}, 200);
 		};
-		
+
 		var ajaxDelete = function (entryToDeleteId, success, noAssoc) {
 			noAssoc = noAssoc === true ? '?no-assoc' : '';
 			$.post(deleteurl(entryToDeleteId, fieldId, entryId) + noAssoc, postdata())
@@ -791,7 +768,7 @@
 				]);
 			});
 		};
-		
+
 		t.on('click', '[data-create]', btnCreateClick);
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', btnUnlinkClick);
@@ -812,7 +789,7 @@
 				searchChange(e);
 			}
 		});
-		
+
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
 			sections.after($('<label />').text(sections.text()).addClass('sections sections-selection'));
@@ -829,7 +806,7 @@
 			}
 			sections.on('change', updateSearchUrl);
 		}
-		
+
 		frame.on('orderstop.orderable', '*', function () {
 			var oldValue = hidden.val();
 			var val = [];
@@ -841,14 +818,14 @@
 			});
 			saveValues(val);
 		});
-		
+
 		// render
 		render();
-		
+
 		// export
 		S.Extensions.EntryRelationship.instances[id] = self;
 	};
-	
+
 	var initOneReverseField = function (index, t) {
 		t = $(t);
 		var id = t.attr('id');
@@ -872,7 +849,7 @@
 				var error = data.find('error');
 				var li = data.find('li');
 				var fx = !li.length ? 'addClass' : 'removeClass';
-				
+
 				if (!!error.length) {
 					list.empty().append(
 						$('<li />').text(
@@ -900,7 +877,7 @@
 				isRendering = false;
 			});
 		};
-		
+
 		var values = function () {
 			if ($.isArray(entries)) {
 				return entries;
@@ -908,7 +885,7 @@
 			return entries.split(',').filter(identity);
 		};
 		var memento = [].concat(values());
-		
+
 		var self = {
 			link: function (entryId, timestamp) {
 				entries = link(values(), entryId);
@@ -927,7 +904,7 @@
 				dirty = false;
 			}
 		};
-		
+
 		var unlinkAndUpdateUI = function (li, id, timestamp) {
 			if (!!id) {
 				self.unlink(id, timestamp);
@@ -937,14 +914,14 @@
 				frame.addClass('empty');
 			}
 		};
-		
+
 		var btnGotoClick = function (e) {
 			var t = $(this);
 			window.location = gotourl(section, t.attr('data-goto'));
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var btnUnlinkClick = function (e) {
 			var t = $(this);
 			syncCurrent(self);
@@ -956,7 +933,7 @@
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var btnAddClick = function (e) {
 			var t = $(this);
 			syncCurrent(self);
@@ -964,7 +941,7 @@
 			e.stopPropagation();
 			e.preventDefault();
 		};
-		
+
 		var ajaxSaveTimeout = 0;
 		var ajaxSave = function (op, entryId, timestamp) {
 			clearTimeout(ajaxSaveTimeout);
@@ -1009,24 +986,24 @@
 				});
 			}, 200);
 		};
-		
+
 		t.on('click', '[data-goto]', btnGotoClick);
 		t.on('click', '[data-unlink]', btnUnlinkClick);
 		t.on('click', '[data-add]', btnAddClick);
-		
+
 		// render
 		render();
-		
+
 		// export
 		S.Extensions.EntryRelationship.instances[id] = self;
 	};
-	
+
 	var init = function () {
 		notifier = S.Elements.header.find('div.notifier');
 		S.Elements.contents.find('.field.field-entry_relationship').each(initOneEntryField);
 		S.Elements.contents.find('.field.field-reverse_relationship').each(initOneReverseField);
 	};
-	
+
 	$(init);
-	
+
 })(jQuery, Symphony);

@@ -1,0 +1,43 @@
+/**
+ * CSS for entry relationship cleanup
+ */
+
+.form-title {
+	color: #2f77eb;
+	font-size: 2.4rem;
+	font-weight: 300;
+	margin-bottom: 3rem;
+}
+
+.container-table .js-table-entries > td {
+	padding: 0!important;
+}
+
+.container-table .js-table-entries > td:before {
+	display: none;
+}
+
+.container-table table {
+	border-radius: 0;
+	border: none;
+}
+
+.container-table table th {
+	background: #f4f8fb;
+}
+
+.container-table table th:last-child,
+.container-table table td:last-child {
+	display: none;
+}
+
+@media (max-width: 1023px) {
+	.container-table table th:last-child,
+	.container-table table td:last-child {
+		display: block;
+	}
+
+	.container-table table tr:first-child td {
+		border-top: none!important;
+	}
+}

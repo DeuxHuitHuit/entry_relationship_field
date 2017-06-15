@@ -1,12 +1,12 @@
 <?php
 	/*
 	Copyright: Deux Huit Huit 2014
-	LICENCE: MIT http://deuxhuithuit.mit-license.org;
+	LICENCE: MIT https://deuxhuithuit.mit-license.org
 	*/
 
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
-	require_once(TOOLKIT . '/class.field.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.field.relationship.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 	
@@ -16,23 +16,14 @@
 	 * @author Deux Huit Huit
 	 *
 	 */
-	class FieldEntry_relationship extends Field
+	class FieldEntry_Relationship extends FieldRelationship
 	{
-		
 		/**
 		 *
 		 * Name of the field table
 		 *  @var string
 		 */
 		const FIELD_TBL_NAME = 'tbl_fields_entry_relationship';
-		
-		/**
-		 * 
-		 * Separator char for values
-		 *  @var string
-		 */
-		const SEPARATOR = ',';
-		
 		
 		/**
 		 *
@@ -70,7 +61,7 @@
 		
 		/**
 		 *
-		 * Constructor for the oEmbed Field object
+		 * Constructor for the Entry_Relationship Field object
 		 */
 		public function __construct()
 		{
@@ -88,6 +79,8 @@
 			$this->recursiveLevel = 1;
 			// parent's maximum recursive level of output
 			$this->recursiveDeepness = null;
+			// set as orderable
+			$this->orderable = true;
 			// set as not required by default
 			$this->set('required', 'no');
 			// show association by default
@@ -161,39 +154,6 @@
 		public function allowDatasourceParamOutput()
 		{
 			return true;
-		}
-
-		/**
-		 * @param string $name
-		 */
-		public function getInt($name)
-		{
-			return General::intval($this->get($name));
-		}
-
-		/**
-		 * Check if a given property is == 'yes'
-		 * @param string $name
-		 * @return bool
-		 *  True if the current field's value is 'yes'
-		 */
-		public function is($name)
-		{
-			return $this->get($name) == 'yes';
-		}
-
-		/**
-		 * @return bool
-		 *  True if the current field is required
-		 */
-		public function isRequired()
-		{
-			return $this->is('required');
-		}
-
-		public static function getEntries(array $data)
-		{
-			return array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
 		}
 
 		/* ********** INPUT AND FIELD *********** */
@@ -870,50 +830,6 @@
 			return $mode;
 		}
 
-		/**
-		 * @param string $prefix
-		 * @param string $name
-		 * @param @optional bool $multiple
-		 */
-		private function createFieldName($prefix, $name, $multiple = false)
-		{
-			$name = "fields[$prefix][$name]";
-			if ($multiple) {
-				$name .= '[]';
-			}
-			return $name;
-		}
-		
-		/**
-		 * @param string $name
-		 */
-		private function createSettingsFieldName($name, $multiple = false)
-		{
-			return $this->createFieldName($this->get('sortorder'), $name, $multiple);
-		}
-		
-		/**
-		 * @param string $name
-		 */
-		private function createPublishFieldName($name, $multiple = false)
-		{
-			return $this->createFieldName($this->get('element_name'), $name, $multiple);
-		}
-		
-		private function getSelectedSectionsArray()
-		{
-			$selectedSections = $this->get('sections');
-			if (!is_array($selectedSections)) {
-				if (is_string($selectedSections) && strlen($selectedSections) > 0) {
-					$selectedSections = explode(self::SEPARATOR, $selectedSections);
-				}
-				else {
-					$selectedSections = array();
-				}
-			}
-			return $selectedSections;
-		}
-		
 		private function buildSectionSelect($name)
 		{
 			$sections = SectionManager::fetch();
@@ -923,12 +839,12 @@
 			foreach ($sections as $section) {
 				$driver = $section->get('id');
 				$selected = in_array($driver, $selectedSections);
-				$options[] = array($driver, $selected, $section->get('name'));
+				$options[] = array($driver, $selected, General::sanitize($section->get('name')));
 			}
 			
 			return Widget::Select($name, $options, array('multiple' => 'multiple'));
-		} 
-		
+		}
+
 		private function appendSelectionSelect(&$wrapper)
 		{
 			$name = $this->createSettingsFieldName('sections', true);
@@ -944,29 +860,6 @@
 			$wrapper->appendChild($label);
 		}
 
-		private function createEntriesList($entries)
-		{
-			$wrap = new XMLElement('div');
-			$wrapperClass = 'frame collapsible orderable';
-			if (count($entries) == 0) {
-				$wrapperClass .= ' empty';
-			}
-			if (!$this->is('show_header')) {
-				$wrapperClass .= ' no-header';
-			}
-			$wrap->setAttribute('class', $wrapperClass);
-			
-			$list = new XMLElement('ul');
-			$list->setAttribute('class', '');
-			if ($this->is('allow_collapse')) {
-				$list->setAttribute('data-collapsible', '');
-			}
-			
-			$wrap->appendChild($list);
-			
-			return $wrap;
-		}
-		
 		private function createEntriesHiddenInput($data)
 		{
 			$hidden = new XMLElement('input', null, array(
@@ -1163,22 +1056,6 @@
 			
 			// footer
 			$this->appendStatusFooter($wrapper);
-		}
-		
-		/**
-		 * @param string $fieldName
-		 * @param string $text
-		 */
-		private function createCheckbox($fieldName, $text) {
-			$chk = Widget::Label();
-			$chk->setAttribute('class', 'column');
-			$attrs = null;
-			if ($this->get($fieldName) == 'yes') {
-				$attrs = array('checked' => 'checked');
-			}
-			$chk->appendChild(Widget::Input($this->createSettingsFieldName($fieldName), 'yes', 'checkbox', $attrs));
-			$chk->setValue(__($text));
-			return $chk;
 		}
 
 		/**

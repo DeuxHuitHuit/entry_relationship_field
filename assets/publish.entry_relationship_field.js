@@ -277,11 +277,79 @@
 		return url;
 	};
 	
+	var gotourl = function (section, entry_id) {
+		return baseurl() + '/publish/' + section + '/edit/' + entry_id + '/';
+	};
+	
 	var openIframe = function (handle, action) {
 		S.Extensions.EntryRelationship.show(createPublishUrl(handle, action));
 	};
 	
-	var initOne = function (index, t) {
+	var syncCurrent = function (self) {
+		S.Extensions.EntryRelationship.current = self;
+	};
+	
+	var link = function (val, entryId) {
+		var found = false;
+		
+		for (var x = 0; x < val.length; x++) {
+			if (!val[x]) {
+				val.splice(x, 1);
+			} else if (val[x] === entryId) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			val.push(entryId);
+		}
+		val.changed = !found;
+		return val;
+	};
+	var unlink = function (val, entryId) {
+		var found = false;
+		
+		for (var x = 0; x < val.length; x++) {
+			if (!val[x] || val[x] === entryId) {
+				val.splice(x, 1);
+				found = true;
+			}
+		}
+		val.changed = found;
+		return val;
+	};
+	var replace = function (val, entryId) {
+		var found = false;
+		
+		for (var x = 0; x < val.length; x++) {
+			if (!val[x] || val[x] === replaceId) {
+				val[x] = entryId;
+				found = true;
+			}
+		}
+		val.changed = found;
+		return val;
+	};
+	var insert = function (val, insertPosition, entryId) {
+		var found = false;
+		for (var x = 0; x < val.length; x++) {
+			if (!val[x] || val[x] === entryId) {
+				found = true;
+			}
+		}
+		if (!found) {
+			if (insertPosition >= val.length) {
+				val.push(entryId);
+			}
+			else {
+				val.splice(insertPosition + 1, 0, entryId);
+			}
+		}
+		val.changed = !found;
+		return val;
+	};
+	
+	var initOneEntryField = function (index, t) {
 		t = $(t);
 		var id = t.attr('id');
 		var fieldId = t.attr('data-field-id');
@@ -328,69 +396,7 @@
 			}
 			return isDifferent;
 		};
-		var link = function (entryId) {
-			var val = values();
-			var found = false;
-			
-			for (var x = 0; x < val.length; x++) {
-				if (!val[x]) {
-					val.splice(x, 1);
-				} else if (val[x] === entryId) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				val.push(entryId);
-			}
-			val.changed = !found;
-			return val;
-		};
-		var unlink = function (entryId) {
-			var val = values();
-			var found = false;
-			
-			for (var x = 0; x < val.length; x++) {
-				if (!val[x] || val[x] === entryId) {
-					val.splice(x, 1);
-					found = true;
-				}
-			}
-			val.changed = found;
-			return val;
-		};
-		var replace = function (entryId) {
-			var val = values();
-			var found = false;
-			
-			for (var x = 0; x < val.length; x++) {
-				if (!val[x] || val[x] === replaceId) {
-					val[x] = entryId;
-					found = true;
-				}
-			}
-			val.changed = found;
-			return val;
-		};
-		var insert = function (entryId) {
-			var val = values();
-			var found = false;
-			for (var x = 0; x < val.length; x++) {
-				if (!val[x] || val[x] === entryId) {
-					found = true;
-				}
-			}
-			if (!found) {
-				if (insertPosition >= val.length) {
-					val.push(entryId);
-				}
-				else {
-					val.splice(insertPosition + 1, 0, entryId);
-				}
-			}
-			val.changed = !found;
-			return val;
-		};
+		
 		var isRendering = false;
 		var render = function () {
 			if (isRendering || !hidden.val()) {
@@ -464,13 +470,13 @@
 			link: function (entryId) {
 				var val;
 				if (!!replaceId) {
-					val = replace(entryId);
+					val = replace(values(), entryId);
 				}
 				else if (insertPosition !== undefined) {
-					val = insert(entryId);
+					val = insert(values(), insertPosition, entryId);
 				}
 				else {
-					val = link(entryId);
+					val = link(values(), entryId);
 				}
 
 				if (!!val.changed) {
@@ -480,7 +486,7 @@
 				insertPosition = undefined;
 			},
 			unlink: function (entryId) {
-				var val = unlink(entryId);
+				var val = unlink(values(), entryId);
 				
 				if (!!val.changed) {
 					saveValues(val);
@@ -507,10 +513,6 @@
 			}
 		}
 
-		var syncCurrent = function () {
-			S.Extensions.EntryRelationship.current = self;
-		};
-
 		var getInsertPosition = function (t) {
 			if (!!t.filter('[data-insert]').length) {
 				return t.closest('li').index();
@@ -520,7 +522,7 @@
 
 		var btnCreateClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			replaceId = undefined;
 			insertPosition = getInsertPosition(t);
 			openIframe(t.attr('data-create') || sections.val(), 'new');
@@ -530,7 +532,7 @@
 
 		var btnLinkClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			replaceId = undefined;
 			insertPosition = getInsertPosition(t);
 			openIframe(t.attr('data-link') || sections.val());
@@ -540,7 +542,7 @@
 
 		var btnUnlinkClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			var li = t.closest('li');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
 			unlinkAndUpdateUI(li, id);
@@ -550,7 +552,7 @@
 
 		var btnEditClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			var li = t.closest('li');
 			var id = t.attr('data-edit') || li.attr('data-entry-id');
 			var section = li.attr('data-section');
@@ -563,11 +565,11 @@
 
 		var btnReplaceClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			var li = t.closest('li');
 			var id = t.attr('data-replace') || li.attr('data-entry-id');
 			insertPosition = undefined;
-			if (!!unlink(id).changed) {
+			if (!!unlink(values(), id).changed) {
 				unlinkAndUpdateUI(li);
 				replaceId = id;
 				openIframe(sections.val());
@@ -578,7 +580,7 @@
 		
 		var btnDeleteClick = function (e) {
 			var t = $(this);
-			syncCurrent();
+			syncCurrent(self);
 			var li = $(this).closest('li');
 			var id = t.attr('data-delete') || li.attr('data-entry-id');
 			var section = li.attr('data-section');
@@ -641,7 +643,7 @@
 					var msg = hasError ?
 						S.Language.get('Error while saving field “{$title}”. {$error}', {
 							title: label,
-							error: data.error
+							error: data.error || ''
 						}) :
 						S.Language.get('The field “{$title}” has been saved', {
 							title: label
@@ -684,7 +686,7 @@
 				var msg = hasError ?
 					S.Language.get('Error while deleting entry “{$id}”. {$error}', {
 						id: entryToDeleteId,
-						error: data.error
+						error: data.error || ''
 					}) :
 					S.Language.get('The entry “{$id}” has been deleted', {
 						id: entryToDeleteId,
@@ -750,9 +752,174 @@
 		S.Extensions.EntryRelationship.instances[id] = self;
 	};
 	
+	var initOneReverseField = function (index, t) {
+		t = $(t);
+		var id = t.attr('id');
+		var fieldId = t.attr('data-field-id');
+		var debug = t.is('[data-debug]');
+		var entries = t.attr('data-entries') || '';
+		var section = t.attr('data-linked-section');
+		var linkedFieldId = t.attr('data-linked-field-id');
+		var label = t.attr('data-field-label');
+		var frame = t.find('.frame');
+		var list = frame.find('ul');
+		var isRendering = false;
+		var dirty = false;
+		var render = function () {
+			if (isRendering || !entries) {
+				return;
+			}
+			isRendering = true;
+			$.get(renderurl(entries, fieldId, debug)).done(function (data) {
+				data = $(data);
+				var error = data.find('error');
+				var li = data.find('li');
+				var fx = !li.length ? 'addClass' : 'removeClass';
+				
+				if (!!error.length) {
+					list.empty().append(
+						$('<li />').text(
+							S.Language.get('Error while rendering field “{$title}”: {$error}', {
+								title: label,
+								error: error.text()
+							})
+						).addClass('error invalid')
+					);
+					frame.addClass('empty');
+				}
+				else {
+					list.empty().append(li);
+					frame[fx]('empty');
+					
+				}
+			}).error(function (data) {
+				notifier.trigger('attach.notify', [
+					S.Language.get('Error while rendering field “{$title}”: {$error}', {
+						title: label,
+						error: data.statusText || ''
+					}),
+					'error'
+				]);
+			}).always(function () {
+				isRendering = false;
+			});
+		};
+		
+		var values = function () {
+			if ($.isArray(entries)) {
+				return entries;
+			}
+			return entries.split(',');
+		};
+		
+		var self = {
+			link: function (entryId) {
+				entries = link(values(), entryId);
+				ajaxSave('＋', entryId);
+			},
+			unlink: function (entryId) {
+				entries = unlink(values(), entryId);
+				ajaxSave('−', entryId);
+			},
+			values: values,
+			render: render,
+			cancel: function () {
+				if (dirty) {
+					render();
+				}
+				dirty = false;
+			}
+		};
+		
+		var unlinkAndUpdateUI = function (li, id) {
+			if (!!id) {
+				self.unlink(id);
+			}
+			li.empty().remove();
+			if (!list.children().length) {
+				frame.addClass('empty');
+			}
+		};
+		
+		var btnGotoClick = function (e) {
+			var t = $(this);
+			window.location = gotourl(section, t.attr('data-goto'));
+			e.stopPropagation();
+			e.preventDefault();
+		};
+		
+		var btnUnlinkClick = function (e) {
+			var t = $(this);
+			syncCurrent(self);
+			var li = t.closest('li');
+			var id = t.attr('data-unlink') || li.attr('data-entry-id');
+			unlinkAndUpdateUI(li, id);
+			dirty = true;
+			e.stopPropagation();
+			e.preventDefault();
+		};
+		
+		var btnAddClick = function (e) {
+			var t = $(this);
+			syncCurrent(self);
+			openIframe(t.attr('data-add'));
+			e.stopPropagation();
+			e.preventDefault();
+		};
+		
+		var ajaxSaveTimeout = 0;
+		var ajaxSave = function (op, entryId) {
+			clearTimeout(ajaxSaveTimeout);
+			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
+				var eId = Symphony.Context.get('env').entry_id;
+				if (!eId) {
+					return;
+				}
+				$.post(saveurl(encodeURIComponent(op) + eId, linkedFieldId, entryId))
+				.done(function (data) {
+					var hasError = !data || !data.ok || !!data.error;
+					var msg = hasError ?
+						S.Language.get('Error while saving field “{$title}”. {$error}', {
+							title: label,
+							error: data.error || ''
+						}) :
+						S.Language.get('The field “{$title}” has been saved', {
+							title: label
+						});
+					notifier.trigger('attach.notify', [
+						msg,
+						hasError ? 'error' : 'success'
+					]);
+				}).error(function (data) {
+					notifier.trigger('attach.notify', [
+						S.Language.get('Server error, field “{$title}”. {$error}', {
+							title: label,
+							error: typeof data.error === 'string' ? data.error : data.statusText
+						}),
+						'error'
+					]);
+				})
+				.always(function () {
+					render();
+				});
+			}, 200);
+		};
+		
+		t.on('click', '[data-goto]', btnGotoClick);
+		t.on('click', '[data-unlink]', btnUnlinkClick);
+		t.on('click', '[data-add]', btnAddClick);
+		
+		// render
+		render();
+		
+		// export
+		S.Extensions.EntryRelationship.instances[id] = self;
+	};
+	
 	var init = function () {
 		notifier = S.Elements.header.find('div.notifier');
-		S.Elements.contents.find('.field.field-entry_relationship').each(initOne);
+		S.Elements.contents.find('.field.field-entry_relationship').each(initOneEntryField);
+		S.Elements.contents.find('.field.field-reverse_relationship').each(initOneReverseField);
 	};
 	
 	$(init);

@@ -15,7 +15,7 @@ Version: 2.0.x
 
 ### REQUIREMENTS
 
-- Symphony CMS version 2.5.1 and up (as of the day of the last release of this extension)
+- Symphony CMS version 2.7.0 and up (as of the day of the last release of this extension)
 
 ### INSTALLATION
 
@@ -52,6 +52,7 @@ If this is the case, your either have to be more precise in your XPath queries o
 - (Optional) Select an xsl mode to be able to support multiple templates for the same section.
 - (Optional) Select an xsl mode to customize the publish table view.
 - (Optional) Select an xsl mode to customize the publish action bar.
+- (Optional) Create some Reverse Relationship fields to be able to manage the relation in both sections!
 
 There is also a [screen cast available](https://www.screenr.com/pDDN)
 

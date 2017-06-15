@@ -7,6 +7,7 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 	
 	require_once(EXTENSIONS . '/entry_relationship_field/fields/field.entry_relationship.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/fields/field.reverse_relationship.php');
 	
 	/**
 	 *
@@ -106,7 +107,7 @@
 		 */
 		public function install() {
 			General::realiseDirectory(WORKSPACE . '/er-templates');
-			return FieldEntry_relationship::createFieldTable();
+			return FieldEntry_Relationship::createFieldTable() && FieldReverse_Relationship::createFieldTable();
 		}
 
 		/**
@@ -123,17 +124,22 @@
 			
 			// less than 1.0.2
 			if ($ret && version_compare($previousVersion, '1.0.2', '<')) {
-				$ret = FieldEntry_relationship::update_102();
+				$ret = FieldEntry_Relationship::update_102();
 			}
 			
 			// less than 1.0.3
 			if ($ret && version_compare($previousVersion, '1.0.3', '<')) {
-				$ret = FieldEntry_relationship::update_103();
+				$ret = FieldEntry_Relationship::update_103();
 			}
 			
-			// less than 2.0.0
-			if ($ret && version_compare($previousVersion, '2.0.0', '<')) {
-				$ret = FieldEntry_relationship::update_200();
+			// less than 2.0.0.beta5
+			if ($ret && version_compare($previousVersion, '2.0.0.beta5', '<')) {
+				$ret = FieldEntry_Relationship::update_200();
+			}
+			
+			// less than 2.0.0.beta6
+			if ($ret && version_compare($previousVersion, '2.0.0.beta6', '<')) {
+				$ret = FieldReverse_Relationship::update_200();
 			}
 			
 			return $ret;
@@ -143,7 +149,7 @@
 		 * Drops the table needed for the settings of the field
 		 */
 		public function uninstall() {
-			return FieldEntry_relationship::deleteFieldTable();
+			return FieldEntry_Relationship::deleteFieldTable();
 		}
 
 	}

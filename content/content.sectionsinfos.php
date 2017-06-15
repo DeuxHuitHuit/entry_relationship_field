@@ -37,7 +37,8 @@
 								'id' => $f->get('id'),
 								'name' => $f->get('label'),
 								'handle' => $f->get('element_name'),
-								'type' => $f->get('type')
+								'type' => $f->get('type'),
+								'default' => true,
 							);
 							if (count($modes) > 1) {
 								foreach ($modes as $mode) {

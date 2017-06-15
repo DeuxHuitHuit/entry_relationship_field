@@ -224,3 +224,75 @@
 	$(init);
 	
 })(jQuery, Symphony);
+
+/**
+ * JS for reverse relationship field
+ */
+
+/* Settings behavior */
+(function ($, S) {
+	
+	'use strict';
+	
+	var baseurl = function () {
+		return S.Context.get('symphony');
+	};
+	
+	var INSTANCES_SEL = '.field-reverse_relationship.instance';
+	var SECTIONS_SEL = ' .reverse_relationship-sections';
+	var FIELD_SEL = ' .reverse_relationship-field';
+	
+	var SECTIONS = baseurl() + '/extension/entry_relationship_field/sectionsinfos/';
+	
+	var updateFieldNameUI = function (fieldChoices, options) {
+		fieldChoices.next('div').remove();
+		if (options.length < 2) {
+			fieldChoices.hide();
+			fieldChoices.after($('<div />').text(options.text()));
+		} else {
+			fieldChoices.show();
+		}
+	};
+	
+	var renderFieldNames = function (field) {
+		var sections = field.find(SECTIONS_SEL);
+		var fieldChoices = field.find(FIELD_SEL);
+		var temp = $();
+		var selectedSection = sections.find('option:selected').val();
+		
+		fieldChoices.empty().prop('disabled', true);
+		
+		$.get(SECTIONS + selectedSection + '/').done(function (data) {
+			var temp = $();
+			if (!!data.sections) {
+				$.each(data.sections, function (index, section) {
+					$.each(section.fields, function (index, field) {
+						if (field.default && field.type === 'entry_relationship') {
+							temp = temp.add($('<option />').attr('value', field.id).text(field.name));
+						}
+					});
+				});
+			}
+			fieldChoices.append(temp).prop('disabled', false);
+			updateFieldNameUI(fieldChoices, temp);
+		});
+	};
+	
+	var init = function () {
+		var body = $('body');
+		if (body.is('#blueprints-sections') && (body.hasClass('edit') || body.hasClass('new'))) {
+			$('#fields-duplicator').on('change', INSTANCES_SEL + SECTIONS_SEL, function () {
+				var t = $(this);
+				var parent = t.closest(INSTANCES_SEL);
+				renderFieldNames(parent);
+			});
+			$(INSTANCES_SEL + FIELD_SEL).each(function (index, fieldChoices) {
+				fieldChoices = $(fieldChoices);
+				updateFieldNameUI(fieldChoices, fieldChoices.find('> option'));
+			});
+		}
+	};
+	
+	$(init);
+	
+})(jQuery, Symphony);

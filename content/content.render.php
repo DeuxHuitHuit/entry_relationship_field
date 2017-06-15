@@ -35,7 +35,7 @@
 		public function view() {
 			// _context[0] => entry values
 			// _context[1] => fieldId
-			if (!is_array($this->_context) || empty($this->_context)) {
+			if (!is_array($this->_context) || empty($this->_context) || $this->_context[0] === 'null') {
 				$this->_Result->appendChild(new XMLElement('error', __('Parameters not found')));
 				return;
 			}
@@ -67,8 +67,8 @@
 				return;
 			}
 			
-			if ($parentField->get('type') != 'entry_relationship') {
-				$this->_Result->appendChild(new XMLElement('error', __('Parent field is `%s`, not `entry_relationship`', array($parentField->get('type')))));
+			if (!($parentField instanceof FieldRelationship)) {
+				$this->_Result->appendChild(new XMLElement('error', __('Parent field is `%s`, not `relationship field`', array($parentField->get('type')))));
 				return;
 			}
 			
@@ -140,7 +140,13 @@
 								'data-replace' => $entryId,
 							)));
 						}
-						if ($parentField->is('allow_delete') || $parentField->is('allow_link')) {
+						if ($parentField->is('allow_goto')) {
+							$options->appendChild(new XMLElement('a', __('Go to'), array(
+								'class' => 'goto ignore-collapsible',
+								'data-goto' => $entryId,
+							)));
+						}
+						if ($parentField->is('allow_delete') || $parentField->is('allow_link') || $parentField->is('allow_unlink')) {
 							$options->appendChild(new XMLElement('a', __('Un-link'), array(
 								'class' => 'unlink ignore-collapsible',
 								'data-unlink' => $entryId,

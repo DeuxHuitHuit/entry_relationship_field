@@ -30,7 +30,8 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="2.0.0.beta5" date="2016-02-22" min="2.5.1" max="2.x.x">
+		<release version="2.0.0.beta6" date="2016-02-22" min="2.7.0" max="2.x.x">
+			- Added the Reverse Relationship Field
 			- Better UI for the selection of included elements (#57)
 			- Fixed frontend event form markup (#54)
 			- Allow collapsing of entries content (#16)

@@ -41,8 +41,26 @@
 			}
 			
 			// Validate ALL entries ID
-			$rawEntriesId = array_filter(explode(',', MySQL::cleanValue($this->_context[0])));
+			$rawEntriesId = array_filter(explode(',', MySQL::cleanValue(urldecode($this->_context[0]))));
+			
+			// Check for operators
+			$operator = null;
+			if (!empty($rawEntriesId)) {
+				// '��' == '＋''
+				if (General::strpos($rawEntriesId[0], '＋') === 0) {
+					$operator = '+';
+				} else if (General::strpos($rawEntriesId[0], '−') === 0) {
+					$operator = '-';
+				}
+				if ($operator) {
+					$rawEntriesId[0] = General::substr($rawEntriesId[0], 1);
+				}
+			}
+			
+			// Convert all values to int
 			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
+			
+			// Check result
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result['error'] = __('No entry no found');
 				return;
@@ -97,9 +115,24 @@
 				return;
 			}
 			$entryData = $entry->getData();
+			
+			// Perform operation, if needed
+			if ($operator) {
+				$opEntries = array_filter(explode(',', $entryData[$parentFieldId]['entries']));
+				if ($operator === '+') {
+					$opEntries[] = $entriesId[0];
+				} else if ($operator === '-') {
+					$opEntries = array_filter($opEntries, function ($item) use ($entriesId) {
+						return General::intval($item) !== $entriesId[0];
+					});
+				}
+				$entriesId = $opEntries;
+				unset($opEntries);
+			}
+			
 			// set new data
 			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
-
+			
 			// check if data are valid
 			$resMessage = null;
 			$res = $parentField->checkPostFieldData(

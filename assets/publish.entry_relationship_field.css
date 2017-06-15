@@ -4,13 +4,14 @@
 */
 
 /**
- * CSS for entry relationship field
+ * CSS for entry/reverse relationship field
  */
 .field.field-entry_relationship {
 	
 }
 
-.field.field-entry_relationship > .frame {
+.field.field-entry_relationship > .frame,
+.field.field-reverse_relationship > .frame {
 	margin: 0;
 }
 .field.field-entry_relationship > .frame:not(.no-header):not(.empty); {
@@ -21,11 +22,17 @@
 	border-bottom: none;
 }
 
-.field.field-entry_relationship fieldset.single {
+.field.field-reverse_relationship > .frame .frame-header.no-content {
+	cursor: auto;
+}
+
+.field.field-entry_relationship fieldset.single,
+.field.field-reverse_relationship fieldset.single {
 	text-align: right;
 }
 
-.field.field-entry_relationship fieldset.single > button {
+.field.field-entry_relationship fieldset.single > button,
+.field.field-reverse_relationship fieldset.single > button {
 	margin-right: 0px;
 	margin-left: 1rem;
 	margin-bottom: 1rem;
@@ -36,7 +43,8 @@
 	display: inline-block;
 }
 
-.field.field-entry_relationship .destructor a {
+.field.field-entry_relationship .destructor a,
+.field.field-reverse_relationship .destructor a {
 	color: #aeaeae;
 	display: inline-block;
 	padding: 0 5px;
@@ -48,7 +56,8 @@
 }
 
 .field.field-entry_relationship .destructor a.unlink:hover,
-.field.field-entry_relationship .destructor a.delete:hover {
+.field.field-entry_relationship .destructor a.delete:hover,
+.field.field-reverse_relationship .destructor a.unlink:hover {
 	color: #e90a20;
 }
 
@@ -60,7 +69,8 @@
 	white-space: pre-wrap;
 }
 
-.field.field-entry_relationship .sections {
+.field.field-entry_relationship .sections,
+.field.field-reverse_relationship .reverse-selection {
 	display: inline-block;
 	width: auto;
 	margin: 0;

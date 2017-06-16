@@ -246,6 +246,7 @@
 		if (!!action) {
 			url += action + '/';
 		}
+		url += '?no-lse-redirect';
 		return url;
 	};
 	

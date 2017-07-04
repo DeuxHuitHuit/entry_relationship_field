@@ -420,11 +420,20 @@
 			
 			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
 			
-			$ids = array();
-			foreach ($entries as $key => $e) {
-				$ids[] = $e['id'];
+			return array_map(function ($e) {
+				return $e['id'];
+			}, $entries);
+		}
+		
+		public function findParentRelatedEntries($parent_field_id, $entry_id)
+		{
+			$entry = $this->fetchEntry($entry_id, array($this->get('label')));
+			
+			if (!$entry) {
+				return array();
 			}
-			return $ids;
+			
+			return self::getEntries($entry->getData($this->get('id')));
 		}
 		
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '')

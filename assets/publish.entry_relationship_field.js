@@ -271,6 +271,17 @@
 		return url;
 	};
 	
+	var postdata = function () {
+		return {
+			timestamp: $('input[name="action[timestamp]"]').val(),
+			xsrf: S.Utilities.getXSRF()
+		};
+	};
+	
+	var updateTimestamp = function (t) {
+		$('input[name="action[timestamp]"]').val(t || '');
+	};
+	
 	var deleteurl = function (entrytodeleteid, fieldid, entryid) {
 		var url = DELETE + entrytodeleteid + '/';
 		url += fieldid + '/';
@@ -638,7 +649,7 @@
 					render();
 					return;
 				}
-				$.post(saveurl(hidden.val(), fieldId, entryId))
+				$.post(saveurl(hidden.val(), fieldId, entryId), postdata())
 				.done(function (data) {
 					var hasError = !data || !data.ok || !!data.error;
 					var msg = hasError ?
@@ -656,6 +667,8 @@
 					if (hasError) {
 						// restore old value
 						hidden.val(memento);
+					} else {
+						updateTimestamp(data.timestamp);
 					}
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [
@@ -674,7 +687,7 @@
 		
 		var ajaxDelete = function (entryToDeleteId, success, noAssoc) {
 			noAssoc = noAssoc === true ? '?no-assoc' : '';
-			$.post(deleteurl(entryToDeleteId, fieldId, entryId) + noAssoc)
+			$.post(deleteurl(entryToDeleteId, fieldId, entryId) + noAssoc, postdata())
 			.done(function (data) {
 				var hasError = !data || !data.ok || !!data.error;
 				var hasAssoc = hasError && data.assoc;
@@ -700,8 +713,11 @@
 					// restore old value
 					hidden.val(memento);
 				}
-				else if ($.isFunction(success)) {
-					success(entryToDeleteId);
+				else {
+					if ($.isFunction(success)) {
+						success(entryToDeleteId);
+					}
+					updateTimestamp(data.timestamp);
 				}
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
@@ -876,7 +892,7 @@
 				if (!eId) {
 					return;
 				}
-				$.post(saveurl(encodeURIComponent(op) + eId, linkedFieldId, entryId))
+				$.post(saveurl(encodeURIComponent(op) + eId, linkedFieldId, entryId), postdata())
 				.done(function (data) {
 					var hasError = !data || !data.ok || !!data.error;
 					var msg = hasError ?
@@ -891,6 +907,9 @@
 						msg,
 						hasError ? 'error' : 'success'
 					]);
+					if (!hasError) {
+						updateTimestamp(data.timestamp);
+					}
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [
 						S.Language.get('Server error, field “{$title}”. {$error}', {

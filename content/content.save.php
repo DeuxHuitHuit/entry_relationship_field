@@ -130,6 +130,11 @@
 				unset($opEntries);
 			}
 			
+			// Validate timestamp
+			if (!$this->validateTimestamp($entryId, true)) {
+				return;
+			}
+			
 			// set new data
 			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
 			
@@ -155,5 +160,21 @@
 			$this->_Result['entry-id'] = $entryId;
 			$this->_Result['ok'] = true;
 			$this->_Result['entries'] = $entryData[$parentFieldId]['entries'];
+			$this->_Result['timestamp'] = DateTimeObj::format($entry->get('modification_date'), 'c');
+		}
+		
+		protected function validateTimestamp($entry_id, $checkMissing = false)
+		{
+			if ($checkMissing && !isset($_POST['timestamp'])) {
+				$this->_Result['error'] = __('The entry could not be saved due to conflicting changes');
+				return false;
+			} elseif (isset($_POST['timestamp'])) {
+				$tv = new TimestampValidator('entries');
+				if (!$tv->check($entry_id, $_POST['timestamp'])) {
+					$this->_Result['error'] = __('The entry could not be saved due to conflicting changes');
+					return false;
+				}
+			}
+			return true;
 		}
 	}

@@ -60,6 +60,7 @@
 		S.Elements.header.find('.notifier .notice:not(.error)').trigger('detach.notify');
 		form.find('>table th:not([id])').remove();
 		form.find('>table td:not([class]):not(:first-child)').remove();
+		form.removeAttr('style');
 		S.Elements.contents.find('#drawer-section-associations').remove();
 		S.Elements.context.find('#drawer-filtering').remove();
 		var btnClose = $('<button />').attr('type', 'button').text('Close').click(function (e) {
@@ -74,6 +75,7 @@
 				return false;
 			}
 		});
+		S.Elements.wrapper.removeClass('drawer-vertical-right');
 		S.Elements.wrapper.find('.actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).empty().append(btnClose);

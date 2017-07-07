@@ -104,6 +104,7 @@
 						'data-entry-id' => $entryId,
 						'data-section' => $entrySectionHandle,
 						'data-section-id' => $entrySection->get('id'),
+						'data-timestamp' => $entry->get('modification_date'),
 					));
 					if ($parentField->is('show_header')) {
 						$header = new XMLElement('header', null, array(

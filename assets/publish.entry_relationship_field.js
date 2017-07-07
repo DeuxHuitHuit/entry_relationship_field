@@ -100,8 +100,9 @@
 			if (!t.closest('.er-already-linked').length) {
 				var tr = t.closest('tr');
 				var entryId = tr.attr('id').replace('id-', '');
+				var timestamp = tr.find('input#entry-' + entryId).val();
 				tr.addClass('selected');
-				parent.link(entryId);
+				parent.link(entryId, timestamp);
 				parent.hide();
 			}
 			
@@ -183,12 +184,12 @@
 					}
 				});
 			},
-			link: function (entryId) {
+			link: function (entryId, timestamp) {
 				if (!self.current) {
 					console.error('Parent not found.');
 					return;
 				}
-				self.current.link(entryId);
+				self.current.link(entryId, timestamp);
 			},
 			cancel: function () {
 				if (!self.current) {
@@ -271,9 +272,9 @@
 		return url;
 	};
 	
-	var postdata = function () {
+	var postdata = function (timestamp) {
 		return {
-			timestamp: $('input[name="action[timestamp]"]').val(),
+			timestamp: timestamp || $('input[name="action[timestamp]"]').val(),
 			xsrf: S.Utilities.getXSRF()
 		};
 	};
@@ -807,7 +808,6 @@
 				else {
 					list.empty().append(li);
 					frame[fx]('empty');
-					
 				}
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
@@ -828,15 +828,16 @@
 			}
 			return entries.split(',');
 		};
+		var memento = [].concat(values());
 		
 		var self = {
-			link: function (entryId) {
+			link: function (entryId, timestamp) {
 				entries = link(values(), entryId);
-				ajaxSave('＋', entryId);
+				ajaxSave('＋', entryId, timestamp);
 			},
-			unlink: function (entryId) {
+			unlink: function (entryId, timestamp) {
 				entries = unlink(values(), entryId);
-				ajaxSave('−', entryId);
+				ajaxSave('−', entryId, timestamp);
 			},
 			values: values,
 			render: render,
@@ -848,9 +849,9 @@
 			}
 		};
 		
-		var unlinkAndUpdateUI = function (li, id) {
+		var unlinkAndUpdateUI = function (li, id, timestamp) {
 			if (!!id) {
-				self.unlink(id);
+				self.unlink(id, timestamp);
 			}
 			li.empty().remove();
 			if (!list.children().length) {
@@ -870,7 +871,8 @@
 			syncCurrent(self);
 			var li = t.closest('li');
 			var id = t.attr('data-unlink') || li.attr('data-entry-id');
-			unlinkAndUpdateUI(li, id);
+			var timestamp = li.attr('data-timestamp');
+			unlinkAndUpdateUI(li, id, timestamp);
 			dirty = true;
 			e.stopPropagation();
 			e.preventDefault();
@@ -885,14 +887,14 @@
 		};
 		
 		var ajaxSaveTimeout = 0;
-		var ajaxSave = function (op, entryId) {
+		var ajaxSave = function (op, entryId, timestamp) {
 			clearTimeout(ajaxSaveTimeout);
 			ajaxSaveTimeout = setTimeout(function ajaxSaveTimer() {
 				var eId = Symphony.Context.get('env').entry_id;
 				if (!eId) {
 					return;
 				}
-				$.post(saveurl(encodeURIComponent(op) + eId, linkedFieldId, entryId), postdata())
+				$.post(saveurl(encodeURIComponent(op) + eId, linkedFieldId, entryId), postdata(timestamp))
 				.done(function (data) {
 					var hasError = !data || !data.ok || !!data.error;
 					var msg = hasError ?
@@ -907,7 +909,10 @@
 						msg,
 						hasError ? 'error' : 'success'
 					]);
-					if (!hasError) {
+					if (hasError) {
+						entries = memento;
+					} else {
+						memento = [].concat(values());
 						updateTimestamp(data.timestamp);
 					}
 				}).error(function (data) {
@@ -918,6 +923,7 @@
 						}),
 						'error'
 					]);
+					memento = entries;
 				})
 				.always(function () {
 					render();

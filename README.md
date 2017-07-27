@@ -163,4 +163,4 @@ from those extensions.
 
 Made with love in Montréal by [Deux Huit Huit](https://deuxhuithuit.com)
 
-Copyright (c) 2014-2016
+Copyright (c) 2014-2017

@@ -530,10 +530,25 @@
 		 */
 		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
 		{
-			if(!is_array($data) || empty($data)) return;
+			if (!is_array($data) || empty($data)) {
+				return;
+			}
 
-			// root for all values
-			$root = new XMLElement($this->get('element_name'));
+			// try to find an existing root
+			$root = null;
+			$newRoot = false;
+			foreach ($wrapper->getChildren() as $xmlField) {
+				if ($xmlField->getName() === $this->get('element_name')) {
+					$root = $xmlField;
+					break;
+				}
+			}
+
+			// root was not found, create one
+			if (!$root) {
+				$root = new XMLElement($this->get('element_name'));
+				$newRoot = true;
+			}
 			
 			// selected items
 			$entries = static::getEntries($data);
@@ -570,13 +585,30 @@
 			
 			// build entries
 			foreach ($entries as $eId) {
-				$item = new XMLElement('item');
-				// output id
-				$item->setAttribute('id', $eId);
-				// output recursive level
-				$item->setAttribute('level', $recursiveLevel);
-				$item->setAttribute('max-level', $deepness);
-				
+				// try to find and existing item
+				$item = null;
+				$newItem = false;
+				foreach ($root->getChildren() as $xmlItem) {
+					if (General::intval($xmlItem->getAttribute('id')) === General::intval($eId)) {
+						$item = $xmlItem;
+						break;
+					}
+				}
+
+				// item was not found, create one
+				if (!$item) {
+					$item = new XMLElement('item');
+					// output id
+					$item->setAttribute('id', $eId);
+					// output recursive level
+					$item->setAttribute('level', $recursiveLevel);
+					$item->setAttribute('max-level', $deepness);
+					$newItem = true;
+				// item was found, but it is an error, so we can skip it
+				} else if ($item->getName() === 'error') {
+					continue;
+				}
+
 				// max recursion check
 				if ($deepness < 1 || $recursiveLevel < $deepness) {
 					// current entry, without data
@@ -738,18 +770,25 @@
 					if (is_array($sectionElements) && empty($sectionElements)) {
 						$item->setAttribute('empty-selection', 'yes');
 					}
+				} // end max recursion check
+
+				if ($newItem) {
+					// append item when done
+					$root->appendChild($item);
 				}
-				// append item when done
-				$root->appendChild($item);
 			} // end each entries
-			
-			// output mode for this field
-			$root->setAttribute('data-source-mode', $mode);
-			$root->setAttribute('field-included-elements', $this->get('elements'));
-			
-			// add all our data to the wrapper;
-			$wrapper->appendChild($root);
-			
+
+			if ($newRoot) {
+				// output mode for this field
+				$root->setAttribute('data-source-mode', $mode);
+				$root->setAttribute('field-included-elements', $this->get('elements'));
+				
+				// add all our data to the wrapper;
+				$wrapper->appendChild($root);
+			} else {
+				$root->setAttribute('data-source-mode', $root->getAttribute('data-source-mode') . ', ' . $mode);
+			}
+
 			// clean up
 			$this->recursiveLevel = 1;
 			$this->recursiveDeepness = null;

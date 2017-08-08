@@ -155,9 +155,24 @@
 				$.each(data.sections, function (index, section) {
 					temp = temp.add(createElementInstance(section, section.handle + '.*', 'header'));
 					$.each(section.fields, function (index, field) {
+						if (field.type === 'entry_relationship') {
+							return;
+						}
 						var li = createElementInstance(section, field.handle);
 						li.attr('data-value', section.handle + '.' + field.handle);
 						temp = temp.add(li);
+					});
+					$.each(section.fields, function (index, field) {
+						if (field.type !== 'entry_relationship') {
+							return;
+						}
+						if (field.default === true) {
+							temp = temp.add(createElementInstance(field, section.handle + '.' + field.handle, 'header'));
+						} else {
+							var li = createElementInstance(section, field.handle);
+							li.attr('data-value', section.handle + '.' + field.handle);
+							temp = temp.add(li);
+						}
 					});
 				});
 			}

@@ -33,6 +33,12 @@
 		 * Builds the content view
 		 */
 		public function view() {
+			if (class_exists('FLang')) {
+				try {
+					FLang::setMainLang(Lang::get());
+					FLang::setLangCode(Lang::get(), '');
+				} catch (Exception $ex) {}
+			}
 			// _context[0] => entry values
 			// _context[1] => fieldId
 			if (!is_array($this->_context) || empty($this->_context) || $this->_context[0] === 'null') {

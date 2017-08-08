@@ -146,7 +146,7 @@
 			if ($ret && version_compare($previousVersion, '2.0.0.beta8', '<')) {
 				$ret = FieldEntry_Relationship::update_2008();
 			}
-
+			
 			return $ret;
 		}
 
@@ -154,7 +154,7 @@
 		 * Drops the table needed for the settings of the field
 		 */
 		public function uninstall() {
-			return FieldEntry_Relationship::deleteFieldTable();
+			return FieldEntry_Relationship::deleteFieldTable() && FieldReverse_Relationship::deleteFieldTable();
 		}
 
 	}

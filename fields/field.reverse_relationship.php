@@ -416,4 +416,17 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         return static::createFieldTable();
     }
+
+    /**
+     *
+     * Drops the table needed for the settings of the field
+     */
+    public static function deleteFieldTable()
+    {
+        $tbl = self::FIELD_TBL_NAME;
+        
+        return Symphony::Database()->query("
+            DROP TABLE IF EXISTS `$tbl`
+        ");
+    }
 }

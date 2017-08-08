@@ -156,9 +156,15 @@
 							}
 							
 							if ($parentIncludableElementMode == null) {
+								if ($field instanceof FieldEntry_Relationship) {
+									$field->expandIncludableElements = false;
+								}
 								$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
 									return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
 								}, $field->fetchIncludableElements());
+								if ($field instanceof FieldEntry_Relationship) {
+									$field->expandIncludableElements = true;
+								}
 							}
 							else {
 								$submodes = array($parentIncludableElementMode);

@@ -61,7 +61,7 @@
 		private $entryManager;
 		private $sectionInfos;
 		
-		private $expandIncludableElements = true;
+		public $expandIncludableElements = true;
 		
 		/**
 		 *

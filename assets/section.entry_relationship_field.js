@@ -41,12 +41,13 @@
 		
 		// parse input
 		$.each(fieldElements.val().split(','), function (index, value) {
-			// remove all whitespace
-			value = value.replace(WHITESPACE, '');
+			if (!value) {
+				return;
+			}
 			var parts = value.split('.');
 			if (!!parts.length) {
-				var sectionname = parts[0];
-				var fieldname = parts[1];
+				var sectionname = parts.shift().replace(WHITESPACE, '');
+				var fieldname = parts.join('.');
 				
 				// skip all included
 				if (values[sectionname] === true) {

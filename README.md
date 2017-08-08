@@ -174,5 +174,3 @@ from those extensions.
 [MIT](http://deuxhuithuit.mit-license.org)
 
 Made with love in Montréal by [Deux Huit Huit](https://deuxhuithuit.com)
-
-Copyright (c) 2014-2016

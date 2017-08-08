@@ -60,7 +60,7 @@
 		private $sectionManager;
 		private $entryManager;
 		private $sectionInfos;
-
+		
 		private $expandIncludableElements = true;
 		
 		/**
@@ -114,6 +114,7 @@
 			$this->set('show_header', 'yes');
 			$this->sectionManager = new CacheableFetch('SectionManager');
 			$this->entryManager = new CacheableFetch('EntryManager');
+			$this->sectionInfos = new CacheableFetch('SectionsInfos');
 		}
 
 		public function isSortable()
@@ -516,16 +517,37 @@
 			return $entry[0];
 		}
 		
+		protected function fetchAllIncludableElements()
+		{
+			$sections = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('sections')))));
+			return $allElements = array_reduce($this->sectionInfos->fetch($sections), function ($memo, $item) {
+				return array_merge($memo, array_map(function ($field) use ($item) {
+					return $item['handle'] . '.' . $field['handle'];
+				}, $item['fields']));
+			}, array());
+		}
+		
 		public function fetchIncludableElements()
 		{
 			$label = $this->get('element_name');
 			$elements = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('elements')))));
-			$includedElements = array($label . ': *');
+			$includedElements = array();
+			if ($this->expandIncludableElements) {
+				$includedElements[] = $label . ': *';
+			}
 			foreach ($elements as $elem) {
 				$elem = trim($elem);
 				if ($elem !== '*') {
 					$includedElements[] = $label . ': ' . $elem;
+				} else if ($this->expandIncludableElements) {
+					$includedElements = array_unique(array_merge($includedElements, array_map(function ($item) use ($label) {
+						return $label . ': ' . $item;
+					}, $this->fetchAllIncludableElements())));
+					break;
 				}
+			}
+			if (empty($elements) && $this->expandIncludableElements) {
+				$includedElements = array_unique(array_merge($includedElements, $this->fetchAllIncludableElements()));
 			}
 			return $includedElements;
 		}
@@ -666,8 +688,12 @@
 					// this section is not selected, bail out
 					if (!is_array($validElements)) {
 						$item->setAttribute('forbidden-by', $curMode);
-						$root->appendChild($item);
+						if ($newItem) {
+							$root->appendChild($item);
+						}
 						continue;
+					} else {
+						$item->setAttribute('forbidden-by', null);
 					}
 					
 					// selected fields for fetching
@@ -707,8 +733,13 @@
 					if (is_array($sectionElements) && empty($sectionElements)) {
 						$item->setAttribute('selection-empty', 'yes');
 						$item->setAttribute('forbidden-by', $curMode);
-						$root->appendChild($item);
+						if ($newItem) {
+							$root->appendChild($item);
+						}
 						continue;
+					} else {
+						$item->setAttribute('selection-empty', null);
+						$item->setAttribute('forbidden-by', null);
 					}
 					
 					// current entry again, but with data and the allowed schema
@@ -749,6 +780,7 @@
 							else {
 								$submodes = array($fieldCurMode);
 							}
+							$item->setAttribute('selection-mode-empty', null);
 						}
 						else {
 							if ($fieldCurMode == null || $fieldCurMode == $parentIncludableElementMode) {
@@ -758,13 +790,20 @@
 								$item->setAttribute('selection-mode-empty', 'yes');
 								$submodes = array();
 							}
+							$item->setAttribute('selection-mode-empty', null);
 						}
 						
 						// current selection does not specify a mode
 						if ($submodes == null) {
+							if ($field instanceof FieldEntry_Relationship) {
+								$field->expandIncludableElements = false;
+							}
 							$submodes = array_map(function ($fieldIncludableElement) use ($fieldName) {
 								return FieldEntry_relationship::extractMode($fieldName, $fieldIncludableElement);
 							}, $field->fetchIncludableElements());
+							if ($field instanceof FieldEntry_Relationship) {
+								$field->expandIncludableElements = true;
+							}
 						}
 						
 						foreach ($submodes as $submode) {
@@ -953,7 +992,7 @@
 					$searchWrap->appendChild($searchSuggestions);
 					$fieldset->appendChild($searchWrap);
 				}
-
+				
 				if ($this->is('allow_new') || $this->is('allow_link') || $this->is('allow_search')) {
 					$selectWrap = new XMLElement('div');
 					$selectWrap->appendChild(new XMLElement('span', __('Related section: '), array('class' => 'sections-selection')));
@@ -1424,7 +1463,7 @@
 			";
 			return Symphony::Database()->query($sql);
 		}
-
+		
 		/**
 		 *
 		 * Drops the table needed for the settings of the field

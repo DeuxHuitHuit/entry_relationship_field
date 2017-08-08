@@ -257,6 +257,7 @@
 	var RENDER = baseurl() + CONTENTPAGES +'render/';
 	var SAVE = baseurl() + CONTENTPAGES +'save/';
 	var DELETE = baseurl() + CONTENTPAGES +'delete/';
+	var SEARCH = baseurl() + CONTENTPAGES +'search/';
 	
 	var renderurl = function (value, fieldid, debug) {
 		var url = RENDER + (value || 'null') + '/';
@@ -272,6 +273,10 @@
 		url += fieldid + '/';
 		url += entryid + '/';
 		return url;
+	};
+	
+	var searchurl = function (section) {
+		return SEARCH + section + '/';
 	};
 	
 	var postdata = function (timestamp) {
@@ -609,6 +614,22 @@
 			e.preventDefault();
 		};
 		
+		var searchChange = function (e) {
+			syncCurrent(self);
+			var input = t.find('[data-search]');
+			var result = input.val();
+			input.val('');
+			var id = input.attr('data-search') || input.attr('data-link') || (function () {
+				var s = result.split(':')[0];
+				return s || '';
+			})();
+			if (!!id) {
+				replaceId = undefined;
+				insertPosition = undefined;
+				self.link(id);
+			}
+		};
+		
 		var saveToStorage = function (key, value) {
 			if (!S.Support.localStorage) {
 				return;
@@ -733,24 +754,40 @@
 			});
 		};
 		
+		var updateSearchUrl = function () {
+			t.find('[data-search]').attr('data-url', searchurl(sections.val()));
+		};
+		
 		t.on('click', '[data-create]', btnCreateClick);
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', btnUnlinkClick);
 		t.on('click', '[data-edit]', btnEditClick);
 		t.on('click', '[data-replace]', btnReplaceClick);
 		t.on('click', '[data-delete]', btnDeleteClick);
+		updateSearchUrl();
+		S.Interface.Suggestions.init(t, '[data-search]');
+		t.on('mousedown.suggestions', '.suggestions li', searchChange);
+		t.on('keydown.suggestions', '[data-search]', function (e) {
+			if (e.which === 13) {
+				searchChange(e);
+			}
+		});
 		
 		if (sections.find('option').length < 2) {
 			sections.attr('disabled', 'disabled').addClass('disabled irrelevant');
 			sections.after($('<label />').text(sections.text()).addClass('sections sections-selection'));
 		}
-		else if (S.Support.localStorage) {
-			var lastSelection = window.localStorage.getItem(storageKeys.selection);
-			if (!!lastSelection) {
-				sections.find('option[value="' + lastSelection + '"]')
-					.attr('selected', 'selected');
+		else {
+			if (S.Support.localStorage) {
+				var lastSelection = window.localStorage.getItem(storageKeys.selection);
+				if (!!lastSelection) {
+					sections.find('option[value="' + lastSelection + '"]')
+						.attr('selected', 'selected');
+					updateSearchUrl();
+				}
+				sections.on('change', sectionChanged);
 			}
-			sections.on('change', sectionChanged);
+			sections.on('change', updateSearchUrl);
 		}
 		
 		frame.on('orderstop.orderable', '*', function () {

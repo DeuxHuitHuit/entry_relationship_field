@@ -9,6 +9,7 @@
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.field.relationship.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.sectionsinfos.php');
 	
 	/**
 	 *
@@ -58,6 +59,9 @@
 		/* Cacheable Managers */
 		private $sectionManager;
 		private $entryManager;
+		private $sectionInfos;
+
+		private $expandIncludableElements = true;
 		
 		/**
 		 *
@@ -106,6 +110,7 @@
 			$this->set('allow_delete', 'no');
 			// display options
 			$this->set('allow_collapse', 'yes');
+			$this->set('allow_search', 'no');
 			$this->set('show_header', 'yes');
 			$this->sectionManager = new CacheableFetch('SectionManager');
 			$this->entryManager = new CacheableFetch('EntryManager');
@@ -265,6 +270,7 @@
 			$new_settings['allow_link'] = $settings['allow_link'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_delete'] = $settings['allow_delete'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_collapse'] = $settings['allow_collapse'] == 'yes' ? 'yes' : 'no';
+			$new_settings['allow_search'] = $settings['allow_search'] == 'yes' ? 'yes' : 'no';
 			$new_settings['show_header'] = $settings['show_header'] == 'yes' ? 'yes' : 'no';
 			
 			// save it into the array
@@ -352,6 +358,7 @@
 				'allow_link' => $this->get('allow_link'),
 				'allow_delete' => $this->get('allow_delete'),
 				'allow_collapse' => $this->get('allow_collapse'),
+				'allow_search' => $this->get('allow_search'),
 				'show_header' => $this->get('show_header'),
 			);
 
@@ -931,7 +938,23 @@
 			if (empty($actionBar)) {
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'single');
-				if ($this->is('allow_new') || $this->is('allow_link')) {
+				if ($this->is('allow_search')) {
+					$searchWrap = new XMLElement('div');
+					$searchWrap->setAttribute('data-interactive', 'data-interactive');
+					$searchWrap->setAttribute('class', 'search');
+					$searchInput = Widget::Input('', null, 'text', array(
+						'class' => 'search',
+						'data-search' => '',
+						'placeholder' => __('Search for entries')
+					));
+					$searchWrap->appendChild($searchInput);
+					$searchSuggestions = new XMLElement('ul');
+					$searchSuggestions->setAttribute('class', 'suggestions');
+					$searchWrap->appendChild($searchSuggestions);
+					$fieldset->appendChild($searchWrap);
+				}
+
+				if ($this->is('allow_new') || $this->is('allow_link') || $this->is('allow_search')) {
 					$selectWrap = new XMLElement('div');
 					$selectWrap->appendChild(new XMLElement('span', __('Related section: '), array('class' => 'sections-selection')));
 					$options = array();
@@ -997,7 +1020,6 @@
 			)));
 			$elements->appendChild($element);
 			$elements_choices = new XMLElement('ul', null, array('class' => 'tags singular entry_relationship-field-choices'));
-			
 			$elements->appendChild($elements_choices);
 			$wrapper->appendChild($elements);
 			
@@ -1089,6 +1111,7 @@
 			$display_cols = new XMLElement('div');
 			$display_cols->setAttribute('class', 'four columns');
 			$display_cols->appendChild($this->createCheckbox('allow_collapse', 'Allow content collapsing'));
+			$display_cols->appendChild($this->createCheckbox('allow_search', 'Allow search linking'));
 			$display_cols->appendChild($this->createCheckbox('show_header', 'Show the header box before entries templates'));
 			$display->appendChild($display_cols);
 			$wrapper->appendChild($display);
@@ -1324,6 +1347,7 @@
 					`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_delete` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
 					`allow_collapse` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					`allow_search` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
 					`show_header` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `field_id` (`field_id`)
@@ -1390,6 +1414,17 @@
 			return Symphony::Database()->query($sql);
 		}
 		
+		public static function update_2008()
+		{
+			$tbl = self::FIELD_TBL_NAME;
+			$sql = "
+				ALTER TABLE `$tbl`
+					ADD COLUMN `allow_search` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
+						AFTER `allow_collapse`
+			";
+			return Symphony::Database()->query($sql);
+		}
+
 		/**
 		 *
 		 * Drops the table needed for the settings of the field

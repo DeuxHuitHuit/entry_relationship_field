@@ -39,7 +39,7 @@
 }
 
 .field.field-entry_relationship fieldset.single > div {
-	min-width: 250px;
+	min-width: 150px;
 	display: inline-block;
 }
 
@@ -78,7 +78,33 @@
 
 .field.field-entry_relationship select.sections {
 	min-width: 100px;
+	margin-left: 1rem;
 }
+
+.field.field-entry_relationship span.sections-selection {
+	margin-left: 1rem;
+}
+
+.field.field-entry_relationship input.search {
+	width: calc(100% - 1rem);
+	margin-left: 1rem;
+	margin-bottom: 1rem;
+}
+
+.field.field-entry_relationship fieldset.single > div.search {
+	position: relative;
+	max-width: 250px;
+	min-width: 200px;
+}
+
+.field.field-entry_relationship .suggestions {
+	width: auto;
+	text-align: left;
+	left: 1rem;
+	right: 0;
+	top: 2.5rem;
+}
+
 
 /**
  * CSS for entry relationship field iframe

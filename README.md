@@ -132,6 +132,7 @@ The provided actions are:
 - Edit entry `data-edit="{entry-id}"`
 - Unlink entry `data-unlink="{entry-id}"`
 - Link entry `data-link="{section-handle}"`
+- Search entry `data-search="{section-handle}"`
 - Delete entry `data-delete="{entry-id}"`
 - Create entry `data-create="{section-handle}"`
 - Replace entry `data-replace="{entry-id}"`
@@ -143,7 +144,18 @@ The provided actions are:
 
 Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
 
-*No validation is made to check if the feature has been activated in the field's setting, so use at your own risks.*
+The search features uses Symphony's suggestion jQuery plug-in. In order for it to work in your template,
+use the following html.
+
+```html
+<div data-interactive="data-interactive">
+    <input data-search="" placeholder="Search for entries" autocomplete="off">
+    <ul class="suggestions"></ul>
+</div>
+```
+
+*No validation is made to check if the feature has been activated in the field's settings.*
+The template developer must properly check which setting is enabled in the field's xml.
 
 ### AKNOWLEDGMENTS
 
@@ -163,4 +175,4 @@ from those extensions.
 
 Made with love in Montréal by [Deux Huit Huit](https://deuxhuithuit.com)
 
-Copyright (c) 2014-2017
+Copyright (c) 2014-2016

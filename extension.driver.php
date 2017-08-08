@@ -142,6 +142,11 @@
 				$ret = FieldReverse_Relationship::update_200();
 			}
 			
+			// less than 2.0.0.beta8
+			if ($ret && version_compare($previousVersion, '2.0.0.beta8', '<')) {
+				$ret = FieldEntry_Relationship::update_2008();
+			}
+
 			return $ret;
 		}
 

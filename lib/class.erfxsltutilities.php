@@ -104,6 +104,7 @@
 			$xmlField->appendChild(new XMLElement('allow-delete', $field->get('allow_delete')));
 			$xmlField->appendChild(new XMLElement('allow-link', $field->get('allow_link')));
 			$xmlField->appendChild(new XMLElement('allow-collapse', $field->get('allow_collapse')));
+			$xmlField->appendChild(new XMLElement('allow-search', $field->get('allow_search')));
 			$xmlField->appendChild(new XMLElement('show-header', $field->get('show_header')));
 			$xmlField->appendChild(new XMLElement('show-association', $field->get('show_association')));
 			$xmlField->appendChild(new XMLElement('deepness', $field->get('deepness')));

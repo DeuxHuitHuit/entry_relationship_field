@@ -147,7 +147,9 @@
 								'data-goto' => $entryId,
 							)));
 						}
-						if ($parentField->is('allow_delete') || $parentField->is('allow_link') || $parentField->is('allow_unlink')) {
+						if ($parentField->is('allow_delete') ||
+							$parentField->is('allow_link') || $parentField->is('allow_unlink') ||
+							$parentField->is('allow_search')) {
 							$options->appendChild(new XMLElement('a', __('Un-link'), array(
 								'class' => 'unlink ignore-collapsible',
 								'data-unlink' => $entryId,

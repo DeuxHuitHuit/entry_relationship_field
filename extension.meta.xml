@@ -30,7 +30,8 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="2.0.0.beta7" date="2017-07-05" min="2.7.0" max="2.x.x">
+		<release version="2.0.0.beta8" date="2017-08-04" min="2.7.0" max="2.x.x">
+			- Added support for basic search
 			- Added support for parent associations
 			- Added the Reverse Relationship Field
 			- Better UI for the selection of included elements (#57)

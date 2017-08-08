@@ -20,7 +20,7 @@
 		
 		public function fetch($id, $secondId = null) {
 			$args = func_get_args();
-			if (!$id || $secondId) {
+			if (!$id || $secondId || is_array($id)) {
 				$id = sha1(serialize($args));
 			}
 			if ($id && isset($this->cache[$id])) {

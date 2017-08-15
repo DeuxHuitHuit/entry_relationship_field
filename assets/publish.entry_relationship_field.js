@@ -416,10 +416,19 @@
 			}
 			return isDifferent;
 		};
+		var updateActionBar = function (li) {
+			var createLinkBtn = t.find('[data-create],[data-link],.sections-selection');
+			var maxReached = !!maximum && li.length >= maximum;
+			createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
+		};
 		
 		var isRendering = false;
 		var render = function () {
-			if (isRendering || !hidden.val()) {
+			if (isRendering) {
+				return;
+			}
+			if (!hidden.val()) {
+				updateActionBar($());
 				return;
 			}
 			isRendering = true;
@@ -470,9 +479,7 @@
 						}
 						restoreCollapsing();
 					}
-					var createLinkBtn = t.find('[data-create],[data-link],.sections-selection');
-					var maxReached = !!maximum && li.length >= maximum;
-					createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
+					updateActionBar(li);
 				}
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [

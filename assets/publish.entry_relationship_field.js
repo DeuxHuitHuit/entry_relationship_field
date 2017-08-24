@@ -275,8 +275,12 @@
 		return url;
 	};
 	
-	var searchurl = function (section) {
-		return SEARCH + section + '/';
+	var searchurl = function (section, entries) {
+		var url = SEARCH + section + '/';
+		if (entries) {
+			url += entries + '/';
+		}
+		return url;
 	};
 	
 	var postdata = function (timestamp) {
@@ -422,6 +426,10 @@
 			createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
 		};
 		
+		var updateSearchUrl = function () {
+			t.find('[data-search]').attr('data-url', searchurl(sections.val(), hidden.val()));
+		};
+		
 		var isRendering = false;
 		var render = function () {
 			if (isRendering) {
@@ -480,6 +488,7 @@
 						restoreCollapsing();
 					}
 					updateActionBar(li);
+					updateSearchUrl();
 				}
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [
@@ -761,10 +770,6 @@
 			});
 		};
 		
-		var updateSearchUrl = function () {
-			t.find('[data-search]').attr('data-url', searchurl(sections.val()));
-		};
-		
 		t.on('click', '[data-create]', btnCreateClick);
 		t.on('click', '[data-link]', btnLinkClick);
 		t.on('click', '[data-unlink]', btnUnlinkClick);
@@ -772,7 +777,13 @@
 		t.on('click', '[data-replace]', btnReplaceClick);
 		t.on('click', '[data-delete]', btnDeleteClick);
 		updateSearchUrl();
-		S.Interface.Suggestions.init(t, '[data-search]');
+		S.Interface.Suggestions.init(t, '[data-search]', {
+			editSuggestion: function (suggestion, index, value) {
+				value = value.split(':');
+				var id = value.shift();
+				suggestion.attr('data-value', id).text(value.join(':'));
+			}
+		});
 		t.on('mousedown.suggestions', '.suggestions li', searchChange);
 		t.on('keydown.suggestions', '[data-search]', function (e) {
 			if (e.which === 13) {

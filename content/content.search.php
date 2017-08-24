@@ -20,6 +20,20 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		$section = General::sanitize($this->_context[0]);
 		$sectionId = SectionManager::fetchIDFromHandle($section);
 		$sectionId = General::intval($sectionId);
+		$excludes = !isset($this->_context[1]) ? null : array_filter(
+			array_map(
+				array('General', 'intval'),
+				explode(',', General::sanitize($this->_context[1]))
+			),
+			function ($item) {
+				return $item !== -1;
+			}
+		);
+		if (empty($excludes)) {
+			$excludes = '';
+		} else {
+			$excludes = " AND `e`.`id` NOT IN (" . implode(',', $excludes) . ") ";
+		}
 
 		if ($sectionId < 1) {
 			$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;
@@ -56,7 +70,7 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			EntryManager::setFetchSorting($fId, 'ASC');
 			$fQuery = $query;
 			$joins = '';
-			$where = '';
+			$where = $excludes;
 			$opt = array_map(function ($op) {
 				return trim($op['filter']);
 			}, $field->fetchFilterableOperators());

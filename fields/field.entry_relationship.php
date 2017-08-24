@@ -173,7 +173,7 @@
 		 * @param $message
 		 * @param $entry_id
 		 */
-		public function checkPostFieldData($data, &$message, $entry_id=null)
+		public function checkPostFieldData($data, &$message, $entry_id = null)
 		{
 			$message = null;
 			$required = $this->isRequired();
@@ -1148,7 +1148,7 @@
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(XMLElement &$wrapper, $errors=null)
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null)
 		{
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
@@ -1462,8 +1462,8 @@
 
 			return Symphony::Database()->query("
 				CREATE TABLE `tbl_entries_data_$id` (
-					`id` int(11) 		unsigned NOT NULL AUTO_INCREMENT,
-					`entry_id` 			int(11) unsigned NOT NULL,
+					`id` INT(11) 		UNSIGNED NOT NULL AUTO_INCREMENT,
+					`entry_id` 			INT(11) UNSIGNED NOT NULL,
 					`entries` 			text COLLATE utf8_unicode_ci NULL,
 					PRIMARY KEY  (`id`),
 					UNIQUE KEY `entry_id` (`entry_id`)
@@ -1480,18 +1480,18 @@
 
 			return Symphony::Database()->query("
 				CREATE TABLE IF NOT EXISTS `$tbl` (
-					`id` 				int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`field_id` 			int(11) unsigned NOT NULL,
-					`sections`			varchar(2048) NULL COLLATE utf8_unicode_ci,
+					`id` 				INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+					`field_id` 			INT(11) UNSIGNED NOT NULL,
+					`sections`			VARCHAR(2048) NULL COLLATE utf8_unicode_ci,
 					`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`deepness` 			int(2) unsigned NULL,
-					`elements` 			text COLLATE utf8_unicode_ci NULL,
-					`mode`				varchar(50) NULL COLLATE utf8_unicode_ci,
-					`mode_table`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_header`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_footer`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`min_entries`		int(5) unsigned NULL,
-					`max_entries`		int(5) unsigned NULL,
+					`deepness` 			INT(2) UNSIGNED NULL,
+					`elements` 			TEXT COLLATE utf8_unicode_ci NULL,
+					`mode`				VARCHAR(50) NULL COLLATE utf8_unicode_ci,
+					`mode_table`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`mode_header`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`mode_footer`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+					`min_entries`		INT(5) UNSIGNED NULL,
+					`max_entries`		INT(5) UNSIGNED NULL,
 					`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_new` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
 					`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
@@ -1510,9 +1510,9 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+					ADD COLUMN `allow_edit` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					ADD COLUMN `allow_new` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+					ADD COLUMN `allow_link` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 					AFTER `max_entries`
 			";
 			$addColumns = Symphony::Database()->query($sql);
@@ -1537,7 +1537,7 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
+					ADD COLUMN `allow_delete` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
 						AFTER `allow_link`
 			";
 			return Symphony::Database()->query($sql);
@@ -1548,7 +1548,7 @@
 			$tbl = self::FIELD_TBL_NAME;
 			$sql = "
 				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+					ADD COLUMN `allow_collapse` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
 						AFTER `allow_delete`,
 					ADD COLUMN `mode_table` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
 						AFTER `mode`,

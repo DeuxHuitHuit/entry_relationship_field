@@ -582,7 +582,7 @@
 			syncCurrent(self);
 			var li = t.closest('li');
 			var id = t.attr('data-edit') || li.attr('data-entry-id');
-			var section = li.attr('data-section');
+			var section = t.attr('data-section') || li.attr('data-section');
 			replaceId = undefined;
 			insertPosition = undefined;
 			openIframe(section, 'edit/' + id);
@@ -610,7 +610,7 @@
 			syncCurrent(self);
 			var li = $(this).closest('li');
 			var id = t.attr('data-delete') || li.attr('data-entry-id');
-			var section = li.attr('data-section');
+			var section = t.attr('data-section') || li.attr('data-section');
 			var confirmMsg = t.attr('data-message') || S.Language.get('Are you sure you want to un-link AND delete this entry?');
 			if (confirm(confirmMsg)) {
 				ajaxDelete(id, function () {

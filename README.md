@@ -144,6 +144,8 @@ The provided actions are:
 
 Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
 
+If you are trying to act on unrelated sections, add the `data-section="{section-handle}"` attribute alongside the action one.
+
 The search features uses Symphony's suggestion jQuery plug-in. In order for it to work in your template,
 use the following html.
 

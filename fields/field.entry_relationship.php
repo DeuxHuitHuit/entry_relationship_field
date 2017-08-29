@@ -129,7 +129,7 @@
 		
 		public function canPublishFilter()
 		{
-			return false;
+			return true;
 		}
 
 		public function canImport()
@@ -443,7 +443,58 @@
 			
 			return self::getEntries($entry->getData($this->get('id')));
 		}
-		
+
+		public function fetchFilterableOperators()
+		{
+			return array(
+				array(
+					'title' => 'links to',
+					'filter' => ' ',
+					'help' => __('Find entries that links to the specified filter')
+				),
+			);
+		}
+
+		public function fetchSuggestionTypes()
+		{
+			return array('association');
+		}
+
+		public function fetchIDsfromValue($value)
+		{
+			$ids = array();
+			$sections = $this->getArray('sections');
+			//$value = Lang::createHandle($value);
+
+			foreach ($sections as $sectionId) {
+				$section = $this->sectionManager->fetch($sectionId);
+				if (!$section) {
+					continue;
+				}
+				$filterableFields = $section->fetchFilterableFields();
+				if (empty($filterableFields)) {
+					continue;
+				}
+				foreach ($filterableFields as $fId => $field) {
+					$joins = '';
+					$where = '';
+					if ($field instanceof FieldRelationship) {
+						continue;
+					}
+					$field->buildDSRetrievalSQL(array($value), $joins, $where, false);
+					$fEntries = $this->entryManager->fetch(null, $sectionId, null, null, $where, $joins, true, false, null, false);
+					if (!empty($fEntries)) {
+						$ids = array_merge($ids, $fEntries);
+						break;
+					}
+				}
+			}
+
+			return array_map(function ($e) {
+				return $e['id'];
+			}, $ids);
+		}
+
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '')
 		{
 			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
@@ -486,7 +537,16 @@
 					ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
 			";
 			
+			$normalizedValues = array();
 			foreach ($data as $value) {
+				if (!is_numeric($value) && !is_null($value)) {
+					$normalizedValues = array_merge($normalizedValues, $this->fetchIDsfromValue($value));
+				} else {
+					$normalizedValues[] = $value;
+				}
+			}
+			
+			foreach ($normalizedValues as $value) {
 				$where .= $this->generateWhereFilter($this->cleanValue($value), "t{$field_id}_{$this->_key}", $andOperation);
 			}
 			

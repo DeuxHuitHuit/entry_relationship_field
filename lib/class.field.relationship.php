@@ -44,6 +44,11 @@ class FieldRelationship extends Field
         return $this->get($name) == 'yes';
     }
 
+    public function getArray($name)
+    {
+        return array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get($name)))));
+    }
+
     /**
      * @return bool
      *  True if the current field is required

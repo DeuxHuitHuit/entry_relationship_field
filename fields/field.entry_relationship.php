@@ -519,7 +519,7 @@
 		
 		protected function fetchAllIncludableElements()
 		{
-			$sections = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('sections')))));
+			$sections = $this->getArray('sections');
 			return $allElements = array_reduce($this->sectionInfos->fetch($sections), function ($memo, $item) {
 				return array_merge($memo, array_map(function ($field) use ($item) {
 					return $item['handle'] . '.' . $field['handle'];
@@ -530,7 +530,7 @@
 		public function fetchIncludableElements()
 		{
 			$label = $this->get('element_name');
-			$elements = array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get('elements')))));
+			$elements = $this->getArray('elements');
 			$includedElements = array();
 			if ($this->expandIncludableElements) {
 				$includedElements[] = $label . ': *';
@@ -877,10 +877,10 @@
 		public static function parseElements($field)
 		{
 			$elements = array();
-			$exElements = array_map(trim, explode(self::SEPARATOR, $field->get('elements')));
+			$exElements = $field->getArray('elements');
 			
 			if (in_array('*', $exElements)) {
-				$sections = array_map(trim, explode(self::SEPARATOR, $field->get('sections')));
+				$sections = $field->getArray('sections');
 				$sections = SectionManager::fetch($sections);
 				return array_reduce($sections, function ($result, $section) {
 					$result[$section->get('handle')] = array('*');

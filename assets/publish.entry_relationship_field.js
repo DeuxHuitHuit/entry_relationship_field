@@ -778,8 +778,8 @@
 		t.on('click', '[data-delete]', btnDeleteClick);
 		updateSearchUrl();
 		S.Interface.Suggestions.init(t, '[data-search]', {
-			editSuggestion: function (suggestion, index, value) {
-				value = value.split(':');
+			editSuggestion: function (suggestion, index, data, result) {
+				var value = data.value.split(':');
 				var id = value.shift();
 				suggestion.attr('data-value', id).text(value.join(':'));
 			}

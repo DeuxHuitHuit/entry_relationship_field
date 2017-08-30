@@ -421,7 +421,7 @@
 			return isDifferent;
 		};
 		var updateActionBar = function (li) {
-			var createLinkBtn = t.find('[data-create],[data-link],.sections-selection');
+			var createLinkBtn = t.find('[data-create],[data-link],.sections-selection, [data-interactive].search');
 			var maxReached = !!maximum && li.length >= maximum;
 			createLinkBtn.add(sections)[maxReached ? 'hide' : 'show']();
 		};

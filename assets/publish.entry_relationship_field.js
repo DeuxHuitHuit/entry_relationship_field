@@ -362,7 +362,7 @@
 			}
 		}
 		if (!found) {
-			if (insertPosition >= val.length) {
+			if (insertPosition === undefined || insertPosition >= val.length) {
 				val.push(entryId);
 			}
 			else {
@@ -550,8 +550,15 @@
 		}
 
 		var getInsertPosition = function (t) {
-			if (!!t.filter('[data-insert]').length) {
+			// Has data insert attribute but no value in it
+			if (!!t.filter('[data-insert]').length && !t.attr('data-insert')) {
 				return t.closest('li').index();
+			// data-insert is -1
+			} else if (t.attr('data-insert') === '-1') {
+				return t.closest('li').index() - 1;
+			// data-insert has a value
+			} else if (!!t.attr('data-insert')) {
+				return Math.max(0, parseInt(t.attr('data-insert'), 10) || 0);
 			}
 			return undefined;
 		};

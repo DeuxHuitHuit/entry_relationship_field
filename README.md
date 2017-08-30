@@ -141,6 +141,9 @@ The provided actions are:
     - Handle `data-collapsible-handle=""`
     - Content `data-collapsible-content=""`
 - Insert a specified index `data-insert=""` (only valid with `data-create` and `data-link`)
+    - Leaving the `data-insert` attribute empty will make the insertion after the current entry.
+    - Setting a number will insert after that index.
+    - Setting -1 will insert before the current entry.
 
 Attribute value is always optional: It will revert to the closest data-attribute it can find in the DOM.
 

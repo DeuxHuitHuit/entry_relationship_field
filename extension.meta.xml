@@ -30,10 +30,11 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="2.0.0.beta8" date="2017-08-04" min="2.7.0" max="2.x.x">
-			- Added support for basic search
+		<release version="2.0.0.beta9" date="2017-08-30" min="2.7.0" max="2.x.x">
+			- Added support for publish filtering and DS filtering by value (#48)
+			- Added support for basic search (#47)
 			- Added support for parent associations
-			- Added the Reverse Relationship Field
+			- Added the Reverse Relationship Field (#43)
 			- Better UI for the selection of included elements (#57)
 			- Fixed frontend event form markup (#54)
 			- Allow collapsing of entries content (#16)

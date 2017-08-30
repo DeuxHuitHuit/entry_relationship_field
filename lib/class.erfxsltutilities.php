@@ -7,7 +7,7 @@
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 	
 	class ERFXSLTUTilities {
-		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false, $select = 'entry')
+		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false, $select = 'entry', $position = 0)
 		{
 			$date = new DateTime();
 			$params = array(
@@ -34,7 +34,7 @@
 				// entry data
 				if ($entry) {
 					$includedElements = FieldEntry_relationship::parseElements($parentField);
-					$xmlData->appendChild(self::entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields));
+					$xmlData->appendChild(self::entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields, $position));
 				}
 				
 				// field data
@@ -111,7 +111,8 @@
 			$xmlField->appendChild(new XMLElement('required', $field->get('required')));
 			$xmlField->appendChild(new XMLElement('min-entries', $field->get('min_entries')));
 			$xmlField->appendChild(new XMLElement('max-entries', $field->get('max_entries')));
-			$sections = array_map(trim, explode(FieldEntry_relationship::SEPARATOR, $field->get('sections')));
+			$xmlField->appendChild(new XMLElement('sort-order', $field->get('sortorder')));
+			$sections = $field->getArray('sections');
 			$sections = SectionManager::fetch($sections);
 			$xmlSections = new XMLElement('sections');
 			foreach ($sections as $section) {
@@ -124,13 +125,16 @@
 			return $xmlField;
 		}
 		
-		public static function entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields) {
+		public static function entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields, $position = 0) {
 			$entryData = $entry->getData();
 			$entryId = General::intval($entry->get('id'));
 			$xml = new XMLElement('entry');
 			$xml->setAttribute('id', $entryId);
 			$xml->setAttribute('section-id', $entry->get('section_id'));
 			$xml->setAttribute('section', $entrySectionHandle);
+			if ($position) {
+				$xml->setAttribute('position', (string)$position);
+			}
 			if (!empty($entryData)) {
 				foreach ($entryData as $fieldId => $data) {
 					$filteredData = array_filter($data, function ($value) {

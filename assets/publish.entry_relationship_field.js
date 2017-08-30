@@ -640,12 +640,8 @@
 		var searchChange = function (e) {
 			syncCurrent(self);
 			var input = t.find('[data-search]');
-			var result = input.val();
+			var id = input.attr('data-value');
 			input.val('');
-			var id = input.attr('data-search') || input.attr('data-link') || (function () {
-				var s = result.split(':')[0];
-				return s || '';
-			})();
 			if (!!id) {
 				replaceId = undefined;
 				insertPosition = undefined;

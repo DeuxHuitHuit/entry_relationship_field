@@ -1370,14 +1370,10 @@
 		{
 			$value = $this->prepareReadableValue($data, $entry_id, false, __('None'));
 
-			if ($link) {
-				$link->setValue($value);
-				return $link->generate();
-			}
-			else if ($entry_id != null && $this->get('mode_table')) {
+			if ($entry_id && $this->get('mode_table')) {
 				$entries = static::getEntries($data);
 				$cellcontent = '';
-				foreach ($entries as $child_entry_id) {
+				foreach ($entries as $position => $child_entry_id) {
 					$entry = $this->entryManager->fetch($child_entry_id);
 					if (!$entry || !is_array($entry) || empty($entry)) {
 						continue;
@@ -1385,15 +1381,24 @@
 					reset($entry);
 					$entry = current($entry);
 					$section = $this->sectionManager->fetch($entry->get('section_id'));
-					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']));
+					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
 					if ($content) {
 						$cellcontent .= $content;
 					}
 				}
 				
-				if (General::strlen(trim($cellcontent))) {
+				$cellcontent = trim($cellcontent);
+				
+				if (General::strlen($cellcontent)) {
+					if ($link) {
+						$link->setValue($cellcontent);
+						return $link->generate();
+					}
 					return $cellcontent;
 				}
+			} else if ($link) {
+				$link->setValue($value);
+				return $link->generate();
 			}
 
 			return $value;

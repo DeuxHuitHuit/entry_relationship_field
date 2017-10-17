@@ -6,8 +6,10 @@ LICENCE: MIT http://deuxhuithuit.mit-license.org;
 
 class SectionsInfos
 {
+    private static $deepness = 0;
     public function fetch($sections)
     {
+        self::$deepness++;
         $options = array();
         $sections = SectionManager::fetch($sections);
         if (!empty($sections)) {
@@ -19,6 +21,10 @@ class SectionsInfos
 
                 $fields = array();
                 foreach($section_fields as $f) {
+                    $fd = General::intval($f->get('deepness'));
+                    if ($fd > 0 && self::$deepness > $fd) {
+                        continue;
+                    }
                     $modes = $f->fetchIncludableElements();
                     
                     if (is_array($modes)) {
@@ -50,6 +56,7 @@ class SectionsInfos
                 );
             }
         }
+        self::$deepness--;
         return $options;
     }
 }

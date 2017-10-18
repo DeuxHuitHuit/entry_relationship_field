@@ -213,7 +213,7 @@
 				}
 				if (!$o || !is_object($o)) {
 					// wrong section
-					throw new Exception('Fectch an entry from an invalid section');
+					throw new Exception('Fetch an entry from an invalid section');
 				}
 				$link = $link = Widget::Anchor('',
 					SYMPHONY_URL . '/publish/' . $section['section']->get('handle') . '/edit/' . $orphan . '/',

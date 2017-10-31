@@ -757,10 +757,12 @@
 					hidden.val(memento);
 				}
 				else {
+					if (!!data.timestamp) {
+						updateTimestamp(data.timestamp);
+					}
 					if ($.isFunction(success)) {
 						success(entryToDeleteId);
 					}
-					updateTimestamp(data.timestamp);
 				}
 			}).error(function (data) {
 				notifier.trigger('attach.notify', [

@@ -40,6 +40,7 @@ If this is the case, your either have to be more precise in your XPath queries o
 - Give it a name.
 - Select at least one section that will be permitted as children.
 - Select also the fields you want to be available in the backend templates and data sources.
+    - `x-` prefixed attributes are only available in devkit mode.
 - [Create backend templates](#backend-templates) in the `workspace/er-templates` folder.
     - The name of the file must be `included-section-handle.xsl`
     - You need at least one template that matches `entry`

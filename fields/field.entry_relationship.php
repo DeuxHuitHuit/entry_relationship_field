@@ -639,6 +639,9 @@
 				$newRoot = true;
 			}
 			
+			// devkit will load
+			$devkit = isset($_GET['debug']) && (empty($_GET['debug']) || $_GET['debug'] = 'xml');
+
 			// selected items
 			$entries = static::getEntries($data);
 			
@@ -687,6 +690,7 @@
 				// item was not found, create one
 				if (!$item) {
 					$item = new XMLElement('item');
+					$item->setAllowEmptyAttributes(false);
 					// output id
 					$item->setAttribute('id', $eId);
 					// output recursive level
@@ -747,13 +751,17 @@
 					
 					// this section is not selected, bail out
 					if (!is_array($validElements)) {
-						$item->setAttribute('forbidden-by', $curMode);
+						if ($devkit) {
+							$item->setAttribute('x-forbidden-by-ds', $curMode);
+						}
 						if ($newItem) {
 							$root->appendChild($item);
 						}
 						continue;
 					} else {
-						$item->setAttribute('forbidden-by', null);
+						if ($devkit) {
+							$item->setAttribute('x-forbidden-by-ds', null);
+						}
 					}
 					
 					// selected fields for fetching
@@ -790,16 +798,19 @@
 						}
 					}
 					
+					// Filtering is enabled, but nothing is selected
 					if (is_array($sectionElements) && empty($sectionElements)) {
-						$item->setAttribute('selection-empty', 'yes');
-						$item->setAttribute('forbidden-by', $curMode);
+						if ($devkit) {
+							$item->setAttribute('x-forbidden-by-selection', $curMode);
+						}
 						if ($newItem) {
 							$root->appendChild($item);
 						}
 						continue;
 					} else {
-						$item->setAttribute('selection-empty', null);
-						$item->setAttribute('forbidden-by', null);
+						if ($devkit) {
+							$item->setAttribute('x-forbidden-by-selection', null);
+						}
 					}
 					
 					// current entry again, but with data and the allowed schema
@@ -840,17 +851,23 @@
 							else {
 								$submodes = array($fieldCurMode);
 							}
-							$item->setAttribute('selection-mode-empty', null);
+							if ($devkit) {
+								$item->setAttribute('x-selection-mode-empty', null);
+							}
 						}
 						else {
 							if ($fieldCurMode == null || $fieldCurMode == $parentIncludableElementMode) {
+								if ($devkit) {
+									$item->setAttribute('x-selection-mode-empty', null);
+								}
 								$submodes = array($parentIncludableElementMode);
 							}
 							else {
-								$item->setAttribute('selection-mode-empty', 'yes');
+								if ($devkit) {
+									$item->setAttribute('x-selection-mode-empty', 'yes');
+								}
 								$submodes = array();
 							}
-							$item->setAttribute('selection-mode-empty', null);
 						}
 						
 						// current selection does not specify a mode
@@ -886,13 +903,16 @@
 
 			if ($newRoot) {
 				// output mode for this field
-				$root->setAttribute('data-source-mode', $mode);
-				$root->setAttribute('field-included-elements', $this->get('elements'));
-				
+				if ($devkit) {
+					$root->setAttribute('x-data-source-mode', $mode);
+					$root->setAttribute('x-field-included-elements', $this->get('elements'));
+				}
 				// add all our data to the wrapper;
 				$wrapper->appendChild($root);
 			} else {
-				$root->setAttribute('data-source-mode', $root->getAttribute('data-source-mode') . ', ' . $mode);
+				if ($devkit) {
+					$root->setAttribute('x-data-source-mode', $root->getAttribute('x-data-source-mode') . ', ' . $mode);
+				}
 			}
 
 			// clean up

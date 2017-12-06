@@ -641,7 +641,7 @@
 			
 			// devkit will load
 			$devkit = isset($_GET['debug']) && (empty($_GET['debug']) || $_GET['debug'] = 'xml');
-
+			
 			// selected items
 			$entries = static::getEntries($data);
 			
@@ -943,10 +943,16 @@
 		{
 			if (is_array($sectionElements)) {
 				foreach ($sectionElements as $element) {
-					if ($element == '*') {
+					// everything is allowed, use "fieldName" directly
+					if ($element === '*') {
 						return $fieldName;
 					}
-					if ($fieldName == $element || preg_match('/^' . $fieldName . '\s*:/sU', $element)) {
+					// make "fieldName: *" the same as "fieldName"
+					if (preg_match('/\s*:\s*\*/sU', $fieldName)) {
+						$fieldName = trim(current(explode(':', $fieldName)));
+					}
+					// "fieldName" is included as-is or element starts with "fieldName:"
+					if ($fieldName === $element || preg_match('/^' . $fieldName . '\s*:/sU', $element)) {
 						return $element;
 					}
 				}

@@ -7,7 +7,7 @@ LICENCE: MIT http://deuxhuithuit.mit-license.org;
 class SectionsInfos
 {
     private static $deepness = 0;
-    public function fetch($sections)
+    public static function fetch($sections)
     {
         self::$deepness++;
         $options = array();

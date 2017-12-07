@@ -736,15 +736,16 @@
 					// adjust the mode for the current section
 					$curMode = $mode;
 					
-					// remove section name from current mode, i.e sectionName.field
+					// remove section name from current mode so "sectionName.field" becomes simply "field"
 					if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
 						$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
 					}
-					// remove section name from current mode, i.e sectionName
+					// remove section name from current mode "sectionName" and
+					// treat it like if it is "sectionName: *"
 					else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
 						$curMode = '*';
 					}
-					// section name was not found in mode
+					// section name was not found in mode, check if the mode is "*"
 					else if ($curMode != '*') {
 						// mode forbids this section
 						$validElements = null;
@@ -814,7 +815,7 @@
 						}
 					}
 					
-					// current entry again, but with data and the allowed schema
+					// fetch current entry again, but with data for the allowed schema
 					$entry = $this->fetchEntry($eId, $sectionElements);
 					
 					// cache the entry data

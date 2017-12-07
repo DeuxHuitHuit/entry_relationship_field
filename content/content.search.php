@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright: Deux Huit Huit 2017
- * LICENCE: MIT http://deuxhuithuit.mit-license.org;
+ * LICENCE: MIT https://deuxhuithuit.mit-license.org
  */
 
 require_once(TOOLKIT . '/class.jsonpage.php');

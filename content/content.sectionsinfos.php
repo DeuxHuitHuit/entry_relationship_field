@@ -1,8 +1,8 @@
 <?php
-	/*
-	Copyright: Deux Huit Huit 2014
-	LICENCE: MIT http://deuxhuithuit.mit-license.org;
-	*/
+	/**
+	 * Copyright: Deux Huit Huit 2014
+	 * LICENCE: MIT https://deuxhuithuit.mit-license.org
+	 */
 
 	require_once(TOOLKIT . '/class.jsonpage.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.sectionsinfos.php');

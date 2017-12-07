@@ -1,8 +1,8 @@
 <?php
-	/*
-	Copyright: Deux Huit Huit 2014
-	LICENCE: MIT https://deuxhuithuit.mit-license.org
-	*/
+	/**
+	 * Copyright: Deux Huit Huit 2014
+	 * LICENCE: MIT https://deuxhuithuit.mit-license.org
+	 */
 
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
@@ -678,6 +678,7 @@
 			// build entries
 			foreach ($entries as $eId) {
 				// try to find and existing item
+				// TODO: keep last index found since it should be the next
 				$item = null;
 				$newItem = false;
 				foreach ($root->getChildren() as $xmlItem) {

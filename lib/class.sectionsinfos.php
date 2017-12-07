@@ -1,9 +1,8 @@
 <?php
-/*
-Copyright: Deux Huit Huit 2017
-LICENCE: MIT http://deuxhuithuit.mit-license.org;
-*/
-
+/**
+ * Copyright: Deux Huit Huit 2017
+ * LICENCE: MIT https://deuxhuithuit.mit-license.org
+ */
 class SectionsInfos
 {
     private static $deepness = 0;

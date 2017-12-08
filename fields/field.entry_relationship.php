@@ -753,10 +753,10 @@
 					
 					// this section is not selected, bail out
 					if (!is_array($validElements)) {
-						if ($devkit) {
-							$item->setAttribute('x-forbidden-by-ds', $curMode);
-						}
 						if ($newItem) {
+							if ($devkit) {
+								$item->setAttribute('x-forbidden-by-ds', $curMode);
+							}
 							$root->appendChild($item);
 						}
 						continue;
@@ -802,11 +802,11 @@
 					
 					// Filtering is enabled, but nothing is selected
 					if (is_array($sectionElements) && empty($sectionElements)) {
-						if ($devkit) {
-							$item->setAttribute('x-forbidden-by-selection', $curMode);
-						}
 						if ($newItem) {
 							$root->appendChild($item);
+							if ($devkit) {
+								$item->setAttribute('x-forbidden-by-selection', $curMode);
+							}
 						}
 						continue;
 					} else {

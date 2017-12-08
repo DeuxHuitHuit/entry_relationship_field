@@ -626,7 +626,7 @@
 			// try to find an existing root
 			$root = null;
 			$newRoot = false;
-			foreach ($wrapper->getChildren() as $xmlField) {
+			foreach (array_reverse($wrapper->getChildren()) as $xmlField) {
 				if ($xmlField->getName() === $this->get('element_name')) {
 					$root = $xmlField;
 					break;

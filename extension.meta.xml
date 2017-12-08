@@ -30,6 +30,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.0.0" date="2017-12-08" min="2.7.0" max="2.x.x">
+			- Fix issue with subfield selection (#70)
+		</release>
 		<release version="2.0.0.beta11" date="2017-12-06" min="2.7.0" max="2.x.x">
 			- Remove debug attribute from production xml
 		</release>

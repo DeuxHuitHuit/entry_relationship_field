@@ -846,34 +846,37 @@
 						}
 						
 						$submodes = null;
-						if ($parentIncludableElementMode == null) {
+						// Parent mode is not defined (we are selecting the whole section)
+						if ($parentIncludableElementMode === null) {
 							if ($fieldCurMode == null) {
+								// Field does not defined a mode either: use the field's default
 								$submodes = null;
-							}
-							else {
+							} else {
+								// Use the current field's mode
 								$submodes = array($fieldCurMode);
 							}
 							if ($devkit) {
 								$item->setAttribute('x-selection-mode-empty', null);
 							}
-						}
-						else {
-							if ($fieldCurMode == null || $fieldCurMode == $parentIncludableElementMode) {
+						} else {
+							// Field mode is not defined or it is the same as the parent
+							if ($fieldCurMode === null || $fieldCurMode == $parentIncludableElementMode) {
 								if ($devkit) {
 									$item->setAttribute('x-selection-mode-empty', null);
 								}
+								// Use parent mode
 								$submodes = array($parentIncludableElementMode);
-							}
-							else {
+							} else {
 								if ($devkit) {
 									$item->setAttribute('x-selection-mode-empty', 'yes');
 								}
+								// Empty selection
 								$submodes = array();
 							}
 						}
-						
+
 						// current selection does not specify a mode
-						if ($submodes == null) {
+						if ($submodes === null) {
 							if ($field instanceof FieldEntry_Relationship) {
 								$field->expandIncludableElements = false;
 							}
@@ -885,6 +888,7 @@
 							}
 						}
 						
+						// Append the formatted element for each requested mode
 						foreach ($submodes as $submode) {
 							$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
 						}

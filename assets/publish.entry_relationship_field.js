@@ -179,7 +179,7 @@
 				
 				S.Utilities.requestAnimationFrame(function () {
 					ctn.addClass('show');
-					ctn.find('.iframe>iframe').delay(300).fadeIn(200);
+					ctn.find('.iframe>iframe').css('opacity', 0).delay(300).fadeTo(1, 250);
 					
 					if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
 						window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(1);

@@ -640,7 +640,7 @@
 			}
 			
 			// devkit will load
-			$devkit = isset($_GET['debug']) && (empty($_GET['debug']) || $_GET['debug'] = 'xml');
+			$devkit = isset($_GET['debug']) && (empty($_GET['debug']) || $_GET['debug'] == 'xml');
 			
 			// selected items
 			$entries = static::getEntries($data);

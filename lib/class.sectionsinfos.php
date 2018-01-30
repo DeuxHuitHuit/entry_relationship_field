@@ -6,6 +6,7 @@
 class SectionsInfos
 {
     private static $deepness = 0;
+    private static $seenFields = array();
     public static function fetch($sections)
     {
         self::$deepness++;
@@ -24,6 +25,10 @@ class SectionsInfos
                     if ($fd > 0 && self::$deepness > $fd) {
                         continue;
                     }
+                    if (in_array($f->get('id'), self::$seenFields)) {
+                        continue;
+                    }
+                    self::$seenFields[] = $f->get('id');
                     $modes = $f->fetchIncludableElements();
                     
                     if (is_array($modes)) {
@@ -56,6 +61,9 @@ class SectionsInfos
             }
         }
         self::$deepness--;
+        if (self::$deepness === 0) {
+            self::$seenFields = array();
+        }
         return $options;
     }
 }

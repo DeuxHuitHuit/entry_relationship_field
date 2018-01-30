@@ -591,10 +591,15 @@
 		{
 			$label = $this->get('element_name');
 			$elements = $this->getArray('elements');
+			if (empty($elements)) {
+				$elements = array('*');
+			}
 			$includedElements = array();
+			// Include everything
 			if ($this->expandIncludableElements) {
 				$includedElements[] = $label . ': *';
 			}
+			// Include individual elements
 			foreach ($elements as $elem) {
 				$elem = trim($elem);
 				if ($elem !== '*') {
@@ -603,11 +608,7 @@
 					$includedElements = array_unique(array_merge($includedElements, array_map(function ($item) use ($label) {
 						return $label . ': ' . $item;
 					}, $this->fetchAllIncludableElements())));
-					break;
 				}
-			}
-			if (empty($elements) && $this->expandIncludableElements) {
-				$includedElements = array_unique(array_merge($includedElements, $this->fetchAllIncludableElements()));
 			}
 			return $includedElements;
 		}

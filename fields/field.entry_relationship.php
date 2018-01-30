@@ -608,6 +608,8 @@
 					$includedElements = array_unique(array_merge($includedElements, array_map(function ($item) use ($label) {
 						return $label . ': ' . $item;
 					}, $this->fetchAllIncludableElements())));
+				} else {
+					$includedElements = array('*');
 				}
 			}
 			return $includedElements;

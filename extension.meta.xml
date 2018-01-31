@@ -30,6 +30,11 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.0.2" date="2018-01-31" min="2.7.0" max="2.x.x">
+			- Make fetchIncludableElements() return ['*'] (#72)
+			- Prevent infinite loop in circular schemas
+			- Compare rather than set so we can view the raw XML view (#73)
+		</release>
 		<release version="2.0.1" date="2017-12-11" min="2.7.0" max="2.x.x">
 			- Replace fadeIn by fadeTo to avoid sizing problems
 		</release>

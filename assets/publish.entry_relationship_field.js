@@ -342,7 +342,7 @@
 		val.changed = found;
 		return val;
 	};
-	var replace = function (val, entryId) {
+	var replace = function (val, entryId, replaceId) {
 		var found = false;
 		
 		for (var x = 0; x < val.length; x++) {
@@ -506,7 +506,7 @@
 			link: function (entryId) {
 				var val;
 				if (!!replaceId) {
-					val = replace(values(), entryId);
+					val = replace(values(), entryId, replaceId);
 				}
 				else if (insertPosition !== undefined) {
 					val = insert(values(), insertPosition, entryId);

@@ -306,6 +306,9 @@
 				fieldChoices = $(fieldChoices);
 				updateFieldNameUI(fieldChoices, fieldChoices.find('> option'));
 			});
+			body.on('constructshow.duplicator', INSTANCES_SEL, function () {
+				renderFieldNames($(this));
+			});
 		}
 	};
 	

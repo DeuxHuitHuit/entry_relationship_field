@@ -1326,19 +1326,6 @@
 		}
 
 		/**
-		 * @param integer $count
-		 */
-		private static function formatCount($count)
-		{
-			if ($count == 0) {
-				return __('No item');
-			} else if ($count == 1) {
-				return __('1 item');
-			}
-			return __('%s items', array($count));
-		}
-
-		/**
 		 *
 		 * Return a plain text representation of the field's data
 		 * @param array $data

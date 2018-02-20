@@ -35,10 +35,10 @@ class FieldReverse_Relationship extends FieldRelationship
         parent::__construct();
         // set the name of the field
         $this->_name = __('Reverse Relationship');
-        // permits to make it required
+        // allowed to make it required
         $this->_required = true;
-        // forbid the make it show in the table columns
-        $this->_showcolumn = false;
+        // allowed to show in the table columns
+        $this->_showcolumn = true;
         // forbid association
         $this->_showassociation = false;
         // set as not required by default
@@ -49,6 +49,14 @@ class FieldReverse_Relationship extends FieldRelationship
         $this->set('allow_unlink', 'yes');
         // allow go to by default
         $this->set('allow_goto', 'yes');
+        // no modes
+        $this->set('mode', null);
+        $this->set('mode_table', null);
+        $this->set('mode_header', null);
+        $this->set('mode_footer', null);
+        // no links
+        $this->set('linked_section_id', null);
+        $this->set('linked_field_id', null);
     }
 
     public function isSortable()
@@ -185,6 +193,10 @@ class FieldReverse_Relationship extends FieldRelationship
         $settings = array(
             'linked_section_id' => $this->get('linked_section_id'),
             'linked_field_id' => $this->get('linked_field_id'),
+            'mode' => $this->get('mode'),
+            'mode_table' => $this->get('mode_table'),
+            'mode_header' => $this->get('mode_header'),
+            'mode_footer' => $this->get('mode_footer'),
         );
         
         return FieldManager::saveSettings($id, $settings);
@@ -212,14 +224,14 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         /* first line, label and such */
         parent::displaySettingsPanel($wrapper, $errors);
-        
+
         // fieldset
         $fieldset = new XMLElement('fieldset', null);
-        
+
         // group
         $group = new XMLElement('div', null, array('class' => 'two columns'));
         $fieldset->appendChild($group);
-        
+
         // sections
         $sections = new XMLElement('div', null, array('class' => 'column'));
         $this->appendSelectionSelect($sections);
@@ -227,7 +239,7 @@ class FieldReverse_Relationship extends FieldRelationship
             $sections = Widget::Error($sections, $errors['sections']);
         }
         $group->appendChild($sections);
-        
+
         // field
         $field = new XMLElement('div', null, array('class' => 'column'));
         $this->appendFieldSelect($field);
@@ -235,8 +247,48 @@ class FieldReverse_Relationship extends FieldRelationship
             $field = Widget::Error($field, $errors['field']);
         }
         $group->appendChild($field);
-        
+
         $wrapper->appendChild($fieldset);
+
+        // xsl
+        $xsl = new XMLElement('fieldset');
+        $xsl->appendChild(new XMLElement('legend', __('Backend XSL templates options')));
+        $xsl_cols = new XMLElement('div');
+        $xsl_cols->setAttribute('class', 'four columns');
+
+        // xsl mode
+        $xslmode = Widget::Label();
+        $xslmode->setValue(__('XSL mode for entries content template'));
+        $xslmode->setAttribute('class', 'column');
+        $xslmode->appendChild(Widget::Input($this->createSettingsFieldName('mode'), $this->get('mode'), 'text'));
+        $xsl_cols->appendChild($xslmode);
+
+        // xsl header mode
+        $xslmodetable = Widget::Label();
+        $xslmodetable->setValue(__('XSL mode for entries header template'));
+        $xslmodetable->setAttribute('class', 'column');
+        $xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_header'), $this->get('mode_header'), 'text'));
+        $xsl_cols->appendChild($xslmodetable);
+
+        // xsl table mode
+        $xslmodetable = Widget::Label();
+        $xslmodetable->setValue(__('XSL mode for publish table value'));
+        $xslmodetable->setAttribute('class', 'column');
+        $xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_table'), $this->get('mode_table'), 'text'));
+        $xsl_cols->appendChild($xslmodetable);
+
+        // xsl action bar mode
+        $xslmodetable = Widget::Label();
+        $xslmodetable->setValue(__('XSL mode for publish action bar'));
+        $xslmodetable->setAttribute('class', 'column');
+        $xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_footer'), $this->get('mode_footer'), 'text'));
+        $xsl_cols->appendChild($xslmodetable);
+
+        $xsl->appendChild($xsl_cols);
+        $wrapper->appendChild($xsl);
+
+        // Footer
+        $this->appendStatusFooter($wrapper);
     }
 
     /**
@@ -394,6 +446,116 @@ class FieldReverse_Relationship extends FieldRelationship
     }
 
     /**
+     *
+     * Return a plain text representation of the field's data
+     * @param array $data
+     * @param int $entry_id
+     */
+    public function prepareTextValue($data, $entry_id = null)
+    {
+        $field = FieldManager::fetch($this->get('linked_field_id'));
+        $section = SectionManager::fetch($this->get('linked_section_id'));
+        if ($entry_id == null || !$field || !$section) {
+            return null;
+        }
+        $fieldId = $field->get('id');
+        $where = $field->generateWhereFilter($entry_id);
+        $data = Symphony::Database()->fetch("SELECT `entries` FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        if (!is_array($data) || !($data = current($data))) {
+            return null;
+        }
+        return $data['entries'];
+    }
+
+    /**
+     * Format this field value for display as readable text value.
+     *
+     * @param array $data
+     *  an associative array of data for this string. At minimum this requires a
+     *  key of 'value'.
+     * @param integer $entry_id (optional)
+     *  An option entry ID for more intelligent processing. Defaults to null.
+     * @param string $defaultValue (optional)
+     *  The value to use when no plain text representation of the field's data
+     *  can be made. Defaults to null.
+     * @return string
+     *  the readable text summary of the values of this field instance.
+     */
+    public function prepareReadableValue($data, $entry_id = null, $truncate = false, $defaultValue = 'None')
+    {
+        $field = FieldManager::fetch($this->get('linked_field_id'));
+        $section = SectionManager::fetch($this->get('linked_section_id'));
+        if ($entry_id == null || !$field || !$section) {
+            return __($defaultValue);
+        }
+
+        $fieldId = $field->get('id');
+        $where = $field->generateWhereFilter($entry_id);
+        $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        $output = array();
+        foreach ($entries as $e) {
+            $e['entries'] = $entry_id;
+            $output[] = $field->prepareReadableValue($e, $e['entry_id'], false, $defaultValue);
+        }
+        return implode('', $output);
+    }
+
+    /**
+     * Format this field value for display in the publish index tables.
+     *
+     * @param array $data
+     *  an associative array of data for this string. At minimum this requires a
+     *  key of 'value'.
+     * @param XMLElement $link (optional)
+     *  an XML link structure to append the content of this to provided it is not
+     *  null. it defaults to null.
+     * @param integer $entry_id (optional)
+     *  An option entry ID for more intelligent processing. defaults to null
+     * @return string
+     *  the formatted string summary of the values of this field instance.
+     */
+    public function prepareTableValue($data, XMLElement $link = null, $entry_id = null)
+    {
+        $field = FieldManager::fetch($this->get('linked_field_id'));
+        $section = SectionManager::fetch($this->get('linked_section_id'));
+        if ($entry_id == null || !$field || !$section) {
+            return __($defaultValue);
+        }
+
+        $fieldId = $field->get('id');
+        $where = $field->generateWhereFilter($entry_id);
+        $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        $output = array();
+        $this->set('elements', '*');
+        $this->set('sections', $this->get('linked_section_id'));
+        foreach ($entries as $position => $e) {
+            $e['entries'] = $entry_id;
+            $value = $field->prepareTableValue($e, $link, $e['entry_id']);
+
+            if ($this->get('mode_table')) {
+                $entry = current(EntryManager::fetch($e['entry_id']));
+                $cellcontent = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
+
+                $cellcontent = trim($cellcontent);
+                if (General::strlen($cellcontent)) {
+                    if ($link) {
+                        $link->setValue($cellcontent);
+                        $value = $link->generate();
+                    } else {
+                        $value = $cellcontent;
+                    }
+                }
+            } else if ($link) {
+                $link->setValue($value);
+                $value = $link->generate();
+            }
+
+            $output[] = $value;
+        }
+        return implode('', $output);
+    }
+
+    /**
      * Creates the table needed for the settings of the field
      */
     public static function createFieldTable()
@@ -417,6 +579,23 @@ class FieldReverse_Relationship extends FieldRelationship
         return static::createFieldTable();
     }
 
+    public static function update_210()
+    {
+        $tbl = self::FIELD_TBL_NAME;
+        $sql = "
+            ALTER TABLE `$tbl`
+                ADD COLUMN `mode` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                    AFTER `linked_field_id`,
+                ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                    AFTER `mode`,
+                ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                    AFTER `mode_table`,
+                ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                    AFTER `mode_header`
+        ";
+        return Symphony::Database()->query($sql);
+    }
+
     /**
      *
      * Drops the table needed for the settings of the field
@@ -424,7 +603,7 @@ class FieldReverse_Relationship extends FieldRelationship
     public static function deleteFieldTable()
     {
         $tbl = self::FIELD_TBL_NAME;
-        
+
         return Symphony::Database()->query("
             DROP TABLE IF EXISTS `$tbl`
         ");

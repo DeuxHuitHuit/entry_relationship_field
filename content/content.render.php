@@ -77,6 +77,12 @@
 				$this->_Result->appendChild(new XMLElement('error', __('Parent field is `%s`, not `relationship field`', array($parentField->get('type')))));
 				return;
 			}
+			if (!$parentField->get('elements')) {
+				$parentField->set('elements', '*');
+			}
+			if (!$parentField->get('sections') && $parentField->get('linked_section_id')) {
+				$parentField->set('sections', $parentField->get('linked_section_id'));
+			}
 			
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from

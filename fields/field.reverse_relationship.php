@@ -61,7 +61,7 @@ class FieldReverse_Relationship extends FieldRelationship
 
     public function isSortable()
     {
-        return false;
+        return true;
     }
 
     public function canFilter()
@@ -556,6 +556,88 @@ class FieldReverse_Relationship extends FieldRelationship
     }
 
     /**
+     * Build the SQL command to append to the default query to enable
+     * sorting of this field. By default this will sort the results by
+     * the entry id in ascending order.
+     *
+     * Extension developers should always implement both `buildSortingSQL()`
+     * and `buildSortingSelectSQL()`.
+     *
+     * @uses Field::isRandomOrder()
+     * @see Field::buildSortingSelectSQL()
+     * @param string $joins
+     *  the join element of the query to append the custom join sql to.
+     * @param string $where
+     *  the where condition of the query to append to the existing where clause.
+     * @param string $sort
+     *  the existing sort component of the sql query to append the custom
+     *  sort sql code to.
+     * @param string $order (optional)
+     *  an optional sorting direction. this defaults to ascending. if this
+     *  is declared either 'random' or 'rand' then a random sort is applied.
+     */
+    public function buildSortingSQL(&$joins, &$where, &$sort, $order = 'ASC')
+    {
+        if ($this->isRandomOrder($order)) {
+            $sort = 'ORDER BY RAND()';
+        } else {
+            $sort = "ORDER BY `order_value` $order";
+        }
+    }
+
+    /**
+     * Build the needed SQL clause command to make `buildSortingSQL()` work on
+     * MySQL 5.7 in strict mode, which requires all columns in the ORDER BY
+     * clause to be included in the SELECT's projection.
+     *
+     * If no new projection is needed (like if the order is made via a sub-query),
+     * simply return null.
+     *
+     * For backward compatibility, this method checks if the sort expression
+     * contains `ed`.`value`. This check will be removed in Symphony 3.0.0.
+     *
+     * Extension developers should make their Fields implement
+     * `buildSortingSelectSQL()` when overriding `buildSortingSQL()`.
+     *
+     * @since Symphony 2.7.0
+     * @uses Field::isRandomOrder()
+     * @see Field::buildSortingSQL()
+     * @param string $sort
+     *  the existing sort component of the sql query, after it has been passed
+     *  to `buildSortingSQL()`
+     * @param string $order (optional)
+     *  an optional sorting direction. this defaults to ascending. Should be the
+     *  same value that was passed to `buildSortingSQL()`
+     * @return string
+     *  an optional select clause to append to the generated SQL query.
+     *  This is needed when sorting on a column that is not part of the projection.
+     */
+    public function buildSortingSelectSQL($sort, $order = 'ASC')
+    {
+        if ($this->isRandomOrder($order)) {
+            return null;
+        }
+
+        $section = SectionManager::fetch($this->get('linked_section_id'));
+        $sectionId = $section->get('id');
+        $field = FieldManager::fetch($this->get('linked_field_id'));
+        $fieldId = $field->get('id');
+        $sortableFieldId = 0;
+        foreach ($section->fetchFields() as $f) {
+            if ($f->isSortable()) {
+                $sortableFieldId = $f->get('id');
+                break;
+            }
+        }
+        if (!$sortableFieldId) {
+            return;
+        }
+
+        $sql = "SELECT `s`.`value` FROM `tbl_entries_data_$sortableFieldId` as `s` LEFT JOIN `tbl_entries_data_$fieldId` AS `d` ON `d`.`entry_id` = `s`.`entry_id` WHERE FIND_IN_SET(`e`.`id`, `d`.`entries`) LIMIT 1";
+        return "($sql) AS `order_value`";
+    }
+
+    /**
      * Creates the table needed for the settings of the field
      */
     public static function createFieldTable()
@@ -568,6 +650,10 @@ class FieldReverse_Relationship extends FieldRelationship
                 `field_id`          int(11) unsigned NOT NULL,
                 `linked_section_id` int(11) unsigned NOT NULL,
                 `linked_field_id`   int(11) unsigned NOT NULL,
+                `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                `mode_footer`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `field_id` (`field_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

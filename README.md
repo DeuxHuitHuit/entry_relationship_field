@@ -13,7 +13,7 @@
 
 ### REQUIREMENTS
 
-- Symphony CMS version 2.7.0 and up (as of the day of the last release of this extension)
+- Symphony CMS version 2.7.3 and up (as of the day of the last release of this extension)
 
 ### INSTALLATION
 

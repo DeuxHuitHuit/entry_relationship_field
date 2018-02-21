@@ -619,7 +619,6 @@ class FieldReverse_Relationship extends FieldRelationship
         }
 
         $section = SectionManager::fetch($this->get('linked_section_id'));
-        $sectionId = $section->get('id');
         $field = FieldManager::fetch($this->get('linked_field_id'));
         $fieldId = $field->get('id');
         $sortableFieldId = 0;

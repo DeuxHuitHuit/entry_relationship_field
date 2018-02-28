@@ -649,9 +649,9 @@ class FieldReverse_Relationship extends FieldRelationship
                 `field_id`          int(11) unsigned NOT NULL,
                 `linked_section_id` int(11) unsigned NOT NULL,
                 `linked_field_id`   int(11) unsigned NOT NULL,
-                `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+                `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+                `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+                `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
                 `mode_footer`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `field_id` (`field_id`)

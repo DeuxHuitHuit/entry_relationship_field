@@ -30,6 +30,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.1.1" date="2018-02-28" min="2.7.3" max="2.x.x">
+			- Fix broken install SQL (#75)
+		</release>
 		<release version="2.1.0" date="2018-02-21" min="2.7.3" max="2.x.x">
 			- Fix a problem with the replace function (#74)
 			- Add XSLT output for reverse relationship

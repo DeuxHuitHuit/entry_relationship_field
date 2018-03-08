@@ -326,11 +326,23 @@
 					continue;
 				}
 				$parent_section_id = General::intval($sectionId);
-				$parent_section = SectionManager::fetch($sectionId);
+				if ($parent_section_id < 1) {
+					// section not found, bail out
+					continue;
+				}
+				$parent_section = SectionManager::fetch($parent_section_id);
+				if (!$parent_section) {
+					// section not found, bail out
+					continue;
+				}
 				$fields = $parent_section->fetchVisibleColumns();
 				if (empty($fields)) {
 					// no visible field, revert to all
 					$fields = $parent_section->fetchFields();
+				}
+				if (empty(fields)) {
+					// no fields found, bail out
+					continue;
 				}
 				$parent_field_id = current(array_keys($fields));
 				// create association

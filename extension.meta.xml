@@ -30,6 +30,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.1.2" date="2018-03-08" min="2.7.3" max="2.x.x">
+			- Prevent error when saving a field that links to an invalid section
+		</release>
 		<release version="2.1.1" date="2018-02-28" min="2.7.3" max="2.x.x">
 			- Fix broken install SQL (#75)
 		</release>

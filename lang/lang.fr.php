@@ -55,7 +55,7 @@
 		'Créer une entrée', 
 
 		'Link to entry' => 
-		'Lier unr entrée', 
+		'Lier une entrée', 
 
 		'Un-link' => 
 		'Délier', 

@@ -30,6 +30,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.2.0" date="2018-04-23" min="2.7.3" max="2.x.x">
+			- Add French language file
+		</release>
 		<release version="2.1.2" date="2018-03-08" min="2.7.3" max="2.x.x">
 			- Prevent error when saving a field that links to an invalid section
 		</release>

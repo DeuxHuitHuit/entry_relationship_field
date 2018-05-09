@@ -240,6 +240,10 @@
 	var notifier;
 	var entryId = S.Context.get().env.entry_id;
 	
+	var identity = function (x) {
+		return !!x;
+	};
+
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
@@ -395,7 +399,7 @@
 		};
 		var values = function () {
 			var val = hidden.val() || '';
-			return val.split(',');
+			return val.split(',').filter(identity);
 		};
 		var saveValues = function (val) {
 			var oldValue = hidden.val();
@@ -846,7 +850,7 @@
 		var isRendering = false;
 		var dirty = false;
 		var render = function () {
-			if (isRendering || !entries) {
+			if (isRendering || !entries || !entries.length) {
 				return;
 			}
 			isRendering = true;
@@ -888,7 +892,7 @@
 			if ($.isArray(entries)) {
 				return entries;
 			}
-			return entries.split(',');
+			return entries.split(',').filter(identity);
 		};
 		var memento = [].concat(values());
 		

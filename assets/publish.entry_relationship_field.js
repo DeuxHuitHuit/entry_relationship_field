@@ -59,7 +59,11 @@
 		// Remove everything from the notifier except errors
 		S.Elements.header.find('.notifier .notice:not(.error)').trigger('detach.notify');
 		form.find('>table th:not([id])').remove();
-		form.find('>table td:not([class]):not(:first-child)').remove();
+		form.find('>table td:not([class]):not(:first-child)').each(function () {
+			var td = $(this);
+			td.find('input').appendTo(td.prev('td'));
+			td.remove();
+		});
 		form.removeAttr('style');
 		S.Elements.contents.find('#drawer-section-associations').remove();
 		S.Elements.context.find('#drawer-filtering').remove();
@@ -243,7 +247,7 @@
 	var identity = function (x) {
 		return !!x;
 	};
-
+	
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};

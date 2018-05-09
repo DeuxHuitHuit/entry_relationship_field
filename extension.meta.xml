@@ -30,6 +30,10 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.2.1" date="2018-05-09" min="2.7.3" max="2.x.x">
+			- Fix initial value for reverse relationship
+			- Fix problem with association counts and getting the timestamp
+		</release>
 		<release version="2.2.0" date="2018-04-23" min="2.7.3" max="2.x.x">
 			- Add French language file
 		</release>

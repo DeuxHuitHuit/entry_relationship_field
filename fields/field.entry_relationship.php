@@ -1294,7 +1294,13 @@
 			}
 			
 			$sectionsId = array_map(array('General', 'intval'), $sectionsId);
-			$sections = SectionManager::fetch($sectionsId);
+			$sections = $this->sectionManager->fetch($sectionsId);
+			usort($sections, function ($a, $b) {
+				if ($a->get('name') === $b->get('name')) {
+					return 0;
+				}
+				return $a->get('name') < $b->get('name') ? -1 : 1;
+			});
 			
 			$label = Widget::Label($this->get('label'));
 			$notes = '';

@@ -68,7 +68,7 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         return false;
     }
-    
+
     public function canPublishFilter()
     {
         return false;
@@ -83,7 +83,7 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         return false;
     }
-    
+
     public function mustBeUnique()
     {
         return false;
@@ -121,7 +121,7 @@ class FieldReverse_Relationship extends FieldRelationship
     /* ********** INPUT AND FIELD *********** */
 
     /**
-     * 
+     *
      * Validates input
      * Called before <code>processRawFieldData</code>
      * @param $data
@@ -162,7 +162,7 @@ class FieldReverse_Relationship extends FieldRelationship
         if ($parent != self::__OK__) {
             return $parent;
         }
-        
+
         $sections = $this->get('linked_section_id');
         if (empty($sections)) {
             $errors['sections'] = __('A section must be chosen');
@@ -183,12 +183,12 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         // if the default implementation works...
         if(!parent::commit()) return false;
-        
+
         $id = $this->get('id');
-        
+
         // exit if there is no id
         if ($id == false) return false;
-        
+
         // declare an array contains the field's settings
         $settings = array(
             'linked_section_id' => $this->get('linked_section_id'),
@@ -198,7 +198,7 @@ class FieldReverse_Relationship extends FieldRelationship
             'mode_header' => $this->get('mode_header'),
             'mode_footer' => $this->get('mode_footer'),
         );
-        
+
         return FieldManager::saveSettings($id, $settings);
     }
 
@@ -213,7 +213,7 @@ class FieldReverse_Relationship extends FieldRelationship
     }
 
     /* ********* UI *********** */
-    
+
     /**
      *
      * Builds the UI for the field's settings when creating/editing a section
@@ -310,7 +310,7 @@ class FieldReverse_Relationship extends FieldRelationship
         if (!($field instanceof FieldRelationship)) {
             $flagWithError = __('Linked field is not valid. Please edit this field to set it to a valid ER field.');
         }
-        
+
         $label = Widget::Label($this->get('label'));
         // label error management
         if ($flagWithError != null) {
@@ -320,7 +320,7 @@ class FieldReverse_Relationship extends FieldRelationship
             $wrapper->appendChild($this->createEntriesList(array()));
             $wrapper->appendChild($this->createActionBarMenu($field));
         }
-        
+
         $wrapper->setAttribute('data-field-id', $this->get('id'));
         $wrapper->setAttribute('data-linked-field-id', $this->get('linked_field_id'));
         $wrapper->setAttribute('data-linked-section-id', $this->get('linked_section_id'));
@@ -389,15 +389,15 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         $sections = static::getERSections();
         $options = array();
-        
+
         foreach ($sections as $section) {
             $driver = $section->get('id');
             $selected = $driver === $this->get('linked_section_id');
             $options[] = array($driver, $selected, General::sanitize($section->get('name')));
         }
-        
+
         return Widget::Select($name, $options);
-    } 
+    }
 
     private function appendSelectionSelect(&$wrapper)
     {
@@ -418,7 +418,7 @@ class FieldReverse_Relationship extends FieldRelationship
         $section = $this->get('linked_section_id') ? SectionManager::fetch($this->get('linked_section_id')) : null;
         $fields = static::getERFields();
         $options = array();
-        
+
         foreach ($fields as $field) {
             if ($section && $section->get('id') !== $field->get('parent_section')) {
                 continue;
@@ -427,9 +427,9 @@ class FieldReverse_Relationship extends FieldRelationship
             $selected = $driver === $this->get('linked_field_id');
             $options[] = array($driver, $selected, General::sanitize($field->get('label')));
         }
-        
+
         return Widget::Select($name, $options);
-    } 
+    }
 
     protected function appendFieldSelect(&$wrapper)
     {
@@ -460,7 +460,14 @@ class FieldReverse_Relationship extends FieldRelationship
         }
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        $data = Symphony::Database()->fetch("SELECT `entries` FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        // $data = Symphony::Database()->fetch("SELECT `entries` FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        $data = Symphony::Database()
+            ->select(['entries'])
+            ->from('tbl_entries_data_' . $fieldId, 'd')
+            ->where($where)
+            ->execute()
+            ->rows();
+
         if (!is_array($data) || !($data = current($data))) {
             return null;
         }
@@ -491,7 +498,14 @@ class FieldReverse_Relationship extends FieldRelationship
 
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        // $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        $entries = Symphony::Database()
+            ->select(['*'])
+            ->distinct()
+            ->from('tbl_entries_data_' . $fieldId, 'd')
+            ->where($where)
+            ->execute()
+            ->rows();
         $output = array();
         foreach ($entries as $e) {
             $e['entries'] = $entry_id;
@@ -524,7 +538,14 @@ class FieldReverse_Relationship extends FieldRelationship
 
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        // $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
+        $entries = Symphony::Database()
+            ->select(['*'])
+            ->distinct()
+            ->from('tbl_entries_data_' . $fieldId, 'd')
+            ->where($where)
+            ->execute()
+            ->rows();
         $output = array();
         $this->set('elements', '*');
         $this->set('sections', $this->get('linked_section_id'));
@@ -641,22 +662,58 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public static function createFieldTable()
     {
-        $tbl = self::FIELD_TBL_NAME;
+        // $tbl = self::FIELD_TBL_NAME;
 
-        return Symphony::Database()->query("
-            CREATE TABLE IF NOT EXISTS `$tbl` (
-                `id`                int(11) unsigned NOT NULL AUTO_INCREMENT,
-                `field_id`          int(11) unsigned NOT NULL,
-                `linked_section_id` int(11) unsigned NOT NULL,
-                `linked_field_id`   int(11) unsigned NOT NULL,
-                `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-                `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-                `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-                `mode_footer`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-                PRIMARY KEY (`id`),
-                UNIQUE KEY `field_id` (`field_id`)
-            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-        ");
+        // return Symphony::Database()->query("
+        //     CREATE TABLE IF NOT EXISTS `$tbl` (
+        //         `id`                int(11) unsigned NOT NULL AUTO_INCREMENT,
+        //         `field_id`          int(11) unsigned NOT NULL,
+        //         `linked_section_id` int(11) unsigned NOT NULL,
+        //         `linked_field_id`   int(11) unsigned NOT NULL,
+        //         `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+        //         `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+        //         `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+        //         `mode_footer`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+        //         PRIMARY KEY (`id`),
+        //         UNIQUE KEY `field_id` (`field_id`)
+        //     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+        // ");
+        return Symphony::Database()
+            ->create(self::FIELD_TBL_NAME)
+            ->ifNotExists()
+            ->charset('utf8')
+            ->collate('utf8_unicode_ci')
+            ->fields([
+                'id' => [
+                    'type' => 'int(11)',
+                    'auto' => true,
+                ],
+                'field_id' => 'int(11)',
+                'linked_section_id' => 'int(11)',
+                'linked_field_id' => 'int(11)',
+                'mode' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_table' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_header' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_footer' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+            ])
+            ->keys([
+                'id' => 'primary',
+                'field_id' => 'unique',
+            ])
+            ->execute()
+            ->success();
     }
 
     public static function update_200()
@@ -666,19 +723,42 @@ class FieldReverse_Relationship extends FieldRelationship
 
     public static function update_210()
     {
-        $tbl = self::FIELD_TBL_NAME;
-        $sql = "
-            ALTER TABLE `$tbl`
-                ADD COLUMN `mode` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                    AFTER `linked_field_id`,
-                ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                    AFTER `mode`,
-                ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                    AFTER `mode_table`,
-                ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-                    AFTER `mode_header`
-        ";
-        return Symphony::Database()->query($sql);
+        // $tbl = self::FIELD_TBL_NAME;
+        // $sql = "
+        //     ALTER TABLE `$tbl`
+        //         ADD COLUMN `mode` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+        //             AFTER `linked_field_id`,
+        //         ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+        //             AFTER `mode`,
+        //         ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+        //             AFTER `mode_table`,
+        //         ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+        //             AFTER `mode_header`
+        // ";
+        // return Symphony::Database()->query($sql);
+        return Symphony::Database()
+            ->alter(self::FIELD_TBL_NAME)
+            ->add([
+                'mode' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_table' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_header' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+                'mode_footer' => [
+                    'type' => 'varchar(50)',
+                    'null' => true,
+                ],
+            ])
+            ->after('linked_field_id')
+            ->execute()
+            ->success();
     }
 
     /**
@@ -687,10 +767,15 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public static function deleteFieldTable()
     {
-        $tbl = self::FIELD_TBL_NAME;
+        // $tbl = self::FIELD_TBL_NAME;
 
-        return Symphony::Database()->query("
-            DROP TABLE IF EXISTS `$tbl`
-        ");
+        // return Symphony::Database()->query("
+        //     DROP TABLE IF EXISTS `$tbl`
+        // ");
+        return Symphony::Database()
+            ->drop(self::FIELD_TBL_NAME)
+            ->ifExists()
+            ->execute()
+            ->success();
     }
 }

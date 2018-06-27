@@ -11,7 +11,11 @@ class SectionsInfos
     {
         self::$deepness++;
         $options = array();
-        $sections = SectionManager::fetch($sections);
+        $sections = (new SectionManager)
+            ->select()
+            ->sections($sections)
+            ->execute()
+            ->rows();
         if (!empty($sections)) {
             foreach ($sections as $section) {
                 $section_fields = $section->fetchFields();
@@ -30,7 +34,7 @@ class SectionsInfos
                     }
                     self::$seenFields[] = $f->get('id');
                     $modes = $f->fetchIncludableElements();
-                    
+
                     if (is_array($modes)) {
                         // include default
                         $fields[] = array(

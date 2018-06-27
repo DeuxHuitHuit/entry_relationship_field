@@ -399,14 +399,32 @@
 		 */
 		public function generateWhereFilter($value, $col = 'd', $andOperation = true)
 		{
-			$junction = $andOperation ? 'AND' : 'OR';
+			$junction = $andOperation ? 'and' : 'or';
+			// if (!$value) {
+			// 	return "{$junction} (`{$col}`.`entries` IS NULL)";
+			// }
+			// return " {$junction} (`{$col}`.`entries` = '{$value}' OR
+			// 		`{$col}`.`entries` LIKE '{$value},%' OR
+			// 		`{$col}`.`entries` LIKE '%,{$value}' OR
+			// 		`{$col}`.`entries` LIKE '%,{$value},%')";
 			if (!$value) {
-				return "{$junction} (`{$col}`.`entries` IS NULL)";
+				return [
+					$junction => [
+						[$col . '.entries' => 'null'],
+					],
+				];
 			}
-			return " {$junction} (`{$col}`.`entries` = '{$value}' OR
-					`{$col}`.`entries` LIKE '{$value},%' OR
-					`{$col}`.`entries` LIKE '%,{$value}' OR
-					`{$col}`.`entries` LIKE '%,{$value},%')";
+
+			return [
+				$junction => [
+					'or' => [
+						[$col . '.entries' => $value],
+						[$col . '.entries' => ['like' => $value . ',%']],
+						[$col . '.entries' => ['like' => '%,' . $value]],
+						[$col . '.entries' => ['like' => '%,' . $value . ',%']],
+					],
+				]
+			];
 		}
 
 		/**
@@ -419,10 +437,18 @@
 			if (!$value) {
 				return 0;
 			}
-			$join = sprintf(" INNER JOIN `tbl_entries_data_%s` AS `d` ON `e`.id = `d`.`entry_id`", $this->get('id'));
+			// $join = sprintf(" INNER JOIN `tbl_entries_data_%s` AS `d` ON `e`.id = `d`.`entry_id`", $this->get('id'));
 			$where = $this->generateWhereFilter($value);
 
-			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $join, false, false, array());
+			// $entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $join, false, false, array());
+			$entries = Symphony::Database()
+				->select(['*'])
+				->from('tbl_entries', 'e')
+				->innerJoin('tbl_entries_data_' . $this->get('id'), 'd')
+				->on(['e.id' => 'd.entry_id'])
+				->where($where)
+				->execute()
+				->rows();
 
 			return count($entries);
 		}
@@ -438,7 +464,13 @@
 			$where = '';
 			$this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
 
-			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
+			// $entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
+			$entries = (new EntryManager)
+				->select()
+				->section($this->get('parent_section'))
+				->schema(['*'])
+				->execute()
+				->rows();
 
 			return array_map(function ($e) {
 				return $e['id'];
@@ -1491,17 +1523,39 @@
 		 */
 		public function createTable()
 		{
-			$id = $this->get('id');
+			// $id = $this->get('id');
 
-			return Symphony::Database()->query("
-				CREATE TABLE `tbl_entries_data_$id` (
-					`id` INT(11) 		UNSIGNED NOT NULL AUTO_INCREMENT,
-					`entry_id` 			INT(11) UNSIGNED NOT NULL,
-					`entries` 			text COLLATE utf8_unicode_ci NULL,
-					PRIMARY KEY  (`id`),
-					UNIQUE KEY `entry_id` (`entry_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			");
+			// return Symphony::Database()->query("
+			// 	CREATE TABLE IF NOT EXISTS `tbl_entries_data_$id` (
+			// 		`id` INT(11) 		UNSIGNED NOT NULL AUTO_INCREMENT,
+			// 		`entry_id` 			INT(11) UNSIGNED NOT NULL,
+			// 		`entries` 			text COLLATE utf8_unicode_ci NULL,
+			// 		PRIMARY KEY  (`id`),
+			// 		UNIQUE KEY `entry_id` (`entry_id`)
+			// 	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+			// ");
+			return Symphony::Database()
+				->create('tbl_entries_data_' . $this->get('id'))
+				->ifNotExists()
+				->charset('utf8')
+				->collate('utf8_unicode_ci')
+				->fields([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'entry_id' => 'int(11)',
+					'entries' => [
+						'type' => 'text',
+						'null' => true,
+					],
+				])
+				->keys([
+					'id' => 'primary',
+					'entry_id' => 'unique',
+				])
+				->execute()
+				->success();
 		}
 
 		/**
@@ -1509,55 +1563,192 @@
 		 */
 		public static function createFieldTable()
 		{
-			$tbl = self::FIELD_TBL_NAME;
+			// $tbl = self::FIELD_TBL_NAME;
 
-			return Symphony::Database()->query("
-				CREATE TABLE IF NOT EXISTS `$tbl` (
-					`id` 				INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-					`field_id` 			INT(11) UNSIGNED NOT NULL,
-					`sections`			VARCHAR(2048) NULL COLLATE utf8_unicode_ci,
-					`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`deepness` 			INT(2) UNSIGNED NULL,
-					`elements` 			TEXT COLLATE utf8_unicode_ci NULL,
-					`mode`				VARCHAR(50) NULL COLLATE utf8_unicode_ci,
-					`mode_table`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_header`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_footer`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`min_entries`		INT(5) UNSIGNED NULL,
-					`max_entries`		INT(5) UNSIGNED NULL,
-					`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_new` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_delete` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
-					`allow_collapse` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_search` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
-					`show_header` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					PRIMARY KEY (`id`),
-					UNIQUE KEY `field_id` (`field_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			");
+			// return Symphony::Database()->query("
+			// 	CREATE TABLE IF NOT EXISTS `$tbl` (
+			// 		`id` 				INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+			// 		`field_id` 			INT(11) UNSIGNED NOT NULL,
+			// 		`sections`			VARCHAR(2048) NULL COLLATE utf8_unicode_ci,
+			// 		`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		`deepness` 			INT(2) UNSIGNED NULL,
+			// 		`elements` 			TEXT COLLATE utf8_unicode_ci NULL,
+			// 		`mode`				VARCHAR(50) NULL COLLATE utf8_unicode_ci,
+			// 		`mode_table`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+			// 		`mode_header`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+			// 		`mode_footer`		VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
+			// 		`min_entries`		INT(5) UNSIGNED NULL,
+			// 		`max_entries`		INT(5) UNSIGNED NULL,
+			// 		`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		`allow_new` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		`allow_delete` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
+			// 		`allow_collapse` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		`allow_search` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
+			// 		`show_header` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		PRIMARY KEY (`id`),
+			// 		UNIQUE KEY `field_id` (`field_id`)
+			// 	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+			// ");
+			return Symphony::Database()
+				->create(self::FIELD_TBL_NAME)
+				->ifNotExists()
+				->charset('utf8')
+				->collate('utf8_unicode_ci')
+				->fields([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'field_id' => 'int(11)',
+					'sections' => [
+						'type' => 'varchar(2048)',
+						'null' => true,
+					],
+					'show_association' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'deepness' => [
+						'type' => 'int(2)',
+						'null' => true,
+					],
+					'elements' => [
+						'type' => 'text',
+						'null' => true,
+					],
+					'mode' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_table' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_header' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_footer' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'min_entries' => [
+						'type' => 'int(5)',
+						'null' => true,
+					],
+					'max_entries' => [
+						'type' => 'int(5)',
+						'null' => true,
+					],
+					'allow_edit' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_new' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_link' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_delete' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+					'allow_collapse' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_search' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+					'show_header' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->keys([
+					'id' => 'primary',
+					'field_id' => 'unique',
+				])
+				->execute()
+				->success();
 		}
 
 		public static function update_102()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_edit` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_new` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_link` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-					AFTER `max_entries`
-			";
-			$addColumns = Symphony::Database()->query($sql);
+			// $tbl = self::FIELD_TBL_NAME;
+			// $sql = "
+			// 	ALTER TABLE `$tbl`
+			// 		ADD COLUMN `allow_edit` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		ADD COLUMN `allow_new` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
+			// 		ADD COLUMN `allow_link` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+			// 		AFTER `max_entries`
+			// ";
+			// $addColumns = Symphony::Database()->query($sql);
+			$addColumns = Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_edit' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_new' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_link' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('max_entries')
+				->execute()
+				->success();
+
 			if (!$addColumns) {
 				return false;
 			}
 
-			$fields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+			// $fields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+			$fields = (new FieldManager)
+				->select()
+				->sort('id', 'asc')
+				->type('entry_relationship')
+				->execute()
+				->rows();
+
 			if (!empty($fields) && is_array($fields)) {
 				foreach ($fields as $fieldId => $field) {
-					$sql = "ALTER TABLE `tbl_entries_data_$fieldId` MODIFY `entries` TEXT";
-					if (!Symphony::Database()->query($sql)) {
+					// $sql = "ALTER TABLE `tbl_entries_data_$fieldId` MODIFY `entries` TEXT";
+					// if (!Symphony::Database()->query($sql)) {
+					// 	throw new Exception(__('Could not update table `tbl_entries_data_%s`.', array($fieldId)));
+					// }
+					if (!Symphony::Database()
+						->alter('tbl_entries_data_' . $fieldId)
+						->modify([
+							'entries' => [
+								'type' => 'text',
+								'null' => true,
+							],
+						])
+						->execute()
+						->success()
+					) {
 						throw new Exception(__('Could not update table `tbl_entries_data_%s`.', array($fieldId)));
 					}
 				}
@@ -1567,45 +1758,114 @@
 
 		public static function update_103()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_delete` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
-						AFTER `allow_link`
-			";
-			return Symphony::Database()->query($sql);
+			// $tbl = self::FIELD_TBL_NAME;
+			// $sql = "
+			// 	ALTER TABLE `$tbl`
+			// 		ADD COLUMN `allow_delete` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
+			// 			AFTER `allow_link`
+			// ";
+			// return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_delete' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+				])
+				->after('allow_link')
+				->execute()
+				->success();
 		}
 
 		public static function update_200()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_collapse` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-						AFTER `allow_delete`,
-					ADD COLUMN `mode_table` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode`,
-					ADD COLUMN `mode_header` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_table`,
-					ADD COLUMN `show_header` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-						AFTER `allow_collapse`,
-					ADD COLUMN `mode_footer` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_header`,
-					CHANGE `sections` `sections` VARCHAR(2048) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL,
-					CHANGE `elements` `elements` TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL
-			";
-			return Symphony::Database()->query($sql);
+			// $tbl = self::FIELD_TBL_NAME;
+			// $sql = "
+			// 	ALTER TABLE `$tbl`
+			// 		ADD COLUMN `allow_collapse` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+			// 			AFTER `allow_delete`,
+			// 		ADD COLUMN `mode_table` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+			// 			AFTER `mode`,
+			// 		ADD COLUMN `mode_header` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+			// 			AFTER `mode_table`,
+			// 		ADD COLUMN `show_header` ENUM('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
+			// 			AFTER `allow_collapse`,
+			// 		ADD COLUMN `mode_footer` VARCHAR(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
+			// 			AFTER `mode_header`,
+			// 		CHANGE `sections` `sections` VARCHAR(2048) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL,
+			// 		CHANGE `elements` `elements` TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL
+			// ";
+			// return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_collapse' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('allow_delete')
+				->add([
+					'mode_table' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_header' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_footer' => [
+						'type' => 'varchar(50)',
+						'null'
+					],
+				])
+				->after('mode')
+				->add([
+					'show_header' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('allow_collapse')
+				->change([
+					'sections' => [
+						'type' => 'varchar(2048)',
+						'null' => true,
+					],
+					'elements' => [
+						'type' => 'text',
+						'null' => true,
+					],
+				])
+				->execute()
+				->success();
 		}
 
 		public static function update_2008()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_search` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
-						AFTER `allow_collapse`
-			";
-			return Symphony::Database()->query($sql);
+			// $tbl = self::FIELD_TBL_NAME;
+			// $sql = "
+			// 	ALTER TABLE `$tbl`
+			// 		ADD COLUMN `allow_search` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
+			// 			AFTER `allow_collapse`
+			// ";
+			// return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_search' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+				])
+				->after('allow_collapse')
+				->execute()
+				->success();
 		}
 
 		/**
@@ -1614,15 +1874,25 @@
 		 */
 		public static function deleteFieldTable()
 		{
-			$tbl = self::FIELD_TBL_NAME;
+			// $tbl = self::FIELD_TBL_NAME;
 
-			return Symphony::Database()->query("
-				DROP TABLE IF EXISTS `$tbl`
-			");
+			// return Symphony::Database()->query("
+			// 	DROP TABLE IF EXISTS `$tbl`
+			// ");
+			return Symphony::Database()
+				->drop(self::FIELD_TBL_NAME)
+				->ifExists()
+				->execute()
+				->success();
 		}
 
 		private static function removeSectionAssociation($child_field_id)
 		{
-			return Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+			// return Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+			return Symphony::Database()
+				->delete('tbl_sections_association')
+				->where(['child_section_field_id' => $child_field_id])
+				->execute()
+				->success();
 		}
 	}

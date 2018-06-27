@@ -112,9 +112,9 @@
 			$this->set('allow_collapse', 'yes');
 			$this->set('allow_search', 'no');
 			$this->set('show_header', 'yes');
-			$this->sectionManager = new CacheableFetch('SectionManager');
-			$this->entryManager = new CacheableFetch('EntryManager');
-			$this->sectionInfos = new CacheableFetch('SectionsInfos');
+			$this->sectionManager = new SectionManager;
+			$this->entryManager = new EntryManager;
+			$this->sectionInfos = new SectionsInfos;
 		}
 
 		public function isSortable()
@@ -479,7 +479,12 @@
 			//$value = Lang::createHandle($value);
 
 			foreach ($sections as $sectionId) {
-				$section = $this->sectionManager->fetch($sectionId);
+				$section = $this->sectionManager
+					->select()
+					->section($sectionId)
+					->execute()
+					->next();
+
 				if (!$section) {
 					continue;
 				}
@@ -494,7 +499,11 @@
 						continue;
 					}
 					$field->buildDSRetrievalSQL(array($value), $joins, $where, false);
-					$fEntries = $this->entryManager->fetch(null, $sectionId, null, null, $where, $joins, true, false, null, false);
+					$fEntries = $this->entryManager
+						->select()
+						->section($sectionId)
+						->execute()
+						->rows();
 					if (!empty($fEntries)) {
 						$ids = array_merge($ids, $fEntries);
 						break;
@@ -735,7 +744,11 @@
 
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
-					$section = $this->sectionManager->fetch($sectionId);
+					$section = $this->sectionManager
+						->select()
+						->section($sectionId)
+						->execute()
+						->next();
 					$sectionName = $section->get('handle');
 					// cache fields info
 					if (!isset($section->er_field_cache)) {
@@ -847,7 +860,11 @@
 							continue;
 						}
 
-						$field = $section->er_field_cache[$fieldId];
+						$field = (new FieldManager)
+							->select()
+							->field($fieldId)
+							->execute()
+							->next();
 						$fieldName = $field->get('element_name');
 						$fieldCurMode = self::extractMode($fieldName, $curMode);
 
@@ -1081,7 +1098,11 @@
 			$actionBar = '';
 			$modeFooter = $this->get('mode_footer');
 			if ($modeFooter) {
-				$section = $this->sectionManager->fetch($this->get('parent_section'));
+				$section = $this->sectionManager
+					->select()
+					->section($this->get('parent_section'))
+					->execute()
+					->next();
 				$actionBar = ERFXSLTUTilities::processXSLT($this, null, $section->get('handle'), null, 'mode_footer', isset($_REQUEST['debug']), 'field');
 			}
 			if (empty($actionBar)) {
@@ -1300,7 +1321,11 @@
 			}
 
 			$sectionsId = array_map(array('General', 'intval'), $sectionsId);
-			$sections = $this->sectionManager->fetch($sectionsId);
+			$sections = $this->sectionManager
+				->select()
+				->sections($sectionsId)
+				->execute()
+				->rows();
 			usort($sections, function ($a, $b) {
 				if ($a->get('name') === $b->get('name')) {
 					return 0;
@@ -1420,13 +1445,21 @@
 				$entries = static::getEntries($data);
 				$cellcontent = '';
 				foreach ($entries as $position => $child_entry_id) {
-					$entry = $this->entryManager->fetch($child_entry_id);
+					$entry = $this->entryManager
+						->select()
+						->entry($child_entry_id)
+						->execute()
+						->next();
 					if (!$entry || !is_array($entry) || empty($entry)) {
 						continue;
 					}
 					reset($entry);
 					$entry = current($entry);
-					$section = $this->sectionManager->fetch($entry->get('section_id'));
+					$section = $this->sectionManager
+						->select()
+						->section($entry->get('section_id'))
+						->execute()
+						->next();
 					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
 					if ($content) {
 						$cellcontent .= $content;

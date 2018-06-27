@@ -9,36 +9,36 @@
 
 /* Settings behavior */
 (function ($, S) {
-	
+
 	'use strict';
-	
+
 	var MODES = /^(.+):(.+)/i;
 	var WHITESPACE = /\s*/i;
-	
+
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
-	
+
 	var INSTANCES_SEL = '.field-entry_relationship.instance';
 	var SECTIONS_SEL = ' .entry_relationship-sections';
 	var FIELD_CHOICES_SEL = ' .entry_relationship-field-choices';
 	var ELEMENTS_SEL = ' .entry_relationship-elements';
-	
+
 	var SECTIONS = baseurl() + '/extension/entry_relationship_field/sectionsinfos/';
-	
+
 	var instances = $();
-	
+
 	var refreshInstances = function (context) {
 		instances = context.find();
 	};
-	
+
 	var updateElementsNameVisibility = function (field) {
 		var fieldElements = field.find(ELEMENTS_SEL);
 		var fieldChoices = field.find(FIELD_CHOICES_SEL);
 		var values = {};
 		var hiddenCount = 0;
 		var lis = fieldChoices.find('>li');
-		
+
 		// parse input
 		$.each(fieldElements.val().split(','), function (index, value) {
 			if (!value) {
@@ -48,7 +48,7 @@
 			if (!!parts.length) {
 				var sectionname = parts.shift().replace(WHITESPACE, '');
 				var fieldname = parts.join('.');
-				
+
 				// skip all included
 				if (values[sectionname] === true) {
 					return true;
@@ -66,7 +66,7 @@
 				values[sectionname].push(sectionname + '.' + fieldname);
 			}
 		});
-		
+
 		// show/hide
 		lis.each(function (index, value) {
 			var t = $(this);
@@ -75,7 +75,7 @@
 			var text = t.text().replace(WHITESPACE, '');
 			var field = value || text;
 			var fx = 'removeClass';
-			
+
 			var isFieldSelected = function () {
 				if (!values[sectionname]) {
 					return false;
@@ -96,19 +96,19 @@
 				});
 				return found;
 			};
-			
+
 			if (values['*'] === true || values[sectionname] === true || isFieldSelected()) {
 				fx = 'addClass';
 				hiddenCount++;
 			}
 			t[fx]('chosen');
 		});
-		
+
 		if (hiddenCount === lis.length - 1) {
 			lis.hide();
 		}
 	};
-	
+
 	var createElementInstance = function (section, text, cssclass) {
 		var li = $('<li />')
 			.attr('data-section', section.handle)
@@ -118,7 +118,7 @@
 		}
 		return li;
 	};
-	
+
 	var resizeField = function (field, fieldChoices) {
 		var maxHeight = 0;
 		if (!field.is('.collapsed')) {
@@ -134,19 +134,21 @@
 		// update duplicator (collapsible) cached values
 		field.data('heightMax', maxHeight);
 	};
-	
+
 	var renderElementsName = function (field) {
 		var sections = field.find(SECTIONS_SEL);
 		var fieldChoices = field.find(FIELD_CHOICES_SEL);
 		var temp = $();
 		var values = [];
-		
+
 		sections.find('option:selected').each(function (index, value) {
 			values.push($(value).val());
 		});
-		
+
 		fieldChoices.empty();
-		
+
+		console.log('YO');
+
 		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
 			if (!!data.sections) {
 				var all = createElementInstance({handle: '*'}, 'Include all elements', 'header');
@@ -176,18 +178,18 @@
 					});
 				});
 			}
-			
+
 			fieldChoices.append(temp);
-			
+
 			resizeField(field, fieldChoices);
-			
+
 			updateElementsNameVisibility(field);
 		});
 	};
-	
+
 	var init = function () {
 		var body = $('body');
-		if (body.is('#blueprints-sections') && (body.hasClass('edit') || body.hasClass('new'))) {
+		if (body.is('#blueprints-sections') && (body.attr('data-action') == 'edit' || body.attr('data-action') == 'new')) {
 			$('#fields-duplicator').on('constructshow.duplicator, destructstart.duplicator', function (e) {
 				var t = $(this);
 				refreshInstances(t);
@@ -236,9 +238,9 @@
 			});
 		}
 	};
-	
+
 	$(init);
-	
+
 })(jQuery, Symphony);
 
 /**
@@ -247,19 +249,19 @@
 
 /* Settings behavior */
 (function ($, S) {
-	
+
 	'use strict';
-	
+
 	var baseurl = function () {
 		return S.Context.get('symphony');
 	};
-	
+
 	var INSTANCES_SEL = '.field-reverse_relationship.instance';
 	var SECTIONS_SEL = ' .reverse_relationship-sections';
 	var FIELD_SEL = ' .reverse_relationship-field';
-	
+
 	var SECTIONS = baseurl() + '/extension/entry_relationship_field/sectionsinfos/';
-	
+
 	var updateFieldNameUI = function (fieldChoices, options) {
 		fieldChoices.next('div').remove();
 		if (options.length < 2) {
@@ -269,15 +271,15 @@
 			fieldChoices.show();
 		}
 	};
-	
+
 	var renderFieldNames = function (field) {
 		var sections = field.find(SECTIONS_SEL);
 		var fieldChoices = field.find(FIELD_SEL);
 		var temp = $();
 		var selectedSection = sections.find('option:selected').val();
-		
+
 		fieldChoices.empty().prop('disabled', true);
-		
+
 		$.get(SECTIONS + selectedSection + '/').done(function (data) {
 			var temp = $();
 			if (!!data.sections) {
@@ -293,7 +295,7 @@
 			updateFieldNameUI(fieldChoices, temp);
 		});
 	};
-	
+
 	var init = function () {
 		var body = $('body');
 		if (body.is('#blueprints-sections') && (body.hasClass('edit') || body.hasClass('new'))) {
@@ -311,7 +313,7 @@
 			});
 		}
 	};
-	
+
 	$(init);
-	
+
 })(jQuery, Symphony);

@@ -352,7 +352,7 @@
 					// no fields found, bail out
 					continue;
 				}
-				$parent_field_id = current(array_keys($fields));
+				$parent_field_id = current($fields)->get('id');
 				// create association
 				SectionManager::createSectionAssociation(
 					$parent_section_id,

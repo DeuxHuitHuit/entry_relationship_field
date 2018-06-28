@@ -67,7 +67,6 @@
 				return;
 			}
 
-			// $parentField = $this->fieldManager->fetch($parentFieldId);
 			$parentField = $this->fieldManager
 				->select()
 				->field($parentFieldId)
@@ -93,7 +92,6 @@
 			// different sections, which prevents us from
 			// passing an array of entryId.
 			foreach ($entriesId as $key => $entryId) {
-				// $entry = $this->entryManager->fetch($entryId);
 				$entry = $this->entryManager
 					->select()
 					->entry($entryId)
@@ -118,7 +116,6 @@
 					$li->appendChild($header);
 					$this->_Result->appendChild($li);
 				} else {
-					// $entrySection = $this->sectionManager->fetch($entry->get('section_id'));
 					$entrySection = $this->sectionManager
 						->select()
 						->section($entry->get('section_id'))
@@ -213,7 +210,6 @@
 
 		public function getSectionName($entry, $name = 'name') {
 			$sectionId = $entry->get('section_id');
-			// return $this->sectionManager->fetch($sectionId)->get($name);
 			return $this->sectionManager
 				->select()
 				->section($sectionId)

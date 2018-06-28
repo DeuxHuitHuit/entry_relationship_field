@@ -237,7 +237,6 @@
 
 			foreach ($entries as $orphan) {
 				$td = array();
-				// $o = $this->entryManager->fetch($orphan, $section['section']->get('id'), null, null, null, null, false, true, $element_names, false);
 				$o = $this->entryManager
 					->select()
 					->entry($orphan)
@@ -311,7 +310,6 @@
 				// All entries in that section
 				$ls['all-entries'] = array_map(function ($e) {
 					return $e->get('id');
-				// }, $this->entryManager->fetch(null, $ls['section']->get('id'), null, null, null, null, false, false, null, false));
 				}, $this->entryManager
 					->select()
 					->section($ls['section']->get('id'))
@@ -334,7 +332,6 @@
 
 		public function getAllFieldsData()
 		{
-			// $fields = $this->fieldManager->fetch(null, null, 'ASC', 'sortorder', 'entry_relationship');
 			$fields = $this->fieldManager
 				->select()
 				->sort('sortorder', 'asc')
@@ -343,7 +340,6 @@
 				->rows();
 			$fields = array_map(function ($f) {
 				// Get the field's section
-				// $f->section = $this->sectionManager->fetch($f->get('parent_section'));
 				$f->section = $this->sectionManager
 					->select()
 					->section($f->get('parent_section'))
@@ -351,7 +347,6 @@
 					->next();
 				// Get all linked entries from all entries in this field
 				$f->linkedEntries = array();
-				// $fieldEntries = $this->entryManager->fetch(null, $f->get('parent_section'), null, null, null, null, false, true, array($f->get('element_name')), false);
 				$fieldEntries = $this->entryManager
 					->select()
 					->section($f->get('parent_section'))
@@ -371,7 +366,6 @@
 				$f->linkedSections = array();
 				$rSections = explode(',', $f->get('sections'));
 				foreach ($rSections as $s) {
-					// $section = $this->sectionManager->fetch($s);
 					$section = $this->sectionManager
 						->select()
 						->section($s)

@@ -84,7 +84,6 @@
 				$this->_Result['error'] = __('Parent id not valid');
 				return;
 			}
-			// $parentField = FieldManager::fetch($parentFieldId);
 			$parentField = (new FieldManager)
 				->select()
 				->field($parentFieldId)
@@ -107,7 +106,6 @@
 			}
 
 			// Validate parent entry exists
-			// $entry = EntryManager::fetch($entryId);
 			$entry = (new EntryManager)
 				->select()
 				->entry($entryId)

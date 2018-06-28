@@ -308,13 +308,11 @@ class FieldReverse_Relationship extends FieldRelationship
         if (!$entry_id) {
             return;
         }
-        // $field = FieldManager::fetch($this->get('linked_field_id'));
         $field = $this->fieldManager
             ->select()
             ->field($this->get('linked_field_id'))
             ->execute()
             ->next();
-        // $section = SectionManager::fetch($this->get('linked_section_id'));
         $section = $this->sectionManager
             ->select()
             ->section($this->get('linked_section_id'))
@@ -350,7 +348,6 @@ class FieldReverse_Relationship extends FieldRelationship
 
     private function createActionBarMenu($field)
     {
-        // $section = SectionManager::fetch($this->get('linked_section_id'));
         $section = $this->sectionManager
             ->select()
             ->section($this->get('linked_section_id'))
@@ -388,7 +385,6 @@ class FieldReverse_Relationship extends FieldRelationship
     private function getERFields()
     {
         if (empty(self::$erFields)) {
-            // self::$erFields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
             self::$erFields = $this->fieldManager
                 ->select()
                 ->sort('id', 'asc')
@@ -407,7 +403,6 @@ class FieldReverse_Relationship extends FieldRelationship
             $sectionIds = array_map(function ($erField) {
                 return $erField->get('parent_section');
             }, $erFields);
-            // self::$erSections = SectionManager::fetch($sectionIds);
             self::$erSections = $this->sectionManager
                 ->select()
                 ->sections($sectionIds)
@@ -447,7 +442,6 @@ class FieldReverse_Relationship extends FieldRelationship
 
     private function buildFieldSelect($name)
     {
-        // $section = $this->get('linked_section_id') ? SectionManager::fetch($this->get('linked_section_id')) : null;
         if ($this->get('linked_section_id')) {
             $section = $this->sectionManager
                 ->select()
@@ -494,13 +488,11 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public function prepareTextValue($data, $entry_id = null)
     {
-        // $field = FieldManager::fetch($this->get('linked_field_id'));
         $field = $this->fieldManager
             ->select()
             ->field($this->get('linked_field_id'))
             ->execute()
             ->next();
-        // $section = SectionManager::fetch($this->get('linked_section_id'));
         $section = $this->sectionManager
             ->select()
             ->section($this->get('linked_section_id'))
@@ -511,7 +503,6 @@ class FieldReverse_Relationship extends FieldRelationship
         }
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        // $data = Symphony::Database()->fetch("SELECT `entries` FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
         $data = Symphony::Database()
             ->select(['entries'])
             ->from('tbl_entries_data_' . $fieldId, 'd')
@@ -541,13 +532,11 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public function prepareReadableValue($data, $entry_id = null, $truncate = false, $defaultValue = 'None')
     {
-        // $field = FieldManager::fetch($this->get('linked_field_id'));
         $field = $this->fieldManager
             ->select()
             ->field($this->get('linked_field_id'))
             ->execute()
             ->next();
-        // $section = SectionManager::fetch($this->get('linked_section_id'));
         $section = $this->sectionManager
             ->select()
             ->section($this->get('linked_section_id'))
@@ -559,7 +548,6 @@ class FieldReverse_Relationship extends FieldRelationship
 
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        // $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
         $entries = Symphony::Database()
             ->select(['*'])
             ->distinct()
@@ -598,7 +586,6 @@ class FieldReverse_Relationship extends FieldRelationship
             ->field($this->get('linked_field_id'))
             ->execute()
             ->next();
-        // $section = SectionManager::fetch($this->get('linked_section_id'));
         $section = $this->sectionManager
             ->select()
             ->section($this->get('linked_section_id'))
@@ -610,7 +597,6 @@ class FieldReverse_Relationship extends FieldRelationship
 
         $fieldId = $field->get('id');
         $where = $field->generateWhereFilter($entry_id);
-        // $entries = Symphony::Database()->fetch("SELECT DISTINCT * FROM `tbl_entries_data_$fieldId` AS `d` WHERE 1=1 $where");
         $entries = Symphony::Database()
             ->select(['*'])
             ->distinct()
@@ -626,7 +612,6 @@ class FieldReverse_Relationship extends FieldRelationship
             $value = $field->prepareTableValue($e, $link, $e['entry_id']);
 
             if ($this->get('mode_table')) {
-                // $entry = current(EntryManager::fetch($e['entry_id']));
                 $entry = current($this->entryManager
                     ->select()
                     ->entry($e['entry_id'])
@@ -739,22 +724,6 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public static function createFieldTable()
     {
-        // $tbl = self::FIELD_TBL_NAME;
-
-        // return Symphony::Database()->query("
-        //     CREATE TABLE IF NOT EXISTS `$tbl` (
-        //         `id`                int(11) unsigned NOT NULL AUTO_INCREMENT,
-        //         `field_id`          int(11) unsigned NOT NULL,
-        //         `linked_section_id` int(11) unsigned NOT NULL,
-        //         `linked_field_id`   int(11) unsigned NOT NULL,
-        //         `mode`              varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-        //         `mode_table`        varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-        //         `mode_header`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-        //         `mode_footer`       varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-        //         PRIMARY KEY (`id`),
-        //         UNIQUE KEY `field_id` (`field_id`)
-        //     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-        // ");
         return Symphony::Database()
             ->create(self::FIELD_TBL_NAME)
             ->ifNotExists()
@@ -800,19 +769,6 @@ class FieldReverse_Relationship extends FieldRelationship
 
     public static function update_210()
     {
-        // $tbl = self::FIELD_TBL_NAME;
-        // $sql = "
-        //     ALTER TABLE `$tbl`
-        //         ADD COLUMN `mode` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-        //             AFTER `linked_field_id`,
-        //         ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-        //             AFTER `mode`,
-        //         ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-        //             AFTER `mode_table`,
-        //         ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-        //             AFTER `mode_header`
-        // ";
-        // return Symphony::Database()->query($sql);
         return Symphony::Database()
             ->alter(self::FIELD_TBL_NAME)
             ->add([
@@ -844,11 +800,6 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public static function deleteFieldTable()
     {
-        // $tbl = self::FIELD_TBL_NAME;
-
-        // return Symphony::Database()->query("
-        //     DROP TABLE IF EXISTS `$tbl`
-        // ");
         return Symphony::Database()
             ->drop(self::FIELD_TBL_NAME)
             ->ifExists()

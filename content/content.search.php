@@ -41,7 +41,6 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			return;
 		}
 
-		// $section = SectionManager::fetch($sectionId);
 		$section = (new SectionManager)
 			->select()
 			->section($sectionId)
@@ -72,18 +71,6 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		}
 
 		foreach ($filterableFields as $fId => $field) {
-			// EntryManager::setFetchSorting($fId, 'ASC');
-			// $fQuery = $query;
-			// $joins = '';
-			// $where = $excludes;
-			// $opt = array_map(function ($op) {
-			// 	return trim($op['filter']);
-			// }, $field->fetchFilterableOperators());
-			// if (in_array('regexp:', $opt)) {
-			// 	$fQuery = 'regexp: ' . $fQuery;
-			// }
-			// $field->buildDSRetrievalSQL(array($fQuery), $joins, $where, false);
-			// $fEntries = EntryManager::fetch(null, $sectionId, 10, 0, $where, $joins, true, false);
 			$fEntries = (new EntryManager)
 				->select()
 				->sort('system:id', 'asc')
@@ -97,21 +84,6 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 				$entries = array_merge($entries, $fEntries);
 			}
 		}
-
-		// EntryManager::setFetchSorting('system:id', 'ASC');
-		// if (!empty($entries)) {
-		// 	// $entries = EntryManager::fetch(array_unique(array_map(function ($e) {
-		// 	// 	return $e['id'];
-		// 	// }, $entries)), $sectionId);
-		// 	$entries = (new EntryManager)
-		// 		->select()
-		// 		->sort('system:id', 'asc')
-		// 		->entries(array_unique(array_map(function ($e) {
-		// 			return $e->get('id');
-		// 		}, $entries)), $sectionId)
-		// 		->execute()
-		// 		->rows();
-		// }
 
 		$entries = array_map(function ($entry) use ($primaryField) {
 			return array(

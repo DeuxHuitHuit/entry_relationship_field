@@ -969,7 +969,6 @@
 						entries = memento;
 					} else {
 						memento = [].concat(values());
-						updateTimestamp(data.timestamp);
 					}
 				}).error(function (data) {
 					notifier.trigger('attach.notify', [

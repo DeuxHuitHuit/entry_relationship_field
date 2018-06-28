@@ -351,7 +351,12 @@ class FieldReverse_Relationship extends FieldRelationship
 
     private function createActionBarMenu($field)
     {
-        $section = SectionManager::fetch($this->get('linked_section_id'));
+        // $section = SectionManager::fetch($this->get('linked_section_id'));
+        $section = $this->sectionManager
+            ->select()
+            ->section($this->get('linked_section_id'))
+            ->execute()
+            ->next();
         $wrap = new XMLElement('div');
 
         $fieldset = new XMLElement('fieldset');
@@ -443,7 +448,16 @@ class FieldReverse_Relationship extends FieldRelationship
 
     private function buildFieldSelect($name)
     {
-        $section = $this->get('linked_section_id') ? SectionManager::fetch($this->get('linked_section_id')) : null;
+        // $section = $this->get('linked_section_id') ? SectionManager::fetch($this->get('linked_section_id')) : null;
+        if ($this->get('linked_section_id')) {
+            $section = $this->SectionManager
+                ->select()
+                ->section($this->get('linked_section_id'))
+                ->execute()
+                ->next();
+        } else {
+            $section = null;
+        }
         $fields = static::getERFields();
         $options = array();
 
@@ -481,8 +495,18 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public function prepareTextValue($data, $entry_id = null)
     {
-        $field = FieldManager::fetch($this->get('linked_field_id'));
-        $section = SectionManager::fetch($this->get('linked_section_id'));
+        // $field = FieldManager::fetch($this->get('linked_field_id'));
+        $field = $this->fieldManager
+            ->select()
+            ->field($this->get('linked_field_id'))
+            ->execute()
+            ->next();
+        // $section = SectionManager::fetch($this->get('linked_section_id'));
+        $section = $this->sectionManager
+            ->select()
+            ->section($this->get('linked_section_id'))
+            ->execute()
+            ->next();
         if ($entry_id == null || !$field || !$section) {
             return null;
         }

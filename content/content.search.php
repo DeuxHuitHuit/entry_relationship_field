@@ -88,6 +88,7 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 				->select()
 				->sort('system:id', 'asc')
 				->section($sectionId)
+				->includeAllFields()
 				->filter($field->get('id'), ['regexp:' . $query])
 				->execute()
 				->rows();
@@ -98,19 +99,19 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		}
 
 		// EntryManager::setFetchSorting('system:id', 'ASC');
-		if (!empty($entries)) {
-			// $entries = EntryManager::fetch(array_unique(array_map(function ($e) {
-			// 	return $e['id'];
-			// }, $entries)), $sectionId);
-			$entries = (new EntryManager)
-				->select()
-				->sort('system:id', 'asc')
-				->entries(array_unique(array_map(function ($e) {
-					return $e->get('id');
-				}, $entries)), $sectionId)
-				->execute()
-				->rows();
-		}
+		// if (!empty($entries)) {
+		// 	// $entries = EntryManager::fetch(array_unique(array_map(function ($e) {
+		// 	// 	return $e['id'];
+		// 	// }, $entries)), $sectionId);
+		// 	$entries = (new EntryManager)
+		// 		->select()
+		// 		->sort('system:id', 'asc')
+		// 		->entries(array_unique(array_map(function ($e) {
+		// 			return $e->get('id');
+		// 		}, $entries)), $sectionId)
+		// 		->execute()
+		// 		->rows();
+		// }
 
 		$entries = array_map(function ($entry) use ($primaryField) {
 			return array(

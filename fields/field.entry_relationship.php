@@ -483,8 +483,6 @@
 				->execute()
 				->rows();
 
-			// var_dump($entries);
-
 			return array_map(function ($e) {
 				return $e['id'];
 			}, $entries);
@@ -542,7 +540,6 @@
 					if ($field instanceof FieldRelationship) {
 						continue;
 					}
-					var_dump($field);
 					// $field->buildDSRetrievalSQL(array($value), $joins, $where, false);
 					$fEntries = $this->entryManager
 						->select()
@@ -551,7 +548,6 @@
 						->execute()
 						->rows();
 
-					var_dump($fEntries);
 					if (!empty($fEntries)) {
 						$ids = array_merge($ids, $fEntries);
 						break;

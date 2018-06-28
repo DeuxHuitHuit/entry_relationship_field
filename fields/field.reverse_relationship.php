@@ -57,6 +57,10 @@ class FieldReverse_Relationship extends FieldRelationship
         // no links
         $this->set('linked_section_id', null);
         $this->set('linked_field_id', null);
+        // cache managers
+        $this->sectionManager = new SectionManager;
+        $this->entryManager = new EntryManager;
+        $this->fieldManager = new FieldManager;
     }
 
     public function isSortable()
@@ -305,8 +309,18 @@ class FieldReverse_Relationship extends FieldRelationship
         if (!$entry_id) {
             return;
         }
-        $field = FieldManager::fetch($this->get('linked_field_id'));
-        $section = SectionManager::fetch($this->get('linked_section_id'));
+        // $field = FieldManager::fetch($this->get('linked_field_id'));
+        $field = $this->fieldManager
+            ->select()
+            ->field($this->get('linked_field_id'))
+            ->execute()
+            ->next();
+        // $section = SectionManager::fetch($this->get('linked_section_id'));
+        $section = $this->sectionManager
+            ->select()
+            ->section($this->get('linked_section_id'))
+            ->execute()
+            ->next();
         if (!($field instanceof FieldRelationship)) {
             $flagWithError = __('Linked field is not valid. Please edit this field to set it to a valid ER field.');
         }
@@ -328,7 +342,7 @@ class FieldReverse_Relationship extends FieldRelationship
         $wrapper->setAttribute('data-field-label', $field->get('label'));
         $wrapper->setAttribute(
             'data-entries',
-            implode(self::SEPARATOR, $field->findRelatedEntries($entry_id, null))
+            implode(self::SEPARATOR, $field->findRelatedEntries($entry_id, $field->get('id')))
         );
         if (isset($_REQUEST['debug'])) {
             $wrapper->setAttribute('data-debug', true);
@@ -367,7 +381,13 @@ class FieldReverse_Relationship extends FieldRelationship
     private function getERFields()
     {
         if (empty(self::$erFields)) {
-            self::$erFields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+            // self::$erFields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+            self::$erFields = $this->fieldManager
+                ->select()
+                ->sort('id', 'asc')
+                ->type('entry_relationship')
+                ->execute()
+                ->rows();
         }
         return self::$erFields;
     }
@@ -380,7 +400,12 @@ class FieldReverse_Relationship extends FieldRelationship
             $sectionIds = array_map(function ($erField) {
                 return $erField->get('parent_section');
             }, $erFields);
-            self::$erSections = SectionManager::fetch($sectionIds);
+            // self::$erSections = SectionManager::fetch($sectionIds);
+            self::$erSections = $this->sectionManager
+                ->select()
+                ->sections($sectionIds)
+                ->execute()
+                ->rows();
         }
         return self::$erSections;
     }
@@ -468,9 +493,9 @@ class FieldReverse_Relationship extends FieldRelationship
             ->execute()
             ->rows();
 
-        if (!is_array($data) || !($data = current($data))) {
-            return null;
-        }
+        // if (!is_array($data) || !($data = current($data))) {
+        //     return null;
+        // }
         return $data['entries'];
     }
 
@@ -490,8 +515,18 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public function prepareReadableValue($data, $entry_id = null, $truncate = false, $defaultValue = 'None')
     {
-        $field = FieldManager::fetch($this->get('linked_field_id'));
-        $section = SectionManager::fetch($this->get('linked_section_id'));
+        // $field = FieldManager::fetch($this->get('linked_field_id'));
+        $field = $this->fieldManager
+            ->select()
+            ->field($this->get('linked_field_id'))
+            ->execute()
+            ->next();
+        // $section = SectionManager::fetch($this->get('linked_section_id'));
+        $section = $this->sectionManager
+            ->select()
+            ->section($this->get('linked_section_id'))
+            ->execute()
+            ->next();
         if ($entry_id == null || !$field || !$section) {
             return __($defaultValue);
         }
@@ -506,6 +541,7 @@ class FieldReverse_Relationship extends FieldRelationship
             ->where($where)
             ->execute()
             ->rows();
+
         $output = array();
         foreach ($entries as $e) {
             $e['entries'] = $entry_id;
@@ -530,8 +566,18 @@ class FieldReverse_Relationship extends FieldRelationship
      */
     public function prepareTableValue($data, XMLElement $link = null, $entry_id = null)
     {
-        $field = FieldManager::fetch($this->get('linked_field_id'));
-        $section = SectionManager::fetch($this->get('linked_section_id'));
+        // $field = FieldManager::fetch($this->get('linked_field_id'));
+        $field = $this->fieldManager
+            ->select()
+            ->field($this->get('linked_field_id'))
+            ->execute()
+            ->next();
+        // $section = SectionManager::fetch($this->get('linked_section_id'));
+        $section = $this->sectionManager
+            ->select()
+            ->section($this->get('linked_section_id'))
+            ->execute()
+            ->next();
         if ($entry_id == null || !$field || !$section) {
             return __($defaultValue);
         }
@@ -554,7 +600,12 @@ class FieldReverse_Relationship extends FieldRelationship
             $value = $field->prepareTableValue($e, $link, $e['entry_id']);
 
             if ($this->get('mode_table')) {
-                $entry = current(EntryManager::fetch($e['entry_id']));
+                // $entry = current(EntryManager::fetch($e['entry_id']));
+                $entry = current($this->entryManager
+                    ->select()
+                    ->entry($e['entry_id'])
+                    ->execute()
+                    ->row());
                 $cellcontent = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
 
                 $cellcontent = trim($cellcontent);
@@ -639,8 +690,8 @@ class FieldReverse_Relationship extends FieldRelationship
             return null;
         }
 
-        $section = SectionManager::fetch($this->get('linked_section_id'));
         $field = FieldManager::fetch($this->get('linked_field_id'));
+        $section = SectionManager::fetch($this->get('linked_section_id'));
         $fieldId = $field->get('id');
         $sortableFieldId = 0;
         foreach ($section->fetchFields() as $f) {

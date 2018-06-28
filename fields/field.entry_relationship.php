@@ -10,6 +10,7 @@
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.sectionsinfos.php');
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.entryqueryentryrelationshipadapter.php');
 
 	/**
 	 *
@@ -71,6 +72,8 @@
 		{
 			// call the parent constructor
 			parent::__construct();
+			// EQFA
+			$this->entryQueryFieldAdapter = new EntryQueryEntryrelationshipAdapter($this);
 			// set the name of the field
 			$this->_name = __('Entry Relationship');
 			// permits to make it required
@@ -112,8 +115,10 @@
 			$this->set('allow_collapse', 'yes');
 			$this->set('allow_search', 'no');
 			$this->set('show_header', 'yes');
+			// cache managers
 			$this->sectionManager = new SectionManager;
 			$this->entryManager = new EntryManager;
+			$this->fieldManager = new FieldManager;
 			$this->sectionInfos = new SectionsInfos;
 		}
 
@@ -330,7 +335,12 @@
 					// section not found, bail out
 					continue;
 				}
-				$parent_section = SectionManager::fetch($parent_section_id);
+				// $parent_section = SectionManager::fetch($parent_section_id);
+				$parent_section = $this->sectionManager
+					->select()
+					->section($parent_section_id)
+					->execute()
+					->next();
 				if (!$parent_section) {
 					// section not found, bail out
 					continue;
@@ -401,12 +411,12 @@
 		{
 			$junction = $andOperation ? 'and' : 'or';
 			// if (!$value) {
-			// 	return "{$junction} (`{$col}`.`entries` IS NULL)";
+			//  return "{$junction} (`{$col}`.`entries` IS NULL)";
 			// }
 			// return " {$junction} (`{$col}`.`entries` = '{$value}' OR
-			// 		`{$col}`.`entries` LIKE '{$value},%' OR
-			// 		`{$col}`.`entries` LIKE '%,{$value}' OR
-			// 		`{$col}`.`entries` LIKE '%,{$value},%')";
+			//      `{$col}`.`entries` LIKE '{$value},%' OR
+			//      `{$col}`.`entries` LIKE '%,{$value}' OR
+			//      `{$col}`.`entries` LIKE '%,{$value},%')";
 			if (!$value) {
 				return [
 					$junction => [
@@ -446,6 +456,7 @@
 				->from('tbl_entries', 'e')
 				->innerJoin('tbl_entries_data_' . $this->get('id'), 'd')
 				->on(['e.id' => 'd.entry_id'])
+				->where(['e.section_id' => $this->get('parent_section')])
 				->where($where)
 				->execute()
 				->rows();
@@ -460,17 +471,20 @@
 
 		public function findRelatedEntries($entry_id, $parent_field_id)
 		{
-			$joins = '';
-			$where = '';
-			$this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
+			// $joins = '';
+			// $where = '';
+			// $this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
 
 			// $entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
-			$entries = (new EntryManager)
+			$entries = $this->entryManager
 				->select()
 				->section($this->get('parent_section'))
-				->schema(['*'])
+				->filter((string)$parent_field_id, [(string)$entry_id])
+				->schema(['id'])
 				->execute()
 				->rows();
+
+			// var_dump($entries);
 
 			return array_map(function ($e) {
 				return $e['id'];
@@ -508,7 +522,6 @@
 		{
 			$ids = array();
 			$sections = $this->getArray('sections');
-			//$value = Lang::createHandle($value);
 
 			foreach ($sections as $sectionId) {
 				$section = $this->sectionManager
@@ -525,17 +538,21 @@
 					continue;
 				}
 				foreach ($filterableFields as $fId => $field) {
-					$joins = '';
-					$where = '';
+					// $joins = '';
+					// $where = '';
 					if ($field instanceof FieldRelationship) {
 						continue;
 					}
-					$field->buildDSRetrievalSQL(array($value), $joins, $where, false);
+					var_dump($field);
+					// $field->buildDSRetrievalSQL(array($value), $joins, $where, false);
 					$fEntries = $this->entryManager
 						->select()
 						->section($sectionId)
+						->filter($field->get('id'), [$value])
 						->execute()
 						->rows();
+
+					var_dump($fEntries);
 					if (!empty($fEntries)) {
 						$ids = array_merge($ids, $fEntries);
 						break;
@@ -550,10 +567,20 @@
 
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '')
 		{
-			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
+			// $currentSection = SectionManager::fetch($parent_association['child_section_id']);
+			$currentSection = $this->sectionManager
+				->select()
+				->section($parent_association['child_section_id'])
+				->execute()
+				->next();
 			$visibleCols = $currentSection->fetchVisibleColumns();
 			$outputFieldId = current(array_keys($visibleCols));
-			$outputField = FieldManager::fetch($outputFieldId);
+			// $outputField = FieldManager::fetch($outputFieldId);
+			$outputField = $this->fieldManager
+				->select()
+				->field($outputFieldId)
+				->execute()
+				->next();
 
 			$value = $outputField->prepareReadableValue($e->getData($outputFieldId), $e->get('id'), true, __('None'));
 
@@ -624,11 +651,17 @@
 
 		private function fetchEntry($eId, $elements = array())
 		{
-			$entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
-			if (!is_array($entry) || count($entry) !== 1) {
+			// $entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
+			$entry = $this->entryManager
+				->select()
+				->entry($eId)
+				->schema($elements)
+				->execute()
+				->next();
+			if (count($entry) !== 1) {
 				return null;
 			}
-			return $entry[0];
+			return $entry;
 		}
 
 		protected function fetchAllIncludableElements()
@@ -892,7 +925,7 @@
 							continue;
 						}
 
-						$field = (new FieldManager)
+						$field = $this->fieldManager
 							->select()
 							->field($fieldId)
 							->execute()
@@ -1040,7 +1073,12 @@
 
 			if (in_array('*', $exElements)) {
 				$sections = $field->getArray('sections');
-				$sections = SectionManager::fetch($sections);
+				// $sections = SectionManager::fetch($sections);
+				$sections = $this->sectionManager
+					->select()
+					->sections($sections)
+					->execute()
+					->rows();
 				return array_reduce($sections, function ($result, $section) {
 					$result[$section->get('handle')] = array('*');
 					return $result;
@@ -1085,7 +1123,11 @@
 
 		private function buildSectionSelect($name)
 		{
-			$sections = SectionManager::fetch();
+			// $sections = SectionManager::fetch();
+			$sections = $this->sectionManager
+				->select()
+				->execute()
+				->rows();
 			$options = array();
 			$selectedSections = $this->getSelectedSectionsArray();
 
@@ -1442,8 +1484,13 @@
 			$entries = static::getEntries($data);
 			$realEntries = array();
 			foreach ($entries as $entryId) {
-				$e = EntryManager::fetch($entryId);
-				if (is_array($e) && !empty($e)) {
+				// $e = EntryManager::fetch($entryId);
+				$e = $this->entryManager
+					->select()
+					->entry($entryId)
+					->execute()
+					->rows();
+				if (!empty($e)) {
 					$realEntries = array_merge($realEntries, $e);
 				}
 			}
@@ -1725,7 +1772,7 @@
 			}
 
 			// $fields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
-			$fields = (new FieldManager)
+			$fields = $this->fieldManager
 				->select()
 				->sort('id', 'asc')
 				->type('entry_relationship')

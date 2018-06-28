@@ -7,7 +7,6 @@
 if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 require_once(EXTENSIONS . '/entry_relationship_field/lib/class.field.relationship.php');
-require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 
 /**
@@ -450,7 +449,7 @@ class FieldReverse_Relationship extends FieldRelationship
     {
         // $section = $this->get('linked_section_id') ? SectionManager::fetch($this->get('linked_section_id')) : null;
         if ($this->get('linked_section_id')) {
-            $section = $this->SectionManager
+            $section = $this->sectionManager
                 ->select()
                 ->section($this->get('linked_section_id'))
                 ->execute()

@@ -72,18 +72,26 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		}
 
 		foreach ($filterableFields as $fId => $field) {
-			EntryManager::setFetchSorting($fId, 'ASC');
-			$fQuery = $query;
-			$joins = '';
-			$where = $excludes;
-			$opt = array_map(function ($op) {
-				return trim($op['filter']);
-			}, $field->fetchFilterableOperators());
-			if (in_array('regexp:', $opt)) {
-				$fQuery = 'regexp: ' . $fQuery;
-			}
-			$field->buildDSRetrievalSQL(array($fQuery), $joins, $where, false);
-			$fEntries = EntryManager::fetch(null, $sectionId, 10, 0, $where, $joins, true, false);
+			// EntryManager::setFetchSorting($fId, 'ASC');
+			// $fQuery = $query;
+			// $joins = '';
+			// $where = $excludes;
+			// $opt = array_map(function ($op) {
+			// 	return trim($op['filter']);
+			// }, $field->fetchFilterableOperators());
+			// if (in_array('regexp:', $opt)) {
+			// 	$fQuery = 'regexp: ' . $fQuery;
+			// }
+			// $field->buildDSRetrievalSQL(array($fQuery), $joins, $where, false);
+			// $fEntries = EntryManager::fetch(null, $sectionId, 10, 0, $where, $joins, true, false);
+			$fEntries = (new EntryManager)
+				->select()
+				->sort('system:id', 'asc')
+				->section($sectionId)
+				->filter($field->get('id'), ['regexp:' . $query])
+				->execute()
+				->rows();
+
 			if (!empty($fEntries)) {
 				$entries = array_merge($entries, $fEntries);
 			}
@@ -92,6 +100,8 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		// EntryManager::setFetchSorting('system:id', 'ASC');
 		if (!empty($entries)) {
 			// $entries = EntryManager::fetch(array_unique(array_map(function ($e) {
+			// 	return $e['id'];
+			// }, $entries)), $sectionId);
 			$entries = (new EntryManager)
 				->select()
 				->sort('system:id', 'asc')

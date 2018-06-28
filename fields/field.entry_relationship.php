@@ -7,7 +7,6 @@
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.field.relationship.php');
-	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.sectionsinfos.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.entryqueryentryrelationshipadapter.php');
@@ -57,7 +56,7 @@
 			return $this->recursiveDeepness = $deepness;
 		}
 
-		/* Cacheable Managers */
+		// cache managers
 		private $sectionManager;
 		private $entryManager;
 		private $sectionInfos;

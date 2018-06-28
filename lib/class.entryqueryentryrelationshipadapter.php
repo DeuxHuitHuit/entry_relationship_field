@@ -39,8 +39,11 @@ class EntryQueryEntryrelationshipAdapter extends EntryQueryFieldAdapter
             'filter' => ['var' => $filter, 'type' => 'string'],
         ]);
         if ($this->isFilterRegex($filter)) {
+            var_dump('regex');
             return $this->createFilterRegexp($filter, $this->getFilterColumns());
         }
+
+        var_dump('no regex');
 
         // elseif ($this->isFilterSQL($filter)) {
         //     return $this->createFilterSQL($filter, $this->getFilterColumns());

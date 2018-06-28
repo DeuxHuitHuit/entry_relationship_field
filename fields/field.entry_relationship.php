@@ -1182,6 +1182,7 @@
 			if (empty($actionBar)) {
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'single');
+				$div = new XMLElement('div');
 
 				if ($this->is('allow_search')) {
 					$searchWrap = new XMLElement('div');
@@ -1199,7 +1200,6 @@
 					$fieldset->appendChild($searchWrap);
 				}
 
-				$div = new XMLElement('div');
 				if ($this->is('allow_new') || $this->is('allow_link') || $this->is('allow_search')) {
 					$selectWrap = new XMLElement('div');
 					$selectWrap->appendChild(new XMLElement('span', __('Related section: '), array('class' => 'sections-selection')));

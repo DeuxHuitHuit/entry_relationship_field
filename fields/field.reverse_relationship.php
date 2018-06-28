@@ -356,22 +356,25 @@ class FieldReverse_Relationship extends FieldRelationship
 
         $fieldset = new XMLElement('fieldset');
         $fieldset->setAttribute('class', 'single');
-        $fieldset->appendChild(new XMLElement(
+        $div = new XMLElement('div');
+
+        $div->appendChild(new XMLElement(
             'span',
             __('Related section: '),
             array('class' => 'reverse-selection')
         ));
-        $fieldset->appendChild(new XMLElement(
+        $div->appendChild(new XMLElement(
             'label',
             General::sanitize($section->get('name') . ': ' . $field->get('label')),
             array('class' => 'reverse-selection')
         ));
-        $fieldset->appendChild(new XMLElement('button', __('Add to entry'), array(
+        $div->appendChild(new XMLElement('button', __('Add to entry'), array(
             'type' => 'button',
             'class' => 'add',
             'data-add' => $section->get('handle'),
         )));
 
+        $fieldset->appendChild($div);
         $wrap->appendChild($fieldset);
 
         return $wrap;

@@ -16,7 +16,7 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 				FLang::setLangCode(Lang::get(), '');
 			} catch (Exception $ex) { }
 		}
-		
+
 		$section = General::sanitize($this->_context[0]);
 		$sectionId = SectionManager::fetchIDFromHandle($section);
 		$sectionId = General::intval($sectionId);
@@ -41,7 +41,12 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			return;
 		}
 
-		$section = SectionManager::fetch($sectionId);
+		// $section = SectionManager::fetch($sectionId);
+		$section = (new SectionManager)
+			->select()
+			->section($sectionId)
+			->execute()
+			->next();
 
 		if (empty($section)) {
 			$this->_Result['status'] = Page::HTTP_STATUS_NOT_FOUND;
@@ -84,11 +89,17 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			}
 		}
 
-		EntryManager::setFetchSorting('system:id', 'ASC');
+		// EntryManager::setFetchSorting('system:id', 'ASC');
 		if (!empty($entries)) {
-			$entries = EntryManager::fetch(array_unique(array_map(function ($e) {
-				return $e['id'];
-			}, $entries)), $sectionId);
+			// $entries = EntryManager::fetch(array_unique(array_map(function ($e) {
+			$entries = (new EntryManager)
+				->select()
+				->sort('system:id', 'asc')
+				->entries(array_unique(array_map(function ($e) {
+					return $e->get('id');
+				}, $entries)), $sectionId)
+				->execute()
+				->rows();
 		}
 
 		$entries = array_map(function ($entry) use ($primaryField) {

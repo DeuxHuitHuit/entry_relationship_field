@@ -6,8 +6,6 @@
 
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 
-	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
-
 	class contentExtensionEntry_Relationship_FieldCleanup extends AdministrationPage
 	{
 		private $sectionManager;
@@ -17,9 +15,10 @@
 		public function __construct()
 		{
 			parent::__construct();
-			$this->sectionManager = new CacheableFetch('SectionManager');
-			$this->fieldManager = new CacheableFetch('FieldManager');
-			$this->entryManager = new CacheableFetch('EntryManager');
+			// cache managers
+			$this->sectionManager = new SectionManager;
+			$this->fieldManager = new FieldManager;
+			$this->entryManager = new EntryManager;
 		}
 
 		private static function TableLabel($value)
@@ -238,7 +237,14 @@
 
 			foreach ($entries as $orphan) {
 				$td = array();
-				$o = $this->entryManager->fetch($orphan, $section['section']->get('id'), null, null, null, null, false, true, $element_names, false);
+				// $o = $this->entryManager->fetch($orphan, $section['section']->get('id'), null, null, null, null, false, true, $element_names, false);
+				$o = $this->entryManager
+					->select()
+					->entry($orphan)
+					->section($section['section']->get('id'))
+					->schema($element_names)
+					->execute()
+					->next();
 				if (empty($o)) {
 					$td[] = Widget::TableData("Entry $orphan not found", null, null, count($thead));
 					$tbody[] = Widget::TableRow($td);
@@ -304,8 +310,15 @@
 			foreach ($allLinkedSections as &$ls) {
 				// All entries in that section
 				$ls['all-entries'] = array_map(function ($e) {
-					return $e['id'];
-				}, $this->entryManager->fetch(null, $ls['section']->get('id'), null, null, null, null, false, false, null, false));
+					return $e->get('id');
+				// }, $this->entryManager->fetch(null, $ls['section']->get('id'), null, null, null, null, false, false, null, false));
+				}, $this->entryManager
+					->select()
+					->section($ls['section']->get('id'))
+					->schema(['id'])
+					->execute()
+					->rows()
+				);
 				// Merge all linked entries for each related field
 				$ls['linked-entries'] = array();
 				foreach ($ls['fields'] as $field) {
@@ -321,13 +334,31 @@
 
 		public function getAllFieldsData()
 		{
-			$fields = $this->fieldManager->fetch(null, null, 'ASC', 'sortorder', 'entry_relationship');
+			// $fields = $this->fieldManager->fetch(null, null, 'ASC', 'sortorder', 'entry_relationship');
+			$fields = $this->fieldManager
+				->select()
+				->sort('sortorder', 'asc')
+				->type('entry_relationship')
+				->execute()
+				->rows();
 			$fields = array_map(function ($f) {
 				// Get the field's section
-				$f->section = $this->sectionManager->fetch($f->get('parent_section'));
+				// $f->section = $this->sectionManager->fetch($f->get('parent_section'));
+				$f->section = $this->sectionManager
+					->select()
+					->section($f->get('parent_section'))
+					->execute()
+					->next();
 				// Get all linked entries from all entries in this field
 				$f->linkedEntries = array();
-				$fieldEntries = $this->entryManager->fetch(null, $f->get('parent_section'), null, null, null, null, false, true, array($f->get('element_name')), false);
+				// $fieldEntries = $this->entryManager->fetch(null, $f->get('parent_section'), null, null, null, null, false, true, array($f->get('element_name')), false);
+				$fieldEntries = $this->entryManager
+					->select()
+					->section($f->get('parent_section'))
+					->includeAllFields()
+					->schema([$f->get('element_name')])
+					->execute()
+					->rows();
 				foreach ($fieldEntries as $fEntry) {
 					$fedata = $fEntry->getData($f->get('id'));
 					if (empty($fedata)) {
@@ -340,7 +371,12 @@
 				$f->linkedSections = array();
 				$rSections = explode(',', $f->get('sections'));
 				foreach ($rSections as $s) {
-					$section = $this->sectionManager->fetch($s);
+					// $section = $this->sectionManager->fetch($s);
+					$section = $this->sectionManager
+						->select()
+						->section($s)
+						->execute()
+						->next();
 					$f->linkedSections[] = $section;
 				}
 				// Return new field object

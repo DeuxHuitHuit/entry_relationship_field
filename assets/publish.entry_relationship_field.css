@@ -7,7 +7,8 @@
  * CSS for entry/reverse relationship field
  */
 
-.field-entry_relationship > label {
+.field-entry_relationship > label,
+.field-reverse_relationship > label {
 	position: static;
 	margin-bottom: 1rem!important;
 }
@@ -16,13 +17,16 @@
 	position: relative; padding-bottom: 0.8rem;
 }
 
-.field.field-entry_relationship > .frame {
+.field.field-entry_relationship > .frame,
+.field.field-reverse_relationship > .frame {
 	margin: 1rem 0;
 	background: none;
 }
 
 .field.field-entry_relationship > .frame ul,
-.field.field-entry_relationship > .frame ol {
+.field.field-entry_relationship > .frame ol,
+.field.field-reverse_relationship > .frame ul,
+.field.field-reverse_relationship > .frame ol {
 	margin: 0;
 }
 
@@ -46,14 +50,21 @@
 	border-bottom: none;
 }
 
-.field.field-entry_relationship fieldset.single > button {
+.field.field-entry_relationship fieldset.single,
+.field.field-reverse_relationship fieldset.single {
+	text-align: right;
+}
+
+.field.field-entry_relationship fieldset.single > button,
+.field.field-reverse_relationship fieldset.single > button {
 	margin-right: 0px;
 	margin-left: 1rem;
 	margin-bottom: 1rem;
 }
 
-.field.field-entry_relationship fieldset.single > div {
-	display: flex;
+.field.field-entry_relationship fieldset.single > div,
+.field.field-reverse_relationship fieldset.single > div {
+	display: inline-flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-end;
@@ -61,15 +72,21 @@
 	min-width: 250px;
 }
 
-.field.field-entry_relationship fieldset.single > div > div {
+.field.field-entry_relationship fieldset.single > div > div,
+.field.field-reverse_relationship fieldset.single > div > div {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
 }
 
-.field.field-entry_relationship fieldset.single > div > button {
+.field.field-entry_relationship fieldset.single > div > button,
+.field.field-reverse_relationship fieldset.single > div > button {
 	margin: 0 0 0 1rem;
+}
+
+.field.field-reverse_relationship fieldset.single label {
+	margin-bottom: 0!important;
 }
 
 .field.field-entry_relationship .destructor a,
@@ -123,6 +140,7 @@
 }
 
 .field.field-entry_relationship fieldset.single > div.search {
+	display: inline-flex;
 	position: relative;
 	max-width: 250px;
 	min-width: 200px;

@@ -398,7 +398,7 @@ class FieldReverse_Relationship extends FieldRelationship
     private static $erSections = array();
     private function getERSections()
     {
-        if (empty(self::$erSections)) {
+        if (empty(self::$erSections) && !empty(self::$erFields)) {
             $erFields = self::getERFields();
             $sectionIds = array_map(function ($erField) {
                 return $erField->get('parent_section');

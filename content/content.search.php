@@ -58,13 +58,21 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		}
 
 		foreach ($filterableFields as $fId => $field) {
-			$fEntries = (new EntryManager)
+			$q = (new EntryManager)
 				->select()
 				->sort('system:id', 'asc')
 				->section($sectionId)
-				->includeAllFields()
-				->filter($field->get('id'), ['regexp:' . $query])
-				->filter('system:id', ['not:' . $excludes])
+				->includeAllFields();
+
+			if (strlen($query) != 0) {
+				$q->filter($field->get('id'), ['regexp:' . $query]);
+			}
+
+			if (strlen($excludes) != 0) {
+				$q->filter('system:id', ['not:' . $excludes]);
+			}
+
+			$fEntries = $q
 				->execute()
 				->rows();
 

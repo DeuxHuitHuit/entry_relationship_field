@@ -104,7 +104,6 @@
 			// Validate entry is not linked anywhere else
 			if (!isset($_REQUEST['no-assoc'])) {
 				$toDeleteAssoc = SectionManager::fetchChildAssociations($toDeleteEntry->get('section_id'), false);
-				// TODO: find if the toDeleteEntry is linked or not.
 				if (count($toDeleteAssoc) > 1) {
 					$this->_Result['assoc'] = true;
 					$this->_Result['error'] = __('Entry might be link elsewhere. Do you want to continue?');

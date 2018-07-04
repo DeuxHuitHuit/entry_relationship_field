@@ -348,7 +348,7 @@
 					// no visible field, revert to all
 					$fields = $parent_section->fetchFields();
 				}
-				if (empty(fields)) {
+				if (empty($fields)) {
 					// no fields found, bail out
 					continue;
 				}

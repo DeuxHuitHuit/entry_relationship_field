@@ -465,7 +465,7 @@
 			$entries = $this->entryManager
 				->select()
 				->section($this->get('parent_section'))
-				->filter((string)$parent_field_id, [(string)$entry_id])
+				->filter($this->get('id'), [(string)$entry_id])
 				->schema(['id'])
 				->execute()
 				->rows();

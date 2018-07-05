@@ -439,10 +439,9 @@
 			if (!$value) {
 				return 0;
 			}
-			// $join = sprintf(" INNER JOIN `tbl_entries_data_%s` AS `d` ON `e`.id = `d`.`entry_id`", $this->get('id'));
+
 			$where = $this->generateWhereFilter($value);
 
-			// $entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $join, false, false, array());
 			$entries = Symphony::Database()
 				->select(['*'])
 				->from('tbl_entries', 'e')
@@ -630,11 +629,15 @@
 				->select()
 				->entry($eId)
 				->schema($elements)
+				->section($this->entryManager->fetchEntrySectionID($eId))
+				->includeAllFields()
 				->execute()
 				->next();
+
 			if (count($entry) !== 1) {
 				return null;
 			}
+
 			return $entry;
 		}
 

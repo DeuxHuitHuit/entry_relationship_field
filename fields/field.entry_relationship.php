@@ -477,7 +477,14 @@
 
 		public function findParentRelatedEntries($parent_field_id, $entry_id)
 		{
-			$entry = $this->fetchEntry($entry_id, array($this->get('label')));
+			$entry = $this->entryManager
+				->select()
+				->entry($entry_id)
+				->section($this->entryManager->fetchEntrySectionID($entry_id))
+				->includeAllFields()
+				->schema(array($this->get('label')))
+				->execute()
+				->next();
 
 			if (!$entry) {
 				return array();
@@ -629,8 +636,6 @@
 				->select()
 				->entry($eId)
 				->schema($elements)
-				->section($this->entryManager->fetchEntrySectionID($eId))
-				->includeAllFields()
 				->execute()
 				->next();
 

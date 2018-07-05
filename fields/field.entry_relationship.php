@@ -549,7 +549,7 @@
 				->execute()
 				->next();
 			$visibleCols = $currentSection->fetchVisibleColumns();
-			$outputFieldId = current(array_keys($visibleCols));
+			$outputFieldId = current($visibleCols)->get('id');
 			$outputField = $this->fieldManager
 				->select()
 				->field($outputFieldId)

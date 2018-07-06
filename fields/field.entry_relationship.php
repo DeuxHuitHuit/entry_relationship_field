@@ -143,7 +143,7 @@
 
 		public function canPrePopulate()
 		{
-			return false;
+			return true;
 		}
 
 		public function mustBeUnique()

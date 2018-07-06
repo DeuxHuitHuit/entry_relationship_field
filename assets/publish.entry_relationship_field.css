@@ -156,6 +156,16 @@
 
 
 /**
+ * CSS for entry relationship field in tab group
+ */
+.tab-group:nth-child(n + 1) .field.field-entry_relationship .single > div > div {
+	justify-content: flex-end;
+	margin-bottom: 1rem;
+	width: 100%;
+}
+
+
+/**
  * CSS for entry relationship field iframe
  */
 #entry-relationship-ctn {

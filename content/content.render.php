@@ -54,7 +54,7 @@
 				return;
 			}
 
-			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
+			$entriesId = explode(',', $this->_context[0]);
 			$entriesId = array_map(array('General', 'intval'), $entriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', __('No entry no found')));

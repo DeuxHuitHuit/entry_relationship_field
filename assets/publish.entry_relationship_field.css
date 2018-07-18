@@ -158,10 +158,16 @@
 /**
  * CSS for entry relationship field in tab group
  */
+.column.secondary .field.field-entry_relationship .single > div > div,
 .tab-group:nth-child(n + 1) .field.field-entry_relationship .single > div > div {
 	justify-content: flex-end;
 	margin-bottom: 1rem;
 	width: 100%;
+}
+
+.column.secondary .field.field-entry_relationship .frame-header,
+.tab-group:nth-child(n + 1) .field.field-entry_relationship .frame-header {
+	flex-direction: column;
 }
 
 

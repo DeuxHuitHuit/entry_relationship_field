@@ -159,6 +159,13 @@
 		var self = {
 			hide: function (reRender) {
 				ctn.removeClass('show').find('.iframe>iframe').fadeOut(300, function () {
+					// raise unload events
+					var iw = this.contentWindow;
+					var i$ = iw.jQuery;
+					if (!!i$) {
+						i$(iw).trigger('beforeunload').trigger('unload');
+					}
+					// remove iframe
 					$(this).empty().remove();
 					html.removeClass('no-scroll');
 					ctn.css('background-color', '');

@@ -3,9 +3,9 @@
 	 * Copyright: Deux Huit Huit 2016
 	 * LICENCE: MIT https://deuxhuithuit.mit-license.org
 	 */
-	
+
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
-	
+
 	class ERFXSLTUTilities {
 		public static function processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, $mode, $debug = false, $select = 'entry', $position = 0)
 		{
@@ -22,24 +22,24 @@
 				'workspace' => URL . '/workspace',
 				'http-host' => HTTP_HOST
 			);
-			
+
 			$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
 			if (!!@file_exists($xslFilePath)) {
 				$xmlData = new XMLElement('data');
 				$xmlData->setIncludeHeader(true);
-				
+
 				// params
 				$xmlData->appendChild(self::getXmlParams($params));
-				
+
 				// entry data
 				if ($entry) {
 					$includedElements = FieldEntry_relationship::parseElements($parentField);
 					$xmlData->appendChild(self::entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields, $position));
 				}
-				
+
 				// field data
 				$xmlData->appendChild(self::fieldToXML($parentField));
-				
+
 				// process XSLT
 				$indent = false;
 				$mode = $parentField->get($mode);
@@ -67,25 +67,25 @@
 				</xsl:stylesheet>';
 				$xslt = new XsltProcess();
 				$result = $xslt->process($xmlString, $xsl, $params);
-				
+
 				if ($mode == 'debug') {
 					$result = '<pre><code>' .
 						str_replace('<', '&lt;', str_replace('>', '&gt;', $xmlString)) .
 						'</code></pre>';
 				}
-				
+
 				if ($xslt->isErrors()) {
 					$error = $xslt->getError();
 					$result = $error[1]['message'];
 				}
-				
+
 				if (General::strlen(trim($result)) > 0) {
 					return $result;
 				}
 			}
 			return null;
 		}
-		
+
 		public static function getXmlParams(array $params) {
 			$xmlparams = new XMLElement('params');
 			foreach ($params as $key => $value) {
@@ -93,7 +93,7 @@
 			}
 			return $xmlparams;
 		}
-		
+
 		public static function fieldToXML($field) {
 			// field data
 			$xmlField = new XMLElement('field');
@@ -124,7 +124,7 @@
 			$xmlField->appendChild($xmlSections);
 			return $xmlField;
 		}
-		
+
 		public static function entryToXML($entry, $entrySectionHandle, $includedElements, $entryFields, $position = 0) {
 			$entryData = $entry->getData();
 			$entryId = General::intval($entry->get('id'));
@@ -144,21 +144,24 @@
 						continue;
 					}
 					$field = $entryFields[$fieldId];
+					if (is_null($field)) {
+						continue;
+					}
 					$fieldName = $field->get('element_name');
 					$fieldIncludedElement = $includedElements[$entrySectionHandle];
-					
+
 					try {
 						if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
 							$parentIncludableElement = FieldEntry_relationship::getSectionElementName($fieldName, $fieldIncludedElement);
 							$parentIncludableElementMode = FieldEntry_relationship::extractMode($fieldName, $parentIncludableElement);
-							
+
 							// Special treatments for ERF
 							if ($field instanceof FieldEntry_relationship) {
 								// Increment recursive level
 								$field->incrementRecursiveLevel();
 								$field->setRecursiveDeepness($deepness);
 							}
-							
+
 							if ($parentIncludableElementMode == null) {
 								if ($field instanceof FieldEntry_Relationship) {
 									$field->expandIncludableElements = false;
@@ -173,7 +176,7 @@
 							else {
 								$submodes = array($parentIncludableElementMode);
 							}
-							
+
 							foreach ($submodes as $submode) {
 								$field->appendFormattedElement($xml, $filteredData, false, $submode, $entryId);
 							}

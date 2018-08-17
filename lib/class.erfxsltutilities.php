@@ -25,7 +25,7 @@
 
 			$xslFilePath = WORKSPACE . '/er-templates/' . $entrySectionHandle . '.xsl';
 			if (!!@file_exists($xslFilePath)) {
-				$xmlData = new XMLElement('data');
+				$xmlData = new XMLDocument('data');
 				$xmlData->setIncludeHeader(true);
 
 				// params

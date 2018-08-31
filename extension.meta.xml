@@ -31,7 +31,7 @@
 	</dependencies>
 	<releases>
 		<release version="2.2.3" date="2018-08-31" min="2.7.3" max="2.x.x">
-			-Fix a bug when upgrading from < 2.0.0
+			- Fix a bug when upgrading from < 2.0.0
 		</release>
 		<release version="2.2.2" date="2018-07-19" min="2.7.3" max="2.x.x">
 			- Fix a problem with the absence of unload events when removing the iframe

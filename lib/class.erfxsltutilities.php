@@ -144,9 +144,6 @@
 						continue;
 					}
 					$field = $entryFields[$fieldId];
-					if (is_null($field)) {
-						continue;
-					}
 					$fieldName = $field->get('element_name');
 					$fieldIncludedElement = $includedElements[$entrySectionHandle];
 

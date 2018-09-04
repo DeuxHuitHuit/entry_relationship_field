@@ -632,18 +632,12 @@
 
 		private function fetchEntry($eId, $elements = array())
 		{
-			$entry = $this->entryManager
+			return $this->entryManager
 				->select()
 				->entry($eId)
 				->schema($elements)
 				->execute()
 				->next();
-
-			if (count($entry) !== 1) {
-				return null;
-			}
-
-			return $entry;
 		}
 
 		protected function fetchAllIncludableElements()
@@ -797,10 +791,6 @@
 						->execute()
 						->next();
 					$sectionName = $section->get('handle');
-					// cache fields info
-					if (!isset($section->er_field_cache)) {
-						$section->er_field_cache = $section->fetchFields();
-					}
 
 					// set section related attributes
 					$item->setAttribute('section-id', $sectionId);
@@ -1510,11 +1500,9 @@
 						->entry($child_entry_id)
 						->execute()
 						->next();
-					if (!$entry || !is_array($entry) || empty($entry)) {
+					if (!$entry || empty($entry)) {
 						continue;
 					}
-					reset($entry);
-					$entry = current($entry);
 					$section = $this->sectionManager
 						->select()
 						->section($entry->get('section_id'))

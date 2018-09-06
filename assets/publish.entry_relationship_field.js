@@ -138,7 +138,7 @@
 	var defineExternals = function () {
 		var self = {
 			hide: function (reRender) {
-				ctn.removeClass('show').find('.iframe>iframe').fadeOut(300, function () {
+				ctn.removeClass('show').find('.iframe>iframe').fadeOut(1, function () {
 					// raise unload events
 					var iw = this.contentWindow;
 					var i$ = iw.jQuery;
@@ -169,7 +169,6 @@
 
 				S.Utilities.requestAnimationFrame(function () {
 					ctn.addClass('show');
-					ctn.find('.iframe>iframe').css('opacity', 0).fadeTo(1, 450);
 
 					if (window.parent !== window && window.parent.Symphony.Extensions.EntryRelationship) {
 						window.parent.Symphony.Extensions.EntryRelationship.updateOpacity(1);

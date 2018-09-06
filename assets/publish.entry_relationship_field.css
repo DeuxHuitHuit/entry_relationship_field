@@ -182,34 +182,18 @@
  * CSS for entry relationship field iframe
  */
 #entry-relationship-ctn {
-	background-color: rgba(241, 241, 241, 0);
+	overflow: hidden;
 	position: fixed;
 	z-index: 10000;
 	top: 0;
 	left: 0;
 	bottom: 0;
 	right: 0;
-	overflow: hidden;
-
-	visibility: collapse;
-	opacity: 1;
 	pointer-events: none;
-	-webkit-transition: background-color 200ms ease-out, visibility 0ms linear 200ms;
-	-moz-transition: background-color 200ms ease-out, visibility 0ms linear 200ms;
-	-ms-transition: background-color 200ms ease-out, visibility 0ms linear 200ms;
-	transition: background-color 200ms ease-out, visibility 0ms linear 200ms;
 }
 
 #entry-relationship-ctn.show {
-	background: rgba(241, 241, 241, 0.9);
-	visibility: visible;
-	opacity: 1;
 	pointer-events: all;
-	cursor: pointer;
-	-webkit-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
-	-moz-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
-	-ms-transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
-	transition: background-color 200ms linear 0ms, visibility 0ms linear 0ms;
 }
 
 #entry-relationship-ctn > .iframe {

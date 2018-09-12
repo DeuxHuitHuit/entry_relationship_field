@@ -64,13 +64,12 @@
 			td.find('input').appendTo(td.prev('td'));
 			td.remove();
 		});
-		form.removeAttr('style');
-		S.Elements.contents.find('#drawer-section-associations').remove();
-		S.Elements.context.find('#drawer-filtering').remove();
+		// Close support
 		var btnClose = $('<button />').attr('type', 'button').text('Close').click(function (e) {
 			parent.cancel();
 			parent.hide();
 		});
+		var btnCloseWrapper = $('<li />').append(btnClose);
 		$(document).on('keydown', function (e) {
 			if (e.which === 27) {
 				parent.cancel();
@@ -79,10 +78,13 @@
 				return false;
 			}
 		});
-		S.Elements.wrapper.removeClass('drawer-vertical-right');
+		// Drawers support
+		S.Elements.context.find('.drawer-filtering').remove(); // TODO: remove and support it
 		S.Elements.wrapper.find('.actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
-		}).empty().append(btnClose);
+		}).find('li').filter(function () {
+			return !$(this).find('a[href^="#drawer-"]').length || !!$(this).find('a[href^="#drawer-filtering"]').length;
+		}).remove().end().end().prepend(btnCloseWrapper);
 		
 		// makes all link open in new window/tab
 		form.find('table tr td a').attr('target', '_blank');

@@ -147,8 +147,6 @@
 
 		fieldChoices.empty();
 
-		console.log('YO');
-
 		$.get(SECTIONS + values.join(',') + '/').done(function (data) {
 			if (!!data.sections) {
 				var all = createElementInstance({handle: '*'}, 'Include all elements', 'header');

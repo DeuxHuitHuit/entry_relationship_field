@@ -95,7 +95,7 @@
 				$entry = $this->entryManager
 					->select()
 					->entry($entryId)
-					->section($this->entryManager::fetchEntrySectionID($entryId))
+					->section(EntryManager::fetchEntrySectionID($entryId))
 					->includeAllFields()
 					->execute()
 					->next();

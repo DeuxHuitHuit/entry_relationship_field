@@ -95,8 +95,6 @@
 				$entry = $this->entryManager
 					->select()
 					->entry($entryId)
-					->section(EntryManager::fetchEntrySectionID($entryId))
-					->includeAllFields()
 					->execute()
 					->next();
 				if (empty($entry)) {
@@ -116,6 +114,13 @@
 					$li->appendChild($header);
 					$this->_Result->appendChild($li);
 				} else {
+					$entry = $this->entryManager
+						->select()
+						->entry($entryId)
+						->section($entry->get('section_id'))
+						->includeAllFields()
+						->execute()
+						->next();
 					$entrySection = $this->sectionManager
 						->select()
 						->section($entry->get('section_id'))

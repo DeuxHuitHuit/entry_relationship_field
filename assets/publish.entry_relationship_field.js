@@ -64,10 +64,9 @@
 			td.find('input').appendTo(td.prev('td'));
 			td.remove();
 		});
-		// Close support
 		form.removeAttr('style');
 		S.Elements.contents.find('#drawer-section-associations').remove();
-		S.Elements.context.find('#drawer-filtering').remove();
+		// Close support
 		var btnClose = $('<button />').attr('type', 'button').append('<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="19.9px" height="19.9px" viewBox="0 0 19.9 19.9"><path fill="currentColor" d="M1,19.9c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4L18.2,0.3c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4L1.7,19.6C1.5,19.8,1.3,19.9,1,19.9z"/><path fill="currentColor" d="M18.9,19.9c-0.3,0-0.5-0.1-0.7-0.3L0.3,1.7c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l17.9,17.9c0.4,0.4,0.4,1,0,1.4C19.4,19.8,19.2,19.9,18.9,19.9z"/></svg>').append('<span><span>Close</span></span>').click(function (e) {
 			parent.cancel();
 			parent.hide();
@@ -83,15 +82,11 @@
 		});
 
 		// Drawers support
-		S.Elements.context.find('.drawer-filtering').remove(); // TODO: remove and support it
 		S.Elements.wrapper.find('.actions').filter(function () {
-		S.Elements.wrapper.removeClass('drawer-vertical-right');
-		S.Elements.wrapper.find('#context .actions').filter(function () {
 			return body.hasClass('page-index') || $(this).is('ul');
 		}).find('li').filter(function () {
-			return !$(this).find('a[href^="#drawer-"]').length || !!$(this).find('a[href^="#drawer-filtering"]').length;
-		}).remove().end().end().prepend(btnCloseWrapper);
-		}).empty().append(btnClose).wrapInner('<li></li>');
+			return !$(this).find('a[href^="#drawer-"]').length;
+		}).remove().end().end().append(btnCloseWrapper);
 
 		// makes all link open in new window/tab
 		form.find('table tr td a').attr('target', '_blank');

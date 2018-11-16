@@ -8,6 +8,9 @@ require_once(TOOLKIT . '/class.jsonpage.php');
 
 class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 {
+	const MAX_FILTERABLE_FIELDS = 7;
+	const MAX_RESULT = 10;
+
 	public function view()
 	{
 		if (class_exists('FLang')) {
@@ -20,7 +23,7 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 		$section = General::sanitize($this->_context[0]);
 		$sectionId = SectionManager::fetchIDFromHandle($section);
 		$sectionId = General::intval($sectionId);
-		$excludes = !isset($this->_context[1]) ? '' : General::sanitize($this->_context[1]);
+		$excludes = !isset($this->_context[1]) ? [] : explode(',', General::sanitize($this->_context[1]));
 
 		if ($sectionId < 1) {
 			$this->_Result['status'] = Page::HTTP_STATUS_BAD_REQUEST;
@@ -40,7 +43,7 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			return;
 		}
 
-		$query = General::sanitize($_GET['query']);
+		$query = trim(General::sanitize($_GET['query']));
 		$entries = array();
 		$filterableFields = $section->fetchFilterableFields();
 		if (empty($filterableFields)) {
@@ -49,7 +52,21 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			return;
 		}
 
+		foreach ($filterableFields as $key => $field) {
+			if ($field instanceof FieldRelationship || $field instanceof FieldDate) {
+				unset($filterableFields[$key]);
+			}
+		}
+		$filterableFields = array_values($filterableFields);
+		if (count($filterableFields) > self::MAX_FILTERABLE_FIELDS) {
+			$filterableFields = array_slice($filterableFields, 0, self::MAX_FILTERABLE_FIELDS);
+		}
+
 		$primaryField = $section->fetchVisibleColumns();
+
+		$getId = function ($obj) { return $obj->get('id'); };
+		$intersection = array_intersect(array_map($getId, $filterableFields), array_map($getId, $primaryField));
+
 		if (empty($primaryField)) {
 			$primaryField = current($filterableFields);
 			reset($filterableFields);
@@ -57,19 +74,37 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 			$primaryField = current($primaryField);
 		}
 
-		foreach ($filterableFields as $fId => $field) {
+		foreach ($filterableFields as $field) {
+			if (!empty($intersection) && !in_array($field->get('id'), $intersection)) {
+				continue;
+			}
 			$q = (new EntryManager)
 				->select()
 				->sort('system:id', 'asc')
+				->schema([$primaryField->get('element_name')])
 				->section($sectionId)
-				->includeAllFields();
+				->disableDefaultSort()
+				->limit(self::MAX_RESULT);
 
-			if (strlen($query) != 0) {
-				$q->filter($field->get('id'), ['regexp:' . $query]);
+			if (!empty($query)) {
+				try {
+					$opt = array_map(function ($op) {
+						return trim($op['filter']);
+					}, $field->fetchFilterableOperators());
+					if (in_array('contains:', $opt)) {
+						$q->filter($field, ['contains: ' . $query . '%']);
+					} elseif (in_array('regexp:', $opt)) {
+						$q->filter($field, ['regexp: ' . $query]);
+					} else {
+						$q->filter($field, [$query]);
+					}
+				} catch (DatabaseStatementException $ex) {
+					continue;
+				}
 			}
 
-			if (strlen($excludes) != 0) {
-				$q->filter('system:id', ['not:' . $excludes]);
+			if (!empty($excludes)) {
+				$q->filter('system:id', ['not:' . implode(',', $excludes)]);
 			}
 
 			$fEntries = $q
@@ -78,6 +113,11 @@ class contentExtensionEntry_relationship_fieldSearch extends JSONPage
 
 			if (!empty($fEntries)) {
 				$entries = array_merge($entries, $fEntries);
+				$excludes = array_merge($excludes, array_map($getId, $fEntries));
+			}
+
+			if (count($entries) > self::MAX_RESULT) {
+				break;
 			}
 		}
 

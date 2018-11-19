@@ -34,6 +34,8 @@ class EntryQueryEntryrelationshipAdapter extends EntryQueryFieldAdapter
         ]);
         if ($this->isFilterRegex($filter)) {
             return $this->createFilterRegexp($filter, $this->getFilterColumns());
+        } elseif ($this->isFilterSQL($filter)) {
+            return $this->createFilterSQL($filter, $this->getFilterColumns());
         }
         return $this->createFilterIncludes($filter, $this->getFilterColumns());
     }

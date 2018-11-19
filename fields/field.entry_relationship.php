@@ -501,6 +501,30 @@
 					'filter' => ' ',
 					'help' => __('Find entries that links to the specified filter')
 				),
+				array(
+					'filter' => 'sql: NOT NULL',
+					'title' => 'is not empty',
+					'help' => __('Find entries with a non-empty value.')
+				),
+				array(
+					'filter' => 'sql: NULL',
+					'title' => 'is empty',
+					'help' => __('Find entries with an empty value.')
+				),
+				array(
+					'title' => 'contains',
+					'filter' => 'regexp: ',
+					'help' => __('Find values that match the given <a href="%s">MySQL regular expressions</a>.', array(
+						'https://dev.mysql.com/doc/mysql/en/regexp.html'
+					))
+				),
+				array(
+					'title' => 'does not contain',
+					'filter' => 'not-regexp: ',
+					'help' => __('Find values that do not match the given <a href="%s">MySQL regular expressions</a>.', array(
+						'https://dev.mysql.com/doc/mysql/en/regexp.html'
+					))
+				),
 			);
 		}
 

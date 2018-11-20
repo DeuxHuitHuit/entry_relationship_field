@@ -236,7 +236,7 @@
 			}
 
 			$row = array(
-				'entries' => $entries
+				'entries' => empty($entries) ? null : $entries
 			);
 
 			// return row

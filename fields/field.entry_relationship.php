@@ -654,12 +654,26 @@
 
 		/* ******* DATA SOURCE ******* */
 
-		private function fetchEntry($eId, $elements = array())
+		private function fetchEntryWithData($eId, $sectionId, $elements = array())
+		{
+			$q = $this->entryManager
+				->select()
+				->entry($eId)
+				->section($sectionId);
+			if ($elements === null) {
+				$q->includeAllFields();
+			} else {
+				$q->schema($elements);
+			}
+			return $q->execute()
+				->next();
+		}
+
+		private function fetchEntryOnly($eId)
 		{
 			return $this->entryManager
 				->select()
 				->entry($eId)
-				->schema($elements)
 				->execute()
 				->next();
 		}
@@ -796,7 +810,7 @@
 				// max recursion check
 				if ($deepness < 1 || $recursiveLevel < $deepness) {
 					// current entry, without data
-					$entry = $this->fetchEntry($eId);
+					$entry = $this->fetchEntryOnly($eId);
 
 					// entry not found...
 					if (!$entry || empty($entry)) {
@@ -906,7 +920,7 @@
 					}
 
 					// fetch current entry again, but with data for the allowed schema
-					$entry = $this->fetchEntry($eId, $sectionElements);
+					$entry = $this->fetchEntryWithData($eId, $sectionId, $sectionElements);
 
 					// cache the entry data
 					$entryData = $entry->getData();

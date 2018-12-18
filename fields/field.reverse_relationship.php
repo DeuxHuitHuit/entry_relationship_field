@@ -727,8 +727,6 @@ class FieldReverse_Relationship extends FieldRelationship
         return Symphony::Database()
             ->create(self::FIELD_TBL_NAME)
             ->ifNotExists()
-            ->charset('utf8')
-            ->collate('utf8_unicode_ci')
             ->fields([
                 'id' => [
                     'type' => 'int(11)',

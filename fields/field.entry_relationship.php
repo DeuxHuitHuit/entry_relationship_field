@@ -403,28 +403,25 @@
 		 *
 		 * @param string $value
 		 * @param @optional string $col
-		 * @param @optional boolean $andOperation
 		 */
-		public function generateWhereFilter($value, $col = 'd', $andOperation = true)
+		public function generateWhereFilter($value, $col = 'd')
 		{
 			$junction = $andOperation ? 'and' : 'or';
 
 			if (!$value) {
 				return [
 					$junction => [
-						[$col . '.entries' => 'null'],
+						[$col . '.entries' => null],
 					],
 				];
 			}
 
 			return [
-				$junction => [
-					'or' => [
-						[$col . '.entries' => $value],
-						[$col . '.entries' => ['like' => $value . ',%']],
-						[$col . '.entries' => ['like' => '%,' . $value]],
-						[$col . '.entries' => ['like' => '%,' . $value . ',%']],
-					],
+				'or' => [
+					[$col . '.entries' => $value],
+					[$col . '.entries' => ['like' => $value . ',%']],
+					[$col . '.entries' => ['like' => '%,' . $value]],
+					[$col . '.entries' => ['like' => '%,' . $value . ',%']],
 				]
 			];
 		}
@@ -443,10 +440,10 @@
 			$where = $this->generateWhereFilter($value);
 
 			$entries = Symphony::Database()
-				->select(['*'])
+				->select(['e.id'])
 				->from('tbl_entries', 'e')
 				->innerJoin('tbl_entries_data_' . $this->get('id'), 'd')
-				->on(['e.id' => 'd.entry_id'])
+				->on(['e.id' => '$d.entry_id'])
 				->where(['e.section_id' => $this->get('parent_section')])
 				->where($where)
 				->execute()
@@ -553,12 +550,15 @@
 					continue;
 				}
 				foreach ($filterableFields as $fId => $field) {
-					$joins = '';
-					$where = '';
 					if ($field instanceof FieldRelationship) {
 						continue;
 					}
-					$field->buildDSRetrievalSQL(array($value), $joins, $where, false);
+					$fEntries = (new EntryManager)
+						->select(['e.id'])
+						->section($sectionId)
+						->filter($fId, [$value])
+						->execute()
+						->rows();
 
 					if (!empty($fEntries)) {
 						$ids = array_merge($ids, $fEntries);
@@ -596,49 +596,6 @@
 			$li->appendChild($a);
 
 			return $li;
-		}
-
-		/**
-		 * @param string $joins
-		 * @param string $where
-		 */
-		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false)
-		{
-			$field_id = $this->get('id');
-
-			// REGEX filtering is a special case, and will only work on the first item
-			// in the array. You cannot specify multiple filters when REGEX is involved.
-			if (self::isFilterRegex($data[0])) {
-				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
-			}
-
-			$this->_key++;
-
-			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
-
-			$joins .= "
-				INNER JOIN
-					`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
-					ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
-			";
-
-			$normalizedValues = array();
-
-			foreach ($data as $value) {
-				if (!is_numeric($value) && !is_null($value)) {
-					$normalizedValues = array_merge($normalizedValues, $this->fetchIDsfromValue($value));
-				} else {
-					$normalizedValues[] = $value;
-				}
-			}
-
-			foreach ($normalizedValues as $value) {
-				$where .= $this->generateWhereFilter($this->cleanValue($value), "t{$field_id}_{$this->_key}", $andOperation);
-			}
-
-			$where .= ')';
-
-			return true; // this tells the DS Manager that filters are OK!!
 		}
 
 		/* ******* EVENTS ******* */

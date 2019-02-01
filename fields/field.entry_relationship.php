@@ -406,8 +406,6 @@
 		 */
 		public function generateWhereFilter($value, $col = 'd')
 		{
-			$junction = $andOperation ? 'and' : 'or';
-
 			if (!$value) {
 				return [
 					$junction => [

@@ -11,7 +11,7 @@
 	class contentExtensionEntry_Relationship_FieldSave extends JSONPage {
 
 		const NUMBER_OF_URL_PARAMETERS = 3;
-		
+
 		/**
 		 *
 		 * Builds the content view
@@ -23,7 +23,7 @@
 				$this->setHttpStatus($this->_Result['status']);
 				return;
 			}
-			
+
 			// _context[0] => entry values
 			// _context[1] => fieldId
 			// _context[2] => current entry id
@@ -39,10 +39,10 @@
 				$this->_Result['error'] = __('Too many parameters');
 				return;
 			}
-			
+
 			// Validate ALL entries ID
-			$rawEntriesId = array_filter(explode(',', MySQL::cleanValue(urldecode($this->_context[0]))));
-			
+			$rawEntriesId = array_filter(explode(',', urldecode($this->_context[0])));
+
 			// Check for operators
 			$operator = null;
 			if (!empty($rawEntriesId)) {
@@ -56,10 +56,10 @@
 					$rawEntriesId[0] = General::substr($rawEntriesId[0], 1);
 				}
 			}
-			
+
 			// Convert all values to int
 			$entriesId = array_map(array('General', 'intval'), $rawEntriesId);
-			
+
 			// Check result
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result['error'] = __('No entry no found');
@@ -77,22 +77,26 @@
 					return;
 				}
 			}
-			
+
 			// Validate parent field exists
-			$parentFieldId = General::intval(MySQL::cleanValue($this->_context[1]));
+			$parentFieldId = General::intval($this->_context[1]);
 			if ($parentFieldId < 1) {
 				$this->_Result['error'] = __('Parent id not valid');
 				return;
 			}
-			$parentField = FieldManager::fetch($parentFieldId);
+			$parentField = (new FieldManager)
+				->select()
+				->field($parentFieldId)
+				->execute()
+				->next();
 			if (!$parentField || empty($parentField)) {
 				$this->_Result['error'] = __('Parent field not found');
 				return;
 			}
-			
+
 			// Validate parent entry ID
-			$rawEntryId = MySQL::cleanValue($this->_context[2]);
-			$entryId = General::intval($rawEntryId );
+			$rawEntryId = $this->_context[2];
+			$entryId = General::intval($rawEntryId);
 			if ($entryId < 1) {
 				$this->_Result['error'] = sprintf(
 					__('Parent entry id `%s` not valid'),
@@ -100,22 +104,25 @@
 				);
 				return;
 			}
-			
+
 			// Validate parent entry exists
-			$entry = EntryManager::fetch($entryId);
-			if ($entry == null || count($entry) != 1) {
+			$entry = (new EntryManager)
+				->select()
+				->entry($entryId)
+				->section(EntryManager::fetchEntrySectionID($entryId))
+				->includeAllFields()
+				->execute()
+				->next();
+			if (is_null($entry) || empty($entry)) {
 				$this->_Result['error'] = __('Parent entry not found');
 				return;
-			}
-			if (is_array($entry)) {
-				$entry = $entry[0];
 			}
 			if ($entry->get('section_id') != $parentField->get('parent_section')) {
 				$this->_Result['error'] = __('Field and entry do not belong together');
 				return;
 			}
 			$entryData = $entry->getData();
-			
+
 			// Perform operation, if needed
 			if ($operator) {
 				$opEntries = array_filter(explode(',', $entryData[$parentFieldId]['entries']));
@@ -129,15 +136,15 @@
 				$entriesId = $opEntries;
 				unset($opEntries);
 			}
-			
+
 			// Validate timestamp
 			if (!$this->validateTimestamp($entryId, true)) {
 				return;
 			}
-			
+
 			// set new data
 			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
-			
+
 			// check if data are valid
 			$resMessage = null;
 			$res = $parentField->checkPostFieldData(
@@ -149,20 +156,20 @@
 				$this->_Result['error'] = $resMessage;
 				return;
 			}
-			
+
 			// save the new data
 			$entry->setData($parentFieldId, $entryData[$parentFieldId]);
 			if (!$entry->commit()) {
 				$this->_Result['error'] = __('Could not save entry');
 				return;
 			}
-			
+
 			$this->_Result['entry-id'] = $entryId;
 			$this->_Result['ok'] = true;
 			$this->_Result['entries'] = $entryData[$parentFieldId]['entries'];
 			$this->_Result['timestamp'] = DateTimeObj::format($entry->get('modification_date'), 'c');
 		}
-		
+
 		protected function validateTimestamp($entry_id, $checkMissing = false)
 		{
 			if ($checkMissing && !isset($_POST['timestamp'])) {

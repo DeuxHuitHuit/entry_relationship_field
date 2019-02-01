@@ -7,10 +7,10 @@
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.field.relationship.php');
-	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.sectionsinfos.php');
-	
+	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.entryqueryentryrelationshipadapter.php');
+
 	/**
 	 *
 	 * Field class that will represent relationships between entries
@@ -25,7 +25,7 @@
 		 *  @var string
 		 */
 		const FIELD_TBL_NAME = 'tbl_fields_entry_relationship';
-		
+
 		/**
 		 *
 		 * Current recursive level of output
@@ -40,7 +40,7 @@
 		{
 			return $this->recursiveLevel += $inc;
 		}
-		
+
 		/**
 		 *
 		 * Parent's maximum recursive level of output
@@ -55,14 +55,14 @@
 		{
 			return $this->recursiveDeepness = $deepness;
 		}
-		
-		/* Cacheable Managers */
+
+		// cache managers
 		private $sectionManager;
 		private $entryManager;
 		private $sectionInfos;
-		
+
 		public $expandIncludableElements = true;
-		
+
 		/**
 		 *
 		 * Constructor for the Entry_Relationship Field object
@@ -71,6 +71,8 @@
 		{
 			// call the parent constructor
 			parent::__construct();
+			// EQFA
+			$this->entryQueryFieldAdapter = new EntryQueryEntryrelationshipAdapter($this);
 			// set the name of the field
 			$this->_name = __('Entry Relationship');
 			// permits to make it required
@@ -112,9 +114,11 @@
 			$this->set('allow_collapse', 'yes');
 			$this->set('allow_search', 'no');
 			$this->set('show_header', 'yes');
-			$this->sectionManager = new CacheableFetch('SectionManager');
-			$this->entryManager = new CacheableFetch('EntryManager');
-			$this->sectionInfos = new CacheableFetch('SectionsInfos');
+			// cache managers
+			$this->sectionManager = new SectionManager;
+			$this->entryManager = new EntryManager;
+			$this->fieldManager = new FieldManager;
+			$this->sectionInfos = new SectionsInfos;
 		}
 
 		public function isSortable()
@@ -126,7 +130,7 @@
 		{
 			return true;
 		}
-		
+
 		public function canPublishFilter()
 		{
 			return true;
@@ -139,9 +143,9 @@
 
 		public function canPrePopulate()
 		{
-			return false;
+			return true;
 		}
-		
+
 		public function mustBeUnique()
 		{
 			return false;
@@ -166,29 +170,29 @@
 
 
 		/**
-		 * 
+		 *
 		 * Validates input
 		 * Called before <code>processRawFieldData</code>
 		 * @param $data
 		 * @param $message
 		 * @param $entry_id
 		 */
-		public function checkPostFieldData($data, &$message, $entry_id=null)
+		public function checkPostFieldData($data, &$message, $entry_id = null)
 		{
 			$message = null;
 			$required = $this->isRequired();
-			
+
 			if ($required && (!is_array($data) || count($data) == 0 || strlen($data['entries']) < 1)) {
 				$message = __("'%s' is a required field.", array($this->get('label')));
 				return self::__MISSING_FIELDS__;
 			}
-			
+
 			$entries = $data['entries'];
-			
+
 			if (!is_array($entries)) {
 				$entries = static::getEntries($data);
 			}
-			
+
 			// enforce limits only if required or it contains data
 			if ($required || count($entries) > 0) {
 				if ($this->getInt('min_entries') > 0 && $this->getInt('min_entries') > count($entries)) {
@@ -199,7 +203,7 @@
 					return self::__INVALID_FIELDS__;
 				}
 			}
-			
+
 			return self::__OK__;
 		}
 
@@ -219,22 +223,22 @@
 		{
 			$status = self::__OK__;
 			$entries = null;
-			
+
 			if (!is_array($data) && !is_string($data)) {
 				return null;
 			}
-			
+
 			if (isset($data['entries'])) {
 				$entries = $data['entries'];
 			}
 			else if (is_string($data)) {
 				$entries = $data;
 			}
-			
+
 			$row = array(
-				'entries' => $entries
+				'entries' => empty($entries) ? null : $entries
 			);
-			
+
 			// return row
 			return $row;
 		}
@@ -254,10 +258,10 @@
 			$new_settings = array();
 
 			// set new settings
-			$new_settings['sections'] = is_array($settings['sections']) ? 
-				implode(self::SEPARATOR, $settings['sections']) : 
+			$new_settings['sections'] = is_array($settings['sections']) ?
+				implode(self::SEPARATOR, $settings['sections']) :
 				(is_string($settings['sections']) ? $settings['sections'] : null);
-				
+
 			$new_settings['show_association'] = $settings['show_association'] == 'yes' ? 'yes' : 'no';
 			$new_settings['deepness'] = General::intval($settings['deepness']);
 			$new_settings['deepness'] = $new_settings['deepness'] < 1 ? null : $new_settings['deepness'];
@@ -273,7 +277,7 @@
 			$new_settings['allow_collapse'] = $settings['allow_collapse'] == 'yes' ? 'yes' : 'no';
 			$new_settings['allow_search'] = $settings['allow_search'] == 'yes' ? 'yes' : 'no';
 			$new_settings['show_header'] = $settings['show_header'] == 'yes' ? 'yes' : 'no';
-			
+
 			// save it into the array
 			$this->setArray($new_settings);
 		}
@@ -289,9 +293,9 @@
 			if ($parent != self::__OK__) {
 				return $parent;
 			}
-			
+
 			$sections = $this->get('sections');
-			
+
 			if (empty($sections)) {
 				$errors['sections'] = __('At least one section must be chosen');
 			}
@@ -307,20 +311,20 @@
 		{
 			// if the default implementation works...
 			if(!parent::commit()) return false;
-			
+
 			$id = $this->get('id');
-			
+
 			// exit if there is no id
 			if($id == false) return false;
-			
+
 			// we are the child, with multiple parents
 			$child_field_id = $id;
-			
+
 			// delete associations, only where we are the child
 			self::removeSectionAssociation($child_field_id);
-			
+
 			$sections = $this->getSelectedSectionsArray();
-			
+
 			foreach ($sections as $key => $sectionId) {
 				if (empty($sectionId)) {
 					continue;
@@ -330,7 +334,11 @@
 					// section not found, bail out
 					continue;
 				}
-				$parent_section = SectionManager::fetch($parent_section_id);
+				$parent_section = $this->sectionManager
+					->select()
+					->section($parent_section_id)
+					->execute()
+					->next();
 				if (!$parent_section) {
 					// section not found, bail out
 					continue;
@@ -340,11 +348,11 @@
 					// no visible field, revert to all
 					$fields = $parent_section->fetchFields();
 				}
-				if (empty(fields)) {
+				if (empty($fields)) {
 					// no fields found, bail out
 					continue;
 				}
-				$parent_field_id = current(array_keys($fields));
+				$parent_field_id = current($fields)->get('id');
 				// create association
 				SectionManager::createSectionAssociation(
 					$parent_section_id,
@@ -353,7 +361,7 @@
 					$this->get('show_association') == 'yes'
 				);
 			}
-			
+
 			// declare an array contains the field's settings
 			$settings = array(
 				'sections' => $this->get('sections'),
@@ -364,8 +372,8 @@
 				'mode_table' => $this->get('mode_table'),
 				'mode_header' => $this->get('mode_header'),
 				'mode_footer' => $this->get('mode_footer'),
-				'min_entries' => $this->get('min_entries'),
-				'max_entries' => $this->get('max_entries'),
+				'min_entries' => (int)$this->get('min_entries'),
+				'max_entries' => (int)$this->get('max_entries'),
 				'allow_new' => $this->get('allow_new'),
 				'allow_edit' => $this->get('allow_edit'),
 				'allow_link' => $this->get('allow_link'),
@@ -389,24 +397,31 @@
 			self::removeSectionAssociation($this->get('id'));
 			return parent::tearDown();
 		}
-		
+
 		/**
 		 * Generates the where filter for searching by entry id
 		 *
 		 * @param string $value
 		 * @param @optional string $col
-		 * @param @optional boolean $andOperation
 		 */
-		public function generateWhereFilter($value, $col = 'd', $andOperation = true)
+		public function generateWhereFilter($value, $col = 'd')
 		{
-			$junction = $andOperation ? 'AND' : 'OR';
 			if (!$value) {
-				return "{$junction} (`{$col}`.`entries` IS NULL)";
+				return [
+					$junction => [
+						[$col . '.entries' => null],
+					],
+				];
 			}
-			return " {$junction} (`{$col}`.`entries` = '{$value}' OR 
-					`{$col}`.`entries` LIKE '{$value},%' OR 
-					`{$col}`.`entries` LIKE '%,{$value}' OR 
-					`{$col}`.`entries` LIKE '%,{$value},%')";
+
+			return [
+				'or' => [
+					[$col . '.entries' => $value],
+					[$col . '.entries' => ['like' => $value . ',%']],
+					[$col . '.entries' => ['like' => '%,' . $value]],
+					[$col . '.entries' => ['like' => '%,' . $value . ',%']],
+				]
+			];
 		}
 
 		/**
@@ -419,40 +434,57 @@
 			if (!$value) {
 				return 0;
 			}
-			$join = sprintf(" INNER JOIN `tbl_entries_data_%s` AS `d` ON `e`.id = `d`.`entry_id`", $this->get('id'));
+
 			$where = $this->generateWhereFilter($value);
-			
-			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $join, false, false, array());
-			
+
+			$entries = Symphony::Database()
+				->select(['e.id'])
+				->from('tbl_entries', 'e')
+				->innerJoin('tbl_entries_data_' . $this->get('id'), 'd')
+				->on(['e.id' => '$d.entry_id'])
+				->where(['e.section_id' => $this->get('parent_section')])
+				->where($where)
+				->execute()
+				->rows();
+
 			return count($entries);
 		}
-		
+
 		public function fetchAssociatedEntrySearchValue($data, $field_id = null, $parent_entry_id = null)
 		{
 			return $parent_entry_id;
 		}
-		
+
 		public function findRelatedEntries($entry_id, $parent_field_id)
 		{
-			$joins = '';
-			$where = '';
-			$this->buildDSRetrievalSQL(array($entry_id), $joins, $where, true);
-			
-			$entries = EntryManager::fetch(null, $this->get('parent_section'), null, 0, $where, $joins, false, false, array());
-			
+			$entries = $this->entryManager
+				->select()
+				->section($this->get('parent_section'))
+				->filter($this->get('id'), [(string)$entry_id])
+				->schema(['id'])
+				->execute()
+				->rows();
+
 			return array_map(function ($e) {
 				return $e['id'];
 			}, $entries);
 		}
-		
+
 		public function findParentRelatedEntries($parent_field_id, $entry_id)
 		{
-			$entry = $this->fetchEntry($entry_id, array($this->get('label')));
-			
+			$entry = $this->entryManager
+				->select()
+				->entry($entry_id)
+				->section($this->entryManager->fetchEntrySectionID($entry_id))
+				->includeAllFields()
+				->schema(array($this->get('label')))
+				->execute()
+				->next();
+
 			if (!$entry) {
 				return array();
 			}
-			
+
 			return self::getEntries($entry->getData($this->get('id')));
 		}
 
@@ -463,6 +495,30 @@
 					'title' => 'links to',
 					'filter' => ' ',
 					'help' => __('Find entries that links to the specified filter')
+				),
+				array(
+					'filter' => 'sql: NOT NULL',
+					'title' => 'is not empty',
+					'help' => __('Find entries with a non-empty value.')
+				),
+				array(
+					'filter' => 'sql: NULL',
+					'title' => 'is empty',
+					'help' => __('Find entries with an empty value.')
+				),
+				array(
+					'title' => 'contains',
+					'filter' => 'regexp: ',
+					'help' => __('Find values that match the given <a href="%s">MySQL regular expressions</a>.', array(
+						'https://dev.mysql.com/doc/mysql/en/regexp.html'
+					))
+				),
+				array(
+					'title' => 'does not contain',
+					'filter' => 'not-regexp: ',
+					'help' => __('Find values that do not match the given <a href="%s">MySQL regular expressions</a>.', array(
+						'https://dev.mysql.com/doc/mysql/en/regexp.html'
+					))
 				),
 			);
 		}
@@ -476,10 +532,14 @@
 		{
 			$ids = array();
 			$sections = $this->getArray('sections');
-			//$value = Lang::createHandle($value);
 
 			foreach ($sections as $sectionId) {
-				$section = $this->sectionManager->fetch($sectionId);
+				$section = $this->sectionManager
+					->select()
+					->section($sectionId)
+					->execute()
+					->next();
+
 				if (!$section) {
 					continue;
 				}
@@ -488,13 +548,16 @@
 					continue;
 				}
 				foreach ($filterableFields as $fId => $field) {
-					$joins = '';
-					$where = '';
 					if ($field instanceof FieldRelationship) {
 						continue;
 					}
-					$field->buildDSRetrievalSQL(array($value), $joins, $where, false);
-					$fEntries = $this->entryManager->fetch(null, $sectionId, null, null, $where, $joins, true, false, null, false);
+					$fEntries = (new EntryManager)
+						->select(['e.id'])
+						->section($sectionId)
+						->filter($fId, [$value])
+						->execute()
+						->rows();
+
 					if (!empty($fEntries)) {
 						$ids = array_merge($ids, $fEntries);
 						break;
@@ -509,13 +572,21 @@
 
 		public function prepareAssociationsDrawerXMLElement(Entry $e, array $parent_association, $prepolutate = '')
 		{
-			$currentSection = SectionManager::fetch($parent_association['child_section_id']);
+			$currentSection = $this->sectionManager
+				->select()
+				->section($parent_association['child_section_id'])
+				->execute()
+				->next();
 			$visibleCols = $currentSection->fetchVisibleColumns();
-			$outputFieldId = current(array_keys($visibleCols));
-			$outputField = FieldManager::fetch($outputFieldId);
-			
+			$outputFieldId = current($visibleCols)->get('id');
+			$outputField = $this->fieldManager
+				->select()
+				->field($outputFieldId)
+				->execute()
+				->next();
+
 			$value = $outputField->prepareReadableValue($e->getData($outputFieldId), $e->get('id'), true, __('None'));
-			
+
 			$li = new XMLElement('li');
 			$li->setAttribute('class', 'field-' . $this->get('type'));
 			$a = new XMLElement('a', strip_tags($value));
@@ -523,48 +594,6 @@
 			$li->appendChild($a);
 
 			return $li;
-		}
-		
-		/**
-		 * @param string $joins
-		 * @param string $where
-		 */
-		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false)
-		{
-			$field_id = $this->get('id');
-			
-			// REGEX filtering is a special case, and will only work on the first item
-			// in the array. You cannot specify multiple filters when REGEX is involved.
-			if (self::isFilterRegex($data[0])) {
-				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
-			}
-			
-			$this->_key++;
-			
-			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
-			
-			$joins .= "
-				INNER JOIN
-					`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
-					ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
-			";
-			
-			$normalizedValues = array();
-			foreach ($data as $value) {
-				if (!is_numeric($value) && !is_null($value)) {
-					$normalizedValues = array_merge($normalizedValues, $this->fetchIDsfromValue($value));
-				} else {
-					$normalizedValues[] = $value;
-				}
-			}
-			
-			foreach ($normalizedValues as $value) {
-				$where .= $this->generateWhereFilter($this->cleanValue($value), "t{$field_id}_{$this->_key}", $andOperation);
-			}
-			
-			$where .= ')';
-			
-			return true; // this tells the DS Manager that filters are OK!!
 		}
 
 		/* ******* EVENTS ******* */
@@ -579,16 +608,31 @@
 
 
 		/* ******* DATA SOURCE ******* */
-		
-		private function fetchEntry($eId, $elements = array())
+
+		private function fetchEntryWithData($eId, $sectionId, $elements = array())
 		{
-			$entry = EntryManager::fetch($eId, null, 1, 0, null, null, false, true, $elements, false);
-			if (!is_array($entry) || count($entry) !== 1) {
-				return null;
+			$q = $this->entryManager
+				->select()
+				->entry($eId)
+				->section($sectionId);
+			if ($elements === null) {
+				$q->includeAllFields();
+			} else {
+				$q->schema($elements);
 			}
-			return $entry[0];
+			return $q->execute()
+				->next();
 		}
-		
+
+		private function fetchEntryOnly($eId)
+		{
+			return $this->entryManager
+				->select()
+				->entry($eId)
+				->execute()
+				->next();
+		}
+
 		protected function fetchAllIncludableElements()
 		{
 			$sections = $this->getArray('sections');
@@ -598,7 +642,7 @@
 				}, $item['fields']));
 			}, array());
 		}
-		
+
 		public function fetchIncludableElements()
 		{
 			$label = $this->get('element_name');
@@ -626,7 +670,7 @@
 			}
 			return $includedElements;
 		}
-		
+
 		/**
 		 * Appends data into the XML tree of a Data Source
 		 * @param $wrapper
@@ -653,30 +697,30 @@
 				$root = new XMLElement($this->get('element_name'));
 				$newRoot = true;
 			}
-			
+
 			// devkit will load
 			$devkit = isset($_GET['debug']) && (empty($_GET['debug']) || $_GET['debug'] == 'xml');
-			
+
 			// selected items
 			$entries = static::getEntries($data);
-			
+
 			// current linked entries
 			$root->setAttribute('entries', $data['entries']);
-			
+
 			// available sections
 			$root->setAttribute('sections', $this->get('sections'));
-			
+
 			// included elements
 			$elements = static::parseElements($this);
-			
+
 			// DS mode
 			if (!$mode) {
 				$mode = '*';
 			}
-			
+
 			$parentDeepness = General::intval($this->recursiveDeepness);
 			$deepness = General::intval($this->get('deepness'));
-			
+
 			// both deepnesses are defined and parent restricts more
 			if ($parentDeepness > 0 && $deepness > 0 && $parentDeepness < $deepness) {
 				$deepness = $parentDeepness;
@@ -685,11 +729,11 @@
 			else if ($parentDeepness > 0 && $deepness < 1) {
 				$deepness = $parentDeepness;
 			}
-			
+
 			// cache recursive level because recursion might
 			// change its value later on.
 			$recursiveLevel = $this->recursiveLevel;
-			
+
 			// build entries
 			foreach ($entries as $eId) {
 				// try to find and existing item
@@ -721,8 +765,8 @@
 				// max recursion check
 				if ($deepness < 1 || $recursiveLevel < $deepness) {
 					// current entry, without data
-					$entry = $this->fetchEntry($eId);
-					
+					$entry = $this->fetchEntryOnly($eId);
+
 					// entry not found...
 					if (!$entry || empty($entry)) {
 						$error = new XMLElement('error');
@@ -731,26 +775,26 @@
 						$root->prependChild($error);
 						continue;
 					}
-					
+
 					// fetch section infos
 					$sectionId = $entry->get('section_id');
-					$section = $this->sectionManager->fetch($sectionId);
+					$section = $this->sectionManager
+						->select()
+						->section($sectionId)
+						->execute()
+						->next();
 					$sectionName = $section->get('handle');
-					// cache fields info
-					if (!isset($section->er_field_cache)) {
-						$section->er_field_cache = $section->fetchFields();
-					}
-					
+
 					// set section related attributes
 					$item->setAttribute('section-id', $sectionId);
 					$item->setAttribute('section', $sectionName);
-					
+
 					// Get the valid elements for this section only
 					$validElements = $elements[$sectionName];
-					
+
 					// adjust the mode for the current section
 					$curMode = $mode;
-					
+
 					// remove section name from current mode so "sectionName.field" becomes simply "field"
 					if (preg_match('/^(' . $sectionName . '\.)(.*)$/sU', $curMode)) {
 						$curMode = preg_replace('/^' . $sectionName . '\./sU', '', $curMode);
@@ -765,7 +809,7 @@
 						// mode forbids this section
 						$validElements = null;
 					}
-					
+
 					// this section is not selected, bail out
 					if (!is_array($validElements)) {
 						if ($newItem) {
@@ -780,10 +824,10 @@
 							$item->setAttribute('x-forbidden-by-ds', null);
 						}
 					}
-					
+
 					// selected fields for fetching
 					$sectionElements = array();
-					
+
 					// everything is allowed
 					if (in_array('*', $validElements)) {
 						if ($curMode !== '*') {
@@ -814,7 +858,7 @@
 							$sectionElements = $validElements;
 						}
 					}
-					
+
 					// Filtering is enabled, but nothing is selected
 					if (is_array($sectionElements) && empty($sectionElements)) {
 						if ($newItem) {
@@ -829,37 +873,41 @@
 							$item->setAttribute('x-forbidden-by-selection', null);
 						}
 					}
-					
+
 					// fetch current entry again, but with data for the allowed schema
-					$entry = $this->fetchEntry($eId, $sectionElements);
-					
+					$entry = $this->fetchEntryWithData($eId, $sectionId, $sectionElements);
+
 					// cache the entry data
 					$entryData = $entry->getData();
-					
+
 					// for each field returned for this entry...
 					foreach ($entryData as $fieldId => $data) {
 						$filteredData = array_filter($data, function ($value) {
 							return $value != null;
 						});
-						
+
 						if (empty($filteredData)) {
 							continue;
 						}
-						
-						$field = $section->er_field_cache[$fieldId];
+
+						$field = $this->fieldManager
+							->select()
+							->field($fieldId)
+							->execute()
+							->next();
 						$fieldName = $field->get('element_name');
 						$fieldCurMode = self::extractMode($fieldName, $curMode);
-						
+
 						$parentIncludableElement = self::getSectionElementName($fieldName, $validElements);
 						$parentIncludableElementMode = self::extractMode($fieldName, $parentIncludableElement);
-						
+
 						// Special treatments for ERF
 						if ($field instanceof FieldEntry_relationship) {
 							// Increment recursive level
 							$field->recursiveLevel = $recursiveLevel + 1;
 							$field->recursiveDeepness = $deepness;
 						}
-						
+
 						$submodes = null;
 						// Parent mode is not defined (we are selecting the whole section)
 						if ($parentIncludableElementMode === null) {
@@ -902,7 +950,7 @@
 								$field->expandIncludableElements = true;
 							}
 						}
-						
+
 						// Append the formatted element for each requested mode
 						foreach ($submodes as $submode) {
 							$field->appendFormattedElement($item, $data, $encode, $submode, $eId);
@@ -928,6 +976,7 @@
 					$root->setAttribute('x-data-source-mode', $mode);
 					$root->setAttribute('x-field-included-elements', $this->get('elements'));
 				}
+
 				// add all our data to the wrapper;
 				$wrapper->appendChild($root);
 			} else {
@@ -948,7 +997,7 @@
 		}
 
 		/* ********* Utils *********** */
-		
+
 		/**
 		 * Return true if $fieldName is allowed in $sectionElements
 		 * @param string $fieldName
@@ -980,27 +1029,33 @@
 			}
 			return null;
 		}
-		
+
 		public static function parseElements($field)
 		{
 			$elements = array();
 			$exElements = $field->getArray('elements');
-			
+
+
 			if (in_array('*', $exElements)) {
 				$sections = $field->getArray('sections');
-				$sections = SectionManager::fetch($sections);
+				$sm = new SectionManager;
+				$sections = $sm
+					->select()
+					->sections($sections)
+					->execute()
+					->rows();
 				return array_reduce($sections, function ($result, $section) {
 					$result[$section->get('handle')] = array('*');
 					return $result;
 				}, array());
 			}
-			
+
 			foreach ($exElements as $value) {
 				if (!$value) {
 					continue;
 				}
 				// sectionName.fieldName or sectionName.*
-				$parts = array_map(trim, explode('.', $value, 2));
+				$parts = array_map('trim', explode('.', $value, 2));
 				// first time seeing this section
 				if (!isset($elements[$parts[0]])) {
 					$elements[$parts[0]] = array();
@@ -1014,7 +1069,7 @@
 					$elements[$parts[0]][] = '*';
 				}
 			}
-			
+
 			return $elements;
 		}
 
@@ -1033,16 +1088,20 @@
 
 		private function buildSectionSelect($name)
 		{
-			$sections = SectionManager::fetch();
+			// $sections = SectionManager::fetch();
+			$sections = $this->sectionManager
+				->select()
+				->execute()
+				->rows();
 			$options = array();
 			$selectedSections = $this->getSelectedSectionsArray();
-			
+
 			foreach ($sections as $section) {
 				$driver = $section->get('id');
 				$selected = in_array($driver, $selectedSections);
 				$options[] = array($driver, $selected, General::sanitize($section->get('name')));
 			}
-			
+
 			return Widget::Select($name, $options, array('multiple' => 'multiple'));
 		}
 
@@ -1068,22 +1127,28 @@
 				'name' => $this->createPublishFieldName('entries'),
 				'value' => $data['entries']
 			));
-			
+
 			return $hidden;
 		}
-		
+
 		private function createActionBarMenu($sections)
 		{
 			$wrap = new XMLElement('div');
 			$actionBar = '';
 			$modeFooter = $this->get('mode_footer');
 			if ($modeFooter) {
-				$section = $this->sectionManager->fetch($this->get('parent_section'));
+				$section = $this->sectionManager
+					->select()
+					->section($this->get('parent_section'))
+					->execute()
+					->next();
 				$actionBar = ERFXSLTUTilities::processXSLT($this, null, $section->get('handle'), null, 'mode_footer', isset($_REQUEST['debug']), 'field');
 			}
 			if (empty($actionBar)) {
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'single');
+				$div = new XMLElement('div');
+
 				if ($this->is('allow_search')) {
 					$searchWrap = new XMLElement('div');
 					$searchWrap->setAttribute('data-interactive', 'data-interactive');
@@ -1099,7 +1164,7 @@
 					$searchWrap->appendChild($searchSuggestions);
 					$fieldset->appendChild($searchWrap);
 				}
-				
+
 				if ($this->is('allow_new') || $this->is('allow_link') || $this->is('allow_search')) {
 					$selectWrap = new XMLElement('div');
 					$selectWrap->appendChild(new XMLElement('span', __('Related section: '), array('class' => 'sections-selection')));
@@ -1109,53 +1174,54 @@
 					}
 					$select = Widget::Select('', $options, array('class' => 'sections sections-selection'));
 					$selectWrap->appendChild($select);
-					$fieldset->appendChild($selectWrap);
+					$div->appendChild($selectWrap);
 				}
 				if ($this->is('allow_new')) {
-					$fieldset->appendChild(new XMLElement('button', __('Create new'), array(
+					$div->appendChild(new XMLElement('button', __('Create new'), array(
 						'type' => 'button',
 						'class' => 'create',
 						'data-create' => '',
 					)));
 				}
 				if ($this->is('allow_link')) {
-					$fieldset->appendChild(new XMLElement('button', __('Link to entry'), array(
+					$div->appendChild(new XMLElement('button', __('Link to entry'), array(
 						'type' => 'button',
 						'class' => 'link',
 						'data-link' => '',
 					)));
 				}
+				$fieldset->appendChild($div);
 				$wrap->appendChild($fieldset);
 			}
 			else {
 				$wrap->setValue($actionBar);
 			}
-			
+
 			return $wrap;
 		}
 
 		/* ********* UI *********** */
-		
+
 		/**
 		 *
 		 * Builds the UI for the field's settings when creating/editing a section
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(XMLElement &$wrapper, $errors=null)
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null)
 		{
 			/* first line, label and such */
 			parent::displaySettingsPanel($wrapper, $errors);
-			
+
 			// sections
 			$sections = new XMLElement('fieldset');
-			
+
 			$this->appendSelectionSelect($sections);
 			if (is_array($errors) && isset($errors['sections'])) {
 				$sections = Widget::Error($sections, $errors['sections']);
 			}
 			$wrapper->appendChild($sections);
-			
+
 			// elements
 			$elements = new XMLElement('div');
 			$element = Widget::Label();
@@ -1168,7 +1234,7 @@
 			$elements_choices = new XMLElement('ul', null, array('class' => 'tags singular entry_relationship-field-choices'));
 			$elements->appendChild($elements_choices);
 			$wrapper->appendChild($elements);
-			
+
 			// limit entries
 			$limits = new XMLElement('fieldset');
 			$limits->appendChild(new XMLElement('legend', __('Limits')));
@@ -1192,7 +1258,7 @@
 				'max' => 99999
 			)));
 			$limits_cols->appendChild($limit_max);
-			
+
 			// deepness
 			$deepness = Widget::Label();
 			$deepness->setValue(__('Maximum level of recursion in Data Sources'));
@@ -1204,13 +1270,13 @@
 			$limits_cols->appendChild($deepness);
 			$limits->appendChild($limits_cols);
 			$wrapper->appendChild($limits);
-			
+
 			// xsl
 			$xsl = new XMLElement('fieldset');
 			$xsl->appendChild(new XMLElement('legend', __('Backend XSL templates options')));
 			$xsl_cols = new XMLElement('div');
 			$xsl_cols->setAttribute('class', 'four columns');
-			
+
 			// xsl mode
 			$xslmode = Widget::Label();
 			$xslmode->setValue(__('XSL mode for entries content template'));
@@ -1235,10 +1301,10 @@
 			$xslmodetable->setAttribute('class', 'column');
 			$xslmodetable->appendChild(Widget::Input($this->createSettingsFieldName('mode_footer'), $this->get('mode_footer'), 'text'));
 			$xsl_cols->appendChild($xslmodetable);
-			
+
 			$xsl->appendChild($xsl_cols);
 			$wrapper->appendChild($xsl);
-			
+
 			// permissions
 			$permissions = new XMLElement('fieldset');
 			$permissions->appendChild(new XMLElement('legend', __('Permissions')));
@@ -1250,7 +1316,7 @@
 			$permissions_cols->appendChild($this->createCheckbox('allow_delete', 'Show delete button'));
 			$permissions->appendChild($permissions_cols);
 			$wrapper->appendChild($permissions);
-			
+
 			// display options
 			$display = new XMLElement('fieldset');
 			$display->appendChild(new XMLElement('legend', __('Display options')));
@@ -1261,7 +1327,7 @@
 			$display_cols->appendChild($this->createCheckbox('show_header', 'Show the header box before entries templates'));
 			$display->appendChild($display_cols);
 			$wrapper->appendChild($display);
-			
+
 			// assoc
 			$assoc = new XMLElement('fieldset');
 			$assoc->appendChild(new XMLElement('legend', __('Associations')));
@@ -1270,7 +1336,7 @@
 			$this->appendShowAssociationCheckbox($assoc_cols);
 			$assoc->appendChild($assoc_cols);
 			$wrapper->appendChild($assoc);
-			
+
 			// footer
 			$this->appendStatusFooter($wrapper);
 		}
@@ -1288,23 +1354,27 @@
 		{
 			$entriesId = array();
 			$sectionsId = $this->getSelectedSectionsArray();
-			
+
 			if ($data['entries'] != null) {
 				$entriesId = static::getEntries($data);
 			}
-			
+
 			$sectionsId = array_map(array('General', 'intval'), $sectionsId);
-			$sections = $this->sectionManager->fetch($sectionsId);
+			$sections = $this->sectionManager
+				->select()
+				->sections($sectionsId)
+				->execute()
+				->rows();
 			usort($sections, function ($a, $b) {
 				if ($a->get('name') === $b->get('name')) {
 					return 0;
 				}
 				return $a->get('name') < $b->get('name') ? -1 : 1;
 			});
-			
+
 			$label = Widget::Label($this->get('label'));
 			$notes = '';
-			
+
 			// min note
 			if ($this->getInt('min_entries') > 0) {
 				$notes .= __('Minimum number of entries: <b>%s</b>. ', array($this->get('min_entries')));
@@ -1321,14 +1391,14 @@
 			if ($notes) {
 				$label->appendChild(new XMLElement('i', $notes));
 			}
-			
+
 			// label error management
 			if ($flagWithError != null) {
 				$wrapper->appendChild(Widget::Error($label, $flagWithError));
 			} else {
 				$wrapper->appendChild($label);
 			}
-			
+
 			$wrapper->appendChild($this->createEntriesList($entriesId));
 			$wrapper->appendChild($this->createActionBarMenu($sections));
 			$wrapper->appendChild($this->createEntriesHiddenInput($data));
@@ -1379,8 +1449,12 @@
 			$entries = static::getEntries($data);
 			$realEntries = array();
 			foreach ($entries as $entryId) {
-				$e = EntryManager::fetch($entryId);
-				if (is_array($e) && !empty($e)) {
+				$e = $this->entryManager
+					->select()
+					->entry($entryId)
+					->execute()
+					->rows();
+				if (!empty($e)) {
 					$realEntries = array_merge($realEntries, $e);
 				}
 			}
@@ -1414,21 +1488,43 @@
 				$entries = static::getEntries($data);
 				$cellcontent = '';
 				foreach ($entries as $position => $child_entry_id) {
-					$entry = $this->entryManager->fetch($child_entry_id);
-					if (!$entry || !is_array($entry) || empty($entry)) {
+					$entry = $this->entryManager
+						->select()
+						->entry($child_entry_id)
+						->execute()
+						->next();
+					if (!$entry || empty($entry)) {
 						continue;
 					}
-					reset($entry);
-					$entry = current($entry);
-					$section = $this->sectionManager->fetch($entry->get('section_id'));
-					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
+					$section = $this->sectionManager
+						->select()
+						->section($entry->get('section_id'))
+						->execute()
+						->next();
+					$entry = $this->entryManager
+						->select()
+						->entry($child_entry_id)
+						->section($entry->get('section_id'))
+						->includeAllFields()
+						->execute()
+						->next();
+					$content = ERFXSLTUTilities::processXSLT(
+						$this,
+						$entry,
+						$section->get('handle'),
+						$section->fetchFields(),
+						'mode_table',
+						isset($_REQUEST['debug']),
+						'entry',
+						$position + 1
+					);
 					if ($content) {
 						$cellcontent .= $content;
 					}
 				}
-				
+
 				$cellcontent = trim($cellcontent);
-				
+
 				if (General::strlen($cellcontent)) {
 					if ($link) {
 						$link->setValue($cellcontent);
@@ -1452,17 +1548,26 @@
 		 */
 		public function createTable()
 		{
-			$id = $this->get('id');
-
-			return Symphony::Database()->query("
-				CREATE TABLE `tbl_entries_data_$id` (
-					`id` int(11) 		unsigned NOT NULL AUTO_INCREMENT,
-					`entry_id` 			int(11) unsigned NOT NULL,
-					`entries` 			text COLLATE utf8_unicode_ci NULL,
-					PRIMARY KEY  (`id`),
-					UNIQUE KEY `entry_id` (`entry_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			");
+			return Symphony::Database()
+				->create('tbl_entries_data_' . $this->get('id'))
+				->ifNotExists()
+				->fields([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'entry_id' => 'int(11)',
+					'entries' => [
+						'type' => 'text',
+						'null' => true,
+					],
+				])
+				->keys([
+					'id' => 'primary',
+					'entry_id' => 'unique',
+				])
+				->execute()
+				->success();
 		}
 
 		/**
@@ -1470,120 +1575,256 @@
 		 */
 		public static function createFieldTable()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-
-			return Symphony::Database()->query("
-				CREATE TABLE IF NOT EXISTS `$tbl` (
-					`id` 				int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`field_id` 			int(11) unsigned NOT NULL,
-					`sections`			varchar(2048) NULL COLLATE utf8_unicode_ci,
-					`show_association` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`deepness` 			int(2) unsigned NULL,
-					`elements` 			text COLLATE utf8_unicode_ci NULL,
-					`mode`				varchar(50) NULL COLLATE utf8_unicode_ci,
-					`mode_table`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_header`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`mode_footer`		varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL,
-					`min_entries`		int(5) unsigned NULL,
-					`max_entries`		int(5) unsigned NULL,
-					`allow_edit` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_new` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_link` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_delete` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
-					`allow_collapse` 	enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					`allow_search` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no',
-					`show_header` 		enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					PRIMARY KEY (`id`),
-					UNIQUE KEY `field_id` (`field_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			");
+			return Symphony::Database()
+				->create(self::FIELD_TBL_NAME)
+				->ifNotExists()
+				->fields([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'field_id' => 'int(11)',
+					'sections' => [
+						'type' => 'varchar(2048)',
+						'null' => true,
+					],
+					'show_association' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'deepness' => [
+						'type' => 'int(2)',
+						'null' => true,
+					],
+					'elements' => [
+						'type' => 'text',
+						'null' => true,
+					],
+					'mode' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_table' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_header' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_footer' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'min_entries' => [
+						'type' => 'int(5)',
+						'null' => true,
+					],
+					'max_entries' => [
+						'type' => 'int(5)',
+						'null' => true,
+					],
+					'allow_edit' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_new' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_link' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_delete' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+					'allow_collapse' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_search' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+					'show_header' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->keys([
+					'id' => 'primary',
+					'field_id' => 'unique',
+				])
+				->execute()
+				->success();
 		}
-		
+
 		public static function update_102()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_edit` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_new` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes',
-					ADD COLUMN `allow_link` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-					AFTER `max_entries`
-			";
-			$addColumns = Symphony::Database()->query($sql);
+			$addColumns = Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_edit' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_new' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'allow_link' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('max_entries')
+				->execute()
+				->success();
+
 			if (!$addColumns) {
 				return false;
 			}
 
-			$fields = FieldManager::fetch(null, null, null, 'id', 'entry_relationship');
+			$fields = $this->fieldManager
+				->select()
+				->sort('id', 'asc')
+				->type('entry_relationship')
+				->execute()
+				->rows();
+
 			if (!empty($fields) && is_array($fields)) {
 				foreach ($fields as $fieldId => $field) {
-					$sql = "ALTER TABLE `tbl_entries_data_$fieldId` MODIFY `entries` TEXT";
-					if (!Symphony::Database()->query($sql)) {
+					if (!Symphony::Database()
+						->alter('tbl_entries_data_' . $fieldId)
+						->modify([
+							'entries' => [
+								'type' => 'text',
+								'null' => true,
+							],
+						])
+						->execute()
+						->success()
+					) {
 						throw new Exception(__('Could not update table `tbl_entries_data_%s`.', array($fieldId)));
 					}
 				}
 			}
 			return true;
 		}
-		
+
 		public static function update_103()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_delete` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
-						AFTER `allow_link`
-			";
-			return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_delete' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+				])
+				->after('allow_link')
+				->execute()
+				->success();
 		}
-		
+
 		public static function update_200()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_collapse` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-						AFTER `allow_delete`,
-					ADD COLUMN `mode_table` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode`,
-					ADD COLUMN `mode_header` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_table`,
-					ADD COLUMN `show_header` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'yes'
-						AFTER `allow_collapse`,
-					ADD COLUMN `mode_footer` varchar(50) NULL COLLATE utf8_unicode_ci DEFAULT NULL
-						AFTER `mode_header`,
-					CHANGE `sections` `sections` varchar(2048) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL,
-					CHANGE `elements` `elements` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT NULL
-			";
-			return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_collapse' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('allow_delete')
+				->add([
+					'mode_table' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_header' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'mode_footer' => [
+						'type' => 'varchar(50)',
+						'null'
+					],
+				])
+				->after('mode')
+				->add([
+					'show_header' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+				])
+				->after('allow_collapse')
+				->change([
+					'sections' => [
+						'type' => 'varchar(2048)',
+						'null' => true,
+					],
+					'elements' => [
+						'type' => 'text',
+						'null' => true,
+					],
+				])
+				->execute()
+				->success();
 		}
-		
+
 		public static function update_2008()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			$sql = "
-				ALTER TABLE `$tbl`
-					ADD COLUMN `allow_search` enum('yes','no') NOT NULL COLLATE utf8_unicode_ci DEFAULT 'no'
-						AFTER `allow_collapse`
-			";
-			return Symphony::Database()->query($sql);
+			return Symphony::Database()
+				->alter(self::FIELD_TBL_NAME)
+				->add([
+					'allow_search' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+				])
+				->after('allow_collapse')
+				->execute()
+				->success();
 		}
-		
+
 		/**
 		 *
 		 * Drops the table needed for the settings of the field
 		 */
 		public static function deleteFieldTable()
 		{
-			$tbl = self::FIELD_TBL_NAME;
-			
-			return Symphony::Database()->query("
-				DROP TABLE IF EXISTS `$tbl`
-			");
+			return Symphony::Database()
+				->drop(self::FIELD_TBL_NAME)
+				->ifExists()
+				->execute()
+				->success();
 		}
-		
+
 		private static function removeSectionAssociation($child_field_id)
 		{
-			return Symphony::Database()->delete('tbl_sections_association', "`child_section_field_id` = {$child_field_id}");
+			return Symphony::Database()
+				->delete('tbl_sections_association')
+				->where(['child_section_field_id' => $child_field_id])
+				->execute()
+				->success();
 		}
 	}

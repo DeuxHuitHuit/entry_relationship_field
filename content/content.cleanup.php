@@ -6,28 +6,27 @@
 
 	if(!defined("__IN_SYMPHONY__")) die("<h2>Error</h2><p>You cannot directly access this file</p>");
 
-	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.cacheablefetch.php');
-
 	class contentExtensionEntry_Relationship_FieldCleanup extends AdministrationPage
 	{
 		private $sectionManager;
 		private $fieldManager;
 		private $entryManager;
-		
+
 		public function __construct()
 		{
 			parent::__construct();
-			$this->sectionManager = new CacheableFetch('SectionManager');
-			$this->fieldManager = new CacheableFetch('FieldManager');
-			$this->entryManager = new CacheableFetch('EntryManager');
+			// cache managers
+			$this->sectionManager = new SectionManager;
+			$this->fieldManager = new FieldManager;
+			$this->entryManager = new EntryManager;
 		}
-		
+
 		private static function TableLabel($value)
 		{
 			$label = new XMLElement('span', __($value), array('class' => 'inactive'));
 			return $label->generate() . '<br />';
 		}
-		
+
 		/**
 		 *
 		 * Builds the content view
@@ -35,28 +34,37 @@
 		public function __viewIndex()
 		{
 			$title = __('Entry Relationship Clean up');
-			
+
 			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), $title)));
-			$this->addScriptToHead(URL . '/extensions/entry_relationship_field/assets/cleanup.entry_relationship_field.js', 10, false);
+			$this->addStylesheetToHead(
+				URL . '/extensions/entry_relationship_field/assets/cleanup.entry_relationship_field.css',
+				'screen',
+				time() + 1,
+				false
+			);
+			$this->addScriptToHead(
+				URL . '/extensions/entry_relationship_field/assets/cleanup.entry_relationship_field.js',
+				10,
+				false
+			);
 			$this->setPageType('table');
 			$this->appendSubheading(__($title));
-			
-			$fieldset = new XMLElement('fieldset', null, array('class' => 'settings'));
-			
-			$fieldset->appendChild(new XMLElement('legend',__('List of all orphans entries')));
-			$fieldset->appendChild(new XMLElement('p',__('Please choose what to delete', array('class' => 'help'))));
-			
-			$this->Form->appendChild($fieldset);
-			
+
+			$formTitle = new XMLElement('h2', __('List of all orphans entries'));
+			$formTitle->appendChild(new XMLElement('span', ' - ' . __('Please choose what to delete')));
+			$formTitle->setAttribute('class', 'form-title');
+
+			$this->Form->appendChild($formTitle);
+
 			$fields = $this->getAllFieldsData();
 			$sections = $this->normalizeDataPerSection($fields);
-			
+
 			$thead = array(
-				self::TableLabel('Section'),
-				self::TableLabel('Fields linked to'),
-				self::TableLabel('Number of entries'),
-				self::TableLabel('Orphan entries'),
-				self::TableLabel('Linked entries'),
+				array(__('Section'), 'col'),
+				array(__('Fields linked to'), 'col'),
+				array(__('Number of entries'), 'col'),
+				array(__('Orphan entries'), 'col'),
+				array(__('Linked entries'), 'col'),
 			);
 			$tbody = array();
 
@@ -80,19 +88,43 @@
 					}
 					$tbody[] = Widget::TableRow(array(
 						Widget::TableData(
-							Widget::Anchor('#',
-								'#' . $section['section']->get('handle'), null, null,
-								$section['section']->get('handle')
-							)->generate() . ' ' . $thead[0] .
 							Widget::Anchor(
 								$section['section']->get('name'),
 								SYMPHONY_URL . '/publish/' . $section['section']->get('handle') . '/'
-							)->generate()
+							)->generate(),
+							null,
+							null,
+							null,
+							array('data-title' => __('Section'))
 						),
-						Widget::TableData($thead[1] . count($section['fields']) . $this->generateFieldsLink($section)),
-						Widget::TableData($thead[2] . count($section['all-entries'])),
-						Widget::TableData($thead[3] . count($section['orphans'])),
-						Widget::TableData($thead[4] . count($section['linked-entries'])),
+						Widget::TableData(
+							count($section['fields']) . $this->generateFieldsLink($section),
+							null,
+							null,
+							null,
+							array('data-title' => __('Fields linked to'))
+						),
+						Widget::TableData(
+							count($section['all-entries']),
+							null,
+							null,
+							null,
+							array('data-title' => __('Number of entries'))
+						),
+						Widget::TableData(
+							count($section['orphans']),
+							null,
+							null,
+							null,
+							array('data-title' => __('Orphan entries'))
+						),
+						Widget::TableData(
+							count($section['linked-entries']),
+							null,
+							null,
+							null,
+							array('data-title' => __('Linked entries'))
+						),
 					), 'js-table-section');
 					$tbody[] = Widget::TableRow(array(
 						Widget::TableData(
@@ -102,10 +134,11 @@
 					), 'js-table-entries irrelevant');
 				}
 			}
+
 			$table = Widget::Table(
-				null, null,
+				Widget::TableHead($thead), null,
 				Widget::TableBody($tbody), '', null,
-				array('role' => 'directory', 'aria-labelledby' => 'symphony-subheading', 'data-interactive' => 'data-interactive')
+				array('role' => 'directory', 'aria-labelledby' => 'symphony-subheading', 'data-interactive' => 'data-interactive', 'class' => 'container-table')
 			);
 			$this->Form->appendChild($table);
 
@@ -170,7 +203,7 @@
 		{
 			$html = ' ';
 			foreach ($section['fields'] as $field) {
-				$html .= '<br />' . Widget::Anchor(
+				$html .= ' ' . Widget::Anchor(
 					$field->section->get('name') . ': ' . $field->get('label') ,
 					SYMPHONY_URL . '/publish/' . $field->section->get('handle') . '/'
 				)->generate();
@@ -186,7 +219,7 @@
 			$element_names = array_values(array_map(function ($field) {
 				return $field->get('element_name');
 			}, $visible_columns));
-			
+
 			$entries = $section['orphans'];
 			$thead = array();
 
@@ -197,12 +230,20 @@
 			} else {
 				$thead[] = array(__('ID'));
 			}
-			
+
+			$thead[] = array('');
+
 			$tbody = array();
-			
+
 			foreach ($entries as $orphan) {
 				$td = array();
-				$o = $this->entryManager->fetch($orphan, $section['section']->get('id'), null, null, null, null, false, true, $element_names, false);
+				$o = $this->entryManager
+					->select()
+					->entry($orphan)
+					->section($section['section']->get('id'))
+					->schema($element_names)
+					->execute()
+					->next();
 				if (empty($o)) {
 					$td[] = Widget::TableData("Entry $orphan not found", null, null, count($thead));
 					$tbody[] = Widget::TableRow($td);
@@ -223,7 +264,13 @@
 				if (is_array($visible_columns) && !empty($visible_columns)) {
 					foreach ($visible_columns as $column) {
 						$data = $o->getData($column->get('id'));
-						$td[] = Widget::TableData($column->prepareTableValue($data, $link, $orphan));
+						$td[] = Widget::TableData(
+							$column->prepareTableValue($data, $link, $orphan),
+							null,
+							null,
+							null,
+							array('data-title' => $column->get('label'))
+						);
 						$link = null;
 					}
 				} else {
@@ -235,7 +282,7 @@
 				)));
 				$tbody[] = Widget::TableRow($td);
 			}
-			
+
 			return Widget::Table(
 				Widget::TableHead($thead), null,
 				Widget::TableBody($tbody), 'selectable', null,
@@ -262,8 +309,14 @@
 			foreach ($allLinkedSections as &$ls) {
 				// All entries in that section
 				$ls['all-entries'] = array_map(function ($e) {
-					return $e['id'];
-				}, $this->entryManager->fetch(null, $ls['section']->get('id'), null, null, null, null, false, false, null, false));
+					return $e->get('id');
+				}, $this->entryManager
+					->select()
+					->section($ls['section']->get('id'))
+					->schema(['id'])
+					->execute()
+					->rows()
+				);
 				// Merge all linked entries for each related field
 				$ls['linked-entries'] = array();
 				foreach ($ls['fields'] as $field) {
@@ -279,13 +332,28 @@
 
 		public function getAllFieldsData()
 		{
-			$fields = $this->fieldManager->fetch(null, null, 'ASC', 'sortorder', 'entry_relationship');
+			$fields = $this->fieldManager
+				->select()
+				->sort('sortorder', 'asc')
+				->type('entry_relationship')
+				->execute()
+				->rows();
 			$fields = array_map(function ($f) {
 				// Get the field's section
-				$f->section = $this->sectionManager->fetch($f->get('parent_section'));
+				$f->section = $this->sectionManager
+					->select()
+					->section($f->get('parent_section'))
+					->execute()
+					->next();
 				// Get all linked entries from all entries in this field
 				$f->linkedEntries = array();
-				$fieldEntries = $this->entryManager->fetch(null, $f->get('parent_section'), null, null, null, null, false, true, array($f->get('element_name')), false);
+				$fieldEntries = $this->entryManager
+					->select()
+					->section($f->get('parent_section'))
+					->includeAllFields()
+					->schema([$f->get('element_name')])
+					->execute()
+					->rows();
 				foreach ($fieldEntries as $fEntry) {
 					$fedata = $fEntry->getData($f->get('id'));
 					if (empty($fedata)) {
@@ -298,13 +366,17 @@
 				$f->linkedSections = array();
 				$rSections = explode(',', $f->get('sections'));
 				foreach ($rSections as $s) {
-					$section = $this->sectionManager->fetch($s);
+					$section = $this->sectionManager
+						->select()
+						->section($s)
+						->execute()
+						->next();
 					$f->linkedSections[] = $section;
 				}
 				// Return new field object
 				return $f;
 			}, $fields);
-			
+
 			return $fields;
 		}
 	}

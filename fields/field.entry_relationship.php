@@ -1501,7 +1501,23 @@
 						->section($entry->get('section_id'))
 						->execute()
 						->next();
-					$content = ERFXSLTUTilities::processXSLT($this, $entry, $section->get('handle'), $section->fetchFields(), 'mode_table', isset($_REQUEST['debug']), 'entry', $position + 1);
+					$entry = $this->entryManager
+						->select()
+						->entry($child_entry_id)
+						->section($entry->get('section_id'))
+						->includeAllFields()
+						->execute()
+						->next();
+					$content = ERFXSLTUTilities::processXSLT(
+						$this,
+						$entry,
+						$section->get('handle'),
+						$section->fetchFields(),
+						'mode_table',
+						isset($_REQUEST['debug']),
+						'entry',
+						$position + 1
+					);
 					if ($content) {
 						$cellcontent .= $content;
 					}

@@ -848,10 +848,13 @@
 						
 						$field = $section->er_field_cache[$fieldId];
 						$fieldName = $field->get('element_name');
-						$fieldCurMode = self::extractMode($fieldName, $curMode);
 						
-						$parentIncludableElement = self::getSectionElementName($fieldName, $validElements);
-						$parentIncludableElementMode = self::extractMode($fieldName, $parentIncludableElement);
+						$submodes = null;
+						if ($curMode === '*') {
+							$submodes = self::getAllSelectedFieldModes($fieldName, $validElements);
+						} else {
+							$submodes = array($curMode);
+						}
 						
 						// Special treatments for ERF
 						if ($field instanceof FieldEntry_relationship) {
@@ -860,36 +863,6 @@
 							$field->recursiveDeepness = $deepness;
 						}
 						
-						$submodes = null;
-						// Parent mode is not defined (we are selecting the whole section)
-						if ($parentIncludableElementMode === null) {
-							if ($fieldCurMode == null) {
-								// Field does not defined a mode either: use the field's default
-								$submodes = null;
-							} else {
-								// Use the current field's mode
-								$submodes = array($fieldCurMode);
-							}
-							if ($devkit) {
-								$item->setAttribute('x-selection-mode-empty', null);
-							}
-						} else {
-							// Field mode is not defined or it is the same as the parent
-							if ($fieldCurMode === null || $fieldCurMode == $parentIncludableElementMode) {
-								if ($devkit) {
-									$item->setAttribute('x-selection-mode-empty', null);
-								}
-								// Use parent mode
-								$submodes = array($parentIncludableElementMode);
-							} else {
-								if ($devkit) {
-									$item->setAttribute('x-selection-mode-empty', 'yes');
-								}
-								// Empty selection
-								$submodes = array();
-							}
-						}
-
 						// current selection does not specify a mode
 						if ($submodes === null) {
 							if ($field instanceof FieldEntry_Relationship) {
@@ -900,6 +873,10 @@
 							}, $field->fetchIncludableElements());
 							if ($field instanceof FieldEntry_Relationship) {
 								$field->expandIncludableElements = true;
+							}
+						} elseif (empty($submodes)) {
+							if ($devkit) {
+								$item->setAttribute('x-selection-mode-empty', $fieldName);
 							}
 						}
 						
@@ -957,28 +934,44 @@
 		 */
 		public static function isFieldIncluded($fieldName, $sectionElements)
 		{
-			return self::getSectionElementName($fieldName, $sectionElements) !== null;
+			$modes = self::getAllSelectedFieldModes($fieldName, $sectionElements);
+			return $modes === null || !empty($modes);
 		}
 
-		public static function getSectionElementName($fieldName, $sectionElements)
+		/**
+		 * Returns all selected modes allowed in $sectionElements or null if they are all allowed
+		 * @param string $fieldName
+		 * @param string $sectionElements
+		 * @return array|null
+		 */
+		public static function getAllSelectedFieldModes($fieldName, $sectionElements)
 		{
+			$elements = array();
 			if (is_array($sectionElements)) {
 				foreach ($sectionElements as $element) {
 					// everything is allowed, use "fieldName" directly
-					if ($element === '*') {
-						return $fieldName;
+					if ($element === '*' || $fieldName === $element) {
+						return null;
 					}
 					// make "fieldName: *" the same as "fieldName"
 					if (preg_match('/\s*:\s*\*/sU', $fieldName)) {
 						$fieldName = trim(current(explode(':', $fieldName)));
 					}
-					// "fieldName" is included as-is or element starts with "fieldName:"
-					if ($fieldName === $element || preg_match('/^' . $fieldName . '\s*:/sU', $element)) {
-						return $element;
+					// "fieldName" is included as-is
+					if ($fieldName === $element) {
+						return null;
+					}
+
+					// element starts with "fieldName:"
+					if (preg_match('/^' . $fieldName . '\s*:/sU', $element)) {
+						$elements[] = self::extractMode($fieldName, $element);
 					}
 				}
+				if (!empty($elements)) {
+					return $elements;
+				}
 			}
-			return null;
+			return $elements;
 		}
 		
 		public static function parseElements($field)

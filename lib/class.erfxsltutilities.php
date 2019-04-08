@@ -149,8 +149,7 @@
 					
 					try {
 						if (FieldEntry_relationship::isFieldIncluded($fieldName, $fieldIncludedElement)) {
-							$parentIncludableElement = FieldEntry_relationship::getSectionElementName($fieldName, $fieldIncludedElement);
-							$parentIncludableElementMode = FieldEntry_relationship::extractMode($fieldName, $parentIncludableElement);
+							$submodes = FieldEntry_relationship::getAllSelectedFieldModes($fieldName, $fieldIncludedElement);
 							
 							// Special treatments for ERF
 							if ($field instanceof FieldEntry_relationship) {
@@ -159,7 +158,7 @@
 								$field->setRecursiveDeepness($deepness);
 							}
 							
-							if ($parentIncludableElementMode == null) {
+							if ($submodes == null) {
 								if ($field instanceof FieldEntry_Relationship) {
 									$field->expandIncludableElements = false;
 								}
@@ -169,9 +168,6 @@
 								if ($field instanceof FieldEntry_Relationship) {
 									$field->expandIncludableElements = true;
 								}
-							}
-							else {
-								$submodes = array($parentIncludableElementMode);
 							}
 							
 							foreach ($submodes as $submode) {

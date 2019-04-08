@@ -30,6 +30,10 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.2.5" date="2019-04-08" min="2.7.3" max="2.x.x">
+			- Fix missing $
+			- Fix broken field section in Datasources
+		</release>
 		<release version="2.2.4" date="2018-09-12" min="2.7.3" max="2.x.x">
 			- Add support for drawers (except filtering)
 		</release>

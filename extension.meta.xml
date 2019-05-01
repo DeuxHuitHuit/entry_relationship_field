@@ -30,6 +30,10 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.3.0" date="2019-05-01" min="2.7.3" max="2.x.x">
+			- Fix for field name selection that was not properly working
+			- Add support for selecting system dates (creation/modification)
+		</release>
 		<release version="2.2.5" date="2019-04-08" min="2.7.3" max="2.x.x">
 			- Fix missing $
 			- Fix broken field section in Datasources

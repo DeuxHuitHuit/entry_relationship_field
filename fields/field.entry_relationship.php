@@ -624,6 +624,9 @@
 					$includedElements = array('*');
 				}
 			}
+			// Include system dates
+			$includedElements[] = $label . ': system:creation-date';
+			$includedElements[] = $label . ': system:modification-date';
 			return $includedElements;
 		}
 		
@@ -764,6 +767,25 @@
 					else if ($curMode != '*') {
 						// mode forbids this section
 						$validElements = null;
+					}
+					
+					// special case for system:creation-date
+					if (preg_match('/^system:\s*creation-date$/sU', $curMode)) {
+						$item->appendChild(
+							General::createXMLDateObject(
+								DateTimeObj::get('U', $entry->get('creation_date')),
+								'created'
+							)
+						);
+						continue;
+					} elseif (preg_match('/^system:\s*modification-date$/sU', $curMode)) {
+						$item->appendChild(
+							General::createXMLDateObject(
+								DateTimeObj::get('U', $entry->get('modification_date')),
+								'modified'
+							)
+						);
+						continue;
 					}
 					
 					// this section is not selected, bail out

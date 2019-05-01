@@ -136,7 +136,7 @@
 			}
 			
 			// set new data
-			$entryData[$parentFieldId]['entries'] = implode(',', $entriesId);
+			$entryData[$parentFieldId]['entries'] = empty($entriesId) ? null : implode(',', $entriesId);
 			
 			// check if data are valid
 			$resMessage = null;

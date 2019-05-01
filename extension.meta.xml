@@ -30,6 +30,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="2.3.1" date="2019-05-01" min="2.7.3" max="2.x.x">
+			- Fix ajax save when no entries linked (#82)
+		</release>
 		<release version="2.3.0" date="2019-05-01" min="2.7.3" max="2.x.x">
 			- Fix for field name selection that was not properly working
 			- Add support for selecting system dates (creation/modification)

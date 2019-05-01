@@ -763,8 +763,13 @@
 					else if (preg_match('/^(' . $sectionName . ')$/sU', $curMode)) {
 						$curMode = '*';
 					}
+					// checks if the mode is the current field
+					// treat it like if is is "*"
+					elseif ($curMode === $this->get('element_name')) {
+						$curMode = '*';
+					}
 					// section name was not found in mode, check if the mode is "*"
-					else if ($curMode != '*') {
+					else if ($curMode !== '*') {
 						// mode forbids this section
 						$validElements = null;
 					}

@@ -1020,7 +1020,7 @@
 					continue;
 				}
 				// sectionName.fieldName or sectionName.*
-				$parts = array_map(trim, explode('.', $value, 2));
+				$parts = array_map('trim', explode('.', $value, 2));
 				// first time seeing this section
 				if (!isset($elements[$parts[0]])) {
 					$elements[$parts[0]] = array();

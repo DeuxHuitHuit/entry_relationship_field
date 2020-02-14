@@ -11,13 +11,13 @@
 	require_once(EXTENSIONS . '/entry_relationship_field/lib/class.erfxsltutilities.php');
 
 	class contentExtensionEntry_Relationship_FieldRender extends XMLPage {
-		
+
 		const NUMBER_OF_URL_PARAMETERS = 2;
 
 		private $sectionManager;
 		private $fieldManager;
 		private $entryManager;
-		
+
 		public function __construct() {
 			parent::__construct();
 			$this->sectionManager = new CacheableFetch('SectionManager');
@@ -27,7 +27,7 @@
 			$this->_Result->setIncludeHeader(false);
 			$this->addHeaderToPage('Content-Type', 'text/html');
 		}
-		
+
 		/**
 		 *
 		 * Builds the content view
@@ -53,26 +53,26 @@
 				$this->_Result->appendChild(new XMLElement('error', __('Too many parameters')));
 				return;
 			}
-			
+
 			$entriesId = explode(',', MySQL::cleanValue($this->_context[0]));
 			$entriesId = array_map(array('General', 'intval'), $entriesId);
 			if (!is_array($entriesId) || empty($entriesId)) {
 				$this->_Result->appendChild(new XMLElement('error', __('No entry no found')));
 				return;
 			}
-			
+
 			$parentFieldId = General::intval($this->_context[1]);
 			if ($parentFieldId < 1) {
 				$this->_Result->appendChild(new XMLElement('error', __('Parent field id not valid')));
 				return;
 			}
-			
+
 			$parentField = $this->fieldManager->fetch($parentFieldId);
 			if (!$parentField || empty($parentField)) {
 				$this->_Result->appendChild(new XMLElement('error', __('Parent field not found')));
 				return;
 			}
-			
+
 			if (!($parentField instanceof FieldRelationship)) {
 				$this->_Result->appendChild(new XMLElement('error', __('Parent field is `%s`, not `relationship field`', array($parentField->get('type')))));
 				return;
@@ -83,7 +83,7 @@
 			if (!$parentField->get('sections') && $parentField->get('linked_section_id')) {
 				$parentField->set('sections', $parentField->get('linked_section_id'));
 			}
-			
+
 			// Get entries one by one since they may belong to
 			// different sections, which prevents us from
 			// passing an array of entryId.
@@ -111,7 +111,7 @@
 					$entryVisibleFields = $entrySection->fetchVisibleColumns();
 					$entryFields = $entrySection->fetchFields();
 					$entrySectionHandle = $this->getSectionName($entry, 'handle');
-					
+
 					$li = new XMLElement('li', null, array(
 						'data-entry-id' => $entryId,
 						'data-section' => $entrySectionHandle,
@@ -132,7 +132,7 @@
 							$title->setValue(ERFXSLTUTilities::processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, 'mode_header'));
 						}
 						$header->appendChild($title);
-						
+
 						$options = new XMLElement('div', null, array('class' => 'destructor'));
 						if ($parentField->is('allow_edit')) {
 							$title->setAttribute('data-edit', $entryId);
@@ -159,9 +159,7 @@
 								'data-goto' => $entryId,
 							)));
 						}
-						if ($parentField->is('allow_delete') ||
-							$parentField->is('allow_link') || $parentField->is('allow_unlink') ||
-							$parentField->is('allow_search')) {
+						if ($parentField->is('allow_link') || $parentField->is('allow_unlink')) {
 							$options->appendChild(new XMLElement('a', __('Un-link'), array(
 								'class' => 'unlink ignore-collapsible',
 								'data-unlink' => $entryId,
@@ -170,9 +168,9 @@
 						$header->appendChild($options);
 						$li->appendChild($header);
 					}
-					
+
 					$content = ERFXSLTUTilities::processXSLT($parentField, $entry, $entrySectionHandle, $entryFields, 'mode', isset($_REQUEST['debug']));
-					
+
 					if ($content) {
 						$li->appendChild(new XMLElement('div', $content, array(
 							'class' => 'content',
@@ -189,31 +187,31 @@
 							$li->appendChild($content);
 						}
 					}
-					
+
 					$this->_Result->appendChild($li);
 				}
 			}
 		}
-		
+
 		public function getSectionName($entry, $name = 'name') {
 			$sectionId = $entry->get('section_id');
 			return $this->sectionManager->fetch($sectionId)->get($name);
 		}
-		
+
 		public function getEntryTitle($entry, $entryVisibleFields, $entryFields) {
 			$data = $entry->getData();
 			$field = empty($entryVisibleFields) ? $entryFields : $entryVisibleFields;
 			if (is_array($field)) {
 				$field = current($field);
 			}
-			
+
 			if ($field == null) {
 				return __('None');
 			}
-			
+
 			return $field->prepareReadableValue($data[$field->get('id')], $entry->get('id'), true);
 		}
-		
+
 		public function buildDefaultTitle($entry, $entryVisibleFields, $entryFields) {
 			return array(
 				new XMLElement('strong', $this->getEntryTitle($entry, $entryVisibleFields, $entryFields), array('class' => 'ignore-collapsible')),

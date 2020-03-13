@@ -46,7 +46,7 @@ class FieldRelationship extends Field
 
     public function getArray($name)
     {
-        return array_filter(array_map(trim, explode(self::SEPARATOR, trim($this->get($name)))));
+        return array_filter(array_map('trim', explode(self::SEPARATOR, trim($this->get($name)))));
     }
 
     /**
@@ -60,7 +60,7 @@ class FieldRelationship extends Field
 
     public static function getEntries(array $data)
     {
-        return array_map(array('General', 'intval'), array_filter(array_map(trim, explode(self::SEPARATOR, $data['entries']))));
+        return array_map(array('General', 'intval'), array_filter(array_map('trim', explode(self::SEPARATOR, $data['entries']))));
     }
 
     /**
